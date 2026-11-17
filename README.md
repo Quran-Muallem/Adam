@@ -93,3 +93,12 @@ npx cap open android
 ```
 
 Hinweis: Die Schriftart „Baloo 2“ wird von Google Fonts geladen. Offline fällt die App automatisch auf eine runde Systemschrift zurück; für eine reine Offline-App die Schrift lokal unter `public/` ablegen.
+
+## Automatische Builds (GitHub Actions)
+
+Bei jedem Push auf `main` laufen zwei Workflows:
+
+- **Web (GitHub Pages)** – baut die App und legt sie im Branch `gh-pages` ab. Spielbar unter **https://quran-muallem.github.io/Adam/** (einmalig unter *Settings → Pages* die Quelle „Deploy from a branch → gh-pages / root“ wählen, falls die Seite nicht von selbst erscheint).
+- **Android APK** – baut mit Capacitor eine installierbare APK und veröffentlicht sie unter **Releases** (`robo-code.apk`).
+
+`android-signing/debug.keystore` ist ein reiner Test-Schlüssel (Passwort `android`), damit jede neue APK über die alte installiert werden kann. Für eine Veröffentlichung im Play Store einen eigenen, geheimen Schlüssel verwenden.

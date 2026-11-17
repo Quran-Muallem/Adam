@@ -1,0 +1,71 @@
+# Baut eine installierbare Android-APK (Capacitor) und stellt sie unter "Releases" bereit
+name: Android APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+
+      - name: Android-Projekt erzeugen
+        run: |
+          npx cap add android
+          npx cap sync android
+
+      # Immer derselbe Signatur-Schlüssel -> neue Versionen lassen sich über die alte installieren
+      - name: Signatur-Schlüssel bereitstellen
+        run: |
+          mkdir -p ~/.android
+          cp android-signing/debug.keystore ~/.android/debug.keystore
+
+      - name: Versionsnummer setzen
+        run: |
+          sed -i "s/versionCode 1$/versionCode ${{ github.run_number }}/" android/app/build.gradle
+          sed -i "s/versionName \"1.0\"/versionName \"1.0.${{ github.run_number }}\"/" android/app/build.gradle
+
+      - name: APK bauen
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      - name: APK umbenennen
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk robo-code.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: robo-code-apk
+          path: robo-code.apk
+
+      - name: Release veröffentlichen
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          name: Robo Code v1.0.${{ github.run_number }}
+          body: |
+            📱 **robo-code.apk** herunterladen und auf dem Android-Handy öffnen, um die App zu installieren.
+            (Beim ersten Mal „Installation aus unbekannten Quellen“ erlauben.)
+          files: robo-code.apk
+          make_latest: true

@@ -3,5 +3,5 @@ dist
 *.log
 .DS_Store
 .vite
-android
 ios
+/android
