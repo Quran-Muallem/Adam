@@ -1,22 +1,29 @@
-// Konfetti-Regen – reines CSS, keine Bibliothek
+// Konfetti-Explosion aus der Bildschirmmitte – reines CSS
 import { useMemo, type CSSProperties } from 'react';
 
-const COLORS = ['#f43f5e', '#f59e0b', '#22c55e', '#3b82f6', '#a855f7', '#facc15', '#06b6d4'];
+const COLORS = ['#f43f5e', '#f59e0b', '#22c55e', '#3b82f6', '#a855f7', '#facc15', '#06b6d4', '#ec4899'];
+const SHAPES = ['⭐', '✨', '💖', '🎉'];
 
-export function Confetti({ count = 90 }: { count?: number }) {
+export function Confetti({ count = 120 }: { count?: number }) {
   const pieces = useMemo(
     () =>
-      Array.from({ length: count }, (_, i) => ({
-        id: i,
-        left: Math.random() * 100,
-        color: COLORS[i % COLORS.length],
-        w: 6 + Math.random() * 8,
-        h: 8 + Math.random() * 10,
-        delay: Math.random() * 0.8,
-        dur: 2.2 + Math.random() * 1.8,
-        drift: (Math.random() - 0.5) * 160,
-        round: Math.random() > 0.6,
-      })),
+      Array.from({ length: count }, (_, i) => {
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 160 + Math.random() * 420;
+        return {
+          id: i,
+          color: COLORS[i % COLORS.length],
+          w: 7 + Math.random() * 9,
+          h: 9 + Math.random() * 12,
+          delay: Math.random() * 0.25,
+          dur: 1.4 + Math.random() * 1.4,
+          tx: Math.cos(angle) * dist,
+          ty: Math.sin(angle) * dist + 180,
+          rot: (Math.random() - 0.5) * 1440,
+          emoji: i % 9 === 0 ? SHAPES[i % SHAPES.length] : null,
+          round: Math.random() > 0.6,
+        };
+      }),
     [count],
   );
   return (
@@ -24,21 +31,24 @@ export function Confetti({ count = 90 }: { count?: number }) {
       {pieces.map((p) => (
         <span
           key={p.id}
-          className="absolute top-0 animate-confetti-fall"
+          className="absolute left-1/2 top-[45%] flex animate-confetti-burst items-center justify-center text-xl"
           style={
             {
-              left: `${p.left}%`,
-              width: p.w,
-              height: p.round ? p.w : p.h,
-              background: p.color,
-              borderRadius: p.round ? '9999px' : '2px',
+              width: p.emoji ? 'auto' : p.w,
+              height: p.emoji ? 'auto' : p.round ? p.w : p.h,
+              background: p.emoji ? 'none' : p.color,
+              borderRadius: p.round ? '9999px' : '3px',
               '--delay': `${p.delay}s`,
               '--dur': `${p.dur}s`,
-              '--drift': `${p.drift}px`,
+              '--tx': `${p.tx}px`,
+              '--ty': `${p.ty}px`,
+              '--rot': `${p.rot}deg`,
               opacity: 0,
             } as CSSProperties
           }
-        />
+        >
+          {p.emoji}
+        </span>
       ))}
     </div>
   );

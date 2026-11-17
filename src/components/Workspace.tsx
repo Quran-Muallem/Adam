@@ -1,32 +1,36 @@
 // ─────────────────────────────────────────────────────────────
-// Workspace: zeigt das Programm. Der gerade ausgeführte Block
-// leuchtet auf (visuelles Debugging).
+// Workspace: zeigt das Programm als Glossy-Blöcke. Der gerade
+// ausgeführte Block leuchtet golden und pulsiert im Takt der
+// Schritte (visuelles Debugging).
 // ─────────────────────────────────────────────────────────────
-import { Minus, Plus, WandSparkles, X } from 'lucide-react';
-import { useEffect, useRef, type ReactNode } from 'react';
-import type { AgeGroupConfig } from '../data/ageGroups';
+import { Minus, Plus, X } from 'lucide-react';
+import { useEffect, useRef, type CSSProperties, type ReactNode } from 'react';
 import { isContainer } from '../engine/program';
-import type { Block, Frame, InsertTarget, Program } from '../types';
-import { BLOCK_META, COND_LABEL, kindOf } from './blockMeta';
+import type { AgeGroupId, Block, Frame, InsertTarget, Program } from '../types';
+import { BLOCK_META, COND_LABEL, COND_ORDER, kindOf } from './blockMeta';
 
 interface Ctx {
   activeIds: string[];
   currentId: string | null;
   loops: Record<string, number>;
   condResult?: boolean;
+  frameIndex: number;
+  pulseMs: number;
   target: InsertTarget;
   setTarget: (t: InsertTarget) => void;
   remove: (id: string) => void;
   update: (id: string, patch: (b: Block) => Block) => void;
   locked: boolean;
-  allowTimes: boolean;
+  group: AgeGroupId;
   root: 'main' | 'macro';
 }
 
 interface Props {
   program: Program;
-  group: AgeGroupConfig;
+  group: AgeGroupId;
   frame: Frame | null;
+  frameIndex: number;
+  pulseMs: number;
   target: InsertTarget;
   setTarget: (t: InsertTarget) => void;
   remove: (id: string) => void;
@@ -35,42 +39,45 @@ interface Props {
   showMacro: boolean;
 }
 
+const MAX_COUNT: Record<AgeGroupId, number> = { mini: 4, junior: 6, hero: 30 };
+
 export function Workspace(props: Props) {
-  const { program, frame, target, setTarget, showMacro, group, locked } = props;
+  const { program, frame, target, setTarget, showMacro, locked } = props;
   const activeIds = frame?.activeIds ?? [];
   const base = {
     activeIds,
     currentId: activeIds.length ? activeIds[activeIds.length - 1] : null,
     loops: frame?.loops ?? {},
     condResult: frame?.condResult,
+    frameIndex: props.frameIndex,
+    pulseMs: props.pulseMs,
     target,
     setTarget,
     remove: props.remove,
     update: props.update,
     locked,
-    allowTimes: group.allowTimes,
+    group: props.group,
   };
+  const selectable = showMacro || program.main.some(isContainer);
 
   return (
     <div className="flex flex-col gap-3">
       <RootSection
-        title="Hauptprogramm"
+        title="Mein Programm"
         emoji="🧩"
         isTarget={target.root === 'main' && target.parentId === null}
         onSelect={() => setTarget({ root: 'main', parentId: null })}
-        locked={locked}
         blocks={program.main}
         ctx={{ ...base, root: 'main' }}
-        selectable={showMacro || program.main.some(isContainer)}
+        selectable={selectable}
       />
       {showMacro && (
         <RootSection
-          title="Zauber-Makro"
-          emoji="✨"
+          title="Zauber-Makro F1"
+          emoji="🪄"
           macro
           isTarget={target.root === 'macro' && target.parentId === null}
           onSelect={() => setTarget({ root: 'macro', parentId: null })}
-          locked={locked}
           blocks={program.macro}
           ctx={{ ...base, root: 'macro' }}
           selectable
@@ -86,31 +93,33 @@ function RootSection(p: {
   macro?: boolean;
   isTarget: boolean;
   onSelect: () => void;
-  locked: boolean;
   blocks: Block[];
   ctx: Ctx;
   selectable: boolean;
 }) {
+  const highlighted = p.isTarget && p.selectable;
   return (
     <section
-      className={`rounded-2xl border-2 p-2 transition ${
-        p.macro ? 'border-fuchsia-300 bg-fuchsia-50/90' : 'border-white/70 bg-white/80'
-      } ${p.isTarget && p.selectable ? 'ring-4 ring-yellow-300' : ''}`}
+      className={`rounded-3xl p-2 transition ${p.macro ? 'bg-fuchsia-50/95' : 'glass'} ${highlighted ? 'ring-4 ring-yellow-300' : ''}`}
+      style={p.macro ? { boxShadow: '0 8px 24px -10px rgba(162,28,175,.6), inset 0 2px 0 #fff' } : undefined}
     >
       <button
         type="button"
-        disabled={p.locked}
+        disabled={p.ctx.locked}
         onClick={p.onSelect}
-        className="mb-2 flex w-full items-center gap-2 rounded-xl px-2 py-1 text-left text-sm font-extrabold text-slate-700"
+        className="mb-2 flex w-full items-center gap-2 rounded-xl px-2 py-1 text-left text-base font-bold text-slate-700"
       >
-        <span>{p.emoji}</span>
+        <span className="text-lg">{p.emoji}</span>
         <span>{p.title}</span>
-        {p.macro && <WandSparkles className="h-4 w-4 text-fuchsia-500" />}
-        {p.isTarget && p.selectable && (
-          <span className="ml-auto rounded-full bg-yellow-300 px-2 text-xs text-yellow-900">neue Blöcke hier</span>
+        {highlighted && (
+          <span className="ml-auto animate-pop rounded-full bg-yellow-300 px-2 text-xs font-bold text-yellow-900">✨ neue Blöcke hier</span>
         )}
       </button>
-      <BlockList blocks={p.blocks} ctx={p.ctx} emptyHint={p.macro ? 'Lege hier Blöcke für deinen Zauber ab' : 'Tippe unten auf Blöcke!'} />
+      <BlockList
+        blocks={p.blocks}
+        ctx={p.ctx}
+        emptyHint={p.macro ? 'Lege hier die Blöcke für deinen Zauber ab 🪄' : 'Tippe unten auf bunte Blöcke!'}
+      />
     </section>
   );
 }
@@ -118,17 +127,28 @@ function RootSection(p: {
 function BlockList({ blocks, ctx, emptyHint }: { blocks: Block[]; ctx: Ctx; emptyHint: string }) {
   if (blocks.length === 0) {
     return (
-      <div className="rounded-xl border-2 border-dashed border-slate-300 px-3 py-3 text-center text-sm font-semibold text-slate-400">
+      <div className="rounded-2xl border-[3px] border-dashed border-slate-300 px-3 py-3 text-center text-sm font-semibold text-slate-400">
         {emptyHint}
       </div>
     );
   }
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex flex-col gap-2">
       {blocks.map((b) => (
         <BlockItem key={b.id} block={b} ctx={ctx} />
       ))}
     </div>
+  );
+}
+
+/** Goldener Puls-Ring, der bei jedem Schritt neu startet */
+function GoldPulse({ ctx }: { ctx: Ctx }) {
+  return (
+    <span
+      key={ctx.frameIndex}
+      className="pointer-events-none absolute inset-0 z-10 animate-gold-pulse rounded-[inherit]"
+      style={{ ['--pulse' as string]: `${ctx.pulseMs}ms` }}
+    />
   );
 }
 
@@ -138,16 +158,11 @@ function BlockItem({ block, ctx }: { block: Block; ctx: Ctx }) {
   const active = ctx.activeIds.includes(block.id);
   const current = ctx.currentId === block.id;
   const ref = useRef<HTMLDivElement>(null);
+  const cvar = { '--c': meta.color } as CSSProperties;
 
   useEffect(() => {
     if (current) ref.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-  }, [current]);
-
-  const glow = current
-    ? 'ring-4 ring-yellow-300 scale-[1.03] shadow-[0_0_18px_rgba(253,224,71,0.9)] brightness-110'
-    : active
-      ? 'ring-2 ring-yellow-200'
-      : '';
+  }, [current, ctx.frameIndex]);
 
   const removeBtn = (
     <button
@@ -158,48 +173,70 @@ function BlockItem({ block, ctx }: { block: Block; ctx: Ctx }) {
         e.stopPropagation();
         ctx.remove(block.id);
       }}
-      className="ml-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-black/20 text-white active:scale-90 disabled:opacity-40"
+      className="ml-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-black/20 text-white active:scale-90 disabled:opacity-40"
     >
-      <X className="h-4 w-4" />
+      <X className="h-5 w-5" strokeWidth={3} />
     </button>
   );
 
   if (isContainer(block)) {
     const isTarget = ctx.target.root === ctx.root && ctx.target.parentId === block.id;
     const loopNow = ctx.loops[block.id];
+    const maxCount = MAX_COUNT[ctx.group];
+    const selectThis = () => !ctx.locked && ctx.setTarget({ root: ctx.root, parentId: block.id });
+
     return (
-      <div ref={ref} className={`rounded-2xl border-2 ${meta.border} ${meta.soft} transition-all duration-200 ${glow}`}>
+      <div
+        ref={ref}
+        className={`relative rounded-[1.4rem] transition-all duration-200 ${current ? 'gold-glow' : active ? 'ring-2 ring-yellow-200' : ''}`}
+        style={{ background: meta.soft, boxShadow: `0 0 0 3px ${meta.color}, 0 6px 0 rgba(0,0,0,.12)` }}
+      >
+        {current && <GoldPulse ctx={ctx} />}
         <div
           role="button"
           tabIndex={0}
-          onClick={() => !ctx.locked && ctx.setTarget({ root: ctx.root, parentId: block.id })}
-          className={`flex min-h-[48px] items-center gap-2 rounded-t-xl ${meta.color} px-2 py-1.5 text-white`}
+          onClick={selectThis}
+          className="squish flex min-h-[52px] flex-wrap items-center gap-2 rounded-t-[1.3rem] px-2 py-1.5"
+          style={cvar}
         >
-          <Icon className="h-5 w-5 shrink-0" />
-          <span className="font-extrabold">{meta.label}</span>
+          <Icon className="h-6 w-6 shrink-0" strokeWidth={3} />
+          <span className="text-lg font-bold">{meta.label}</span>
 
-          {block.type === 'repeat' && (
-            <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-              <RoundBtn
-                disabled={ctx.locked || block.count <= 1}
-                onClick={() => ctx.update(block.id, (b) => (b.type === 'repeat' ? { ...b, count: b.count - 1 } : b))}
-                label="weniger"
+          {block.type === 'repeat' &&
+            (ctx.group === 'hero' ? (
+              <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                <RoundBtn
+                  disabled={ctx.locked || block.count <= 2}
+                  onClick={() => ctx.update(block.id, (b) => (b.type === 'repeat' ? { ...b, count: b.count - 1 } : b))}
+                  label="weniger"
+                >
+                  <Minus className="h-4 w-4" strokeWidth={3} />
+                </RoundBtn>
+                <span className="min-w-[2.2ch] rounded-lg bg-white px-1.5 text-center text-lg font-bold text-orange-600 [text-shadow:none]">
+                  {block.count}×
+                </span>
+                <RoundBtn
+                  disabled={ctx.locked || block.count >= maxCount}
+                  onClick={() => ctx.update(block.id, (b) => (b.type === 'repeat' ? { ...b, count: b.count + 1 } : b))}
+                  label="mehr"
+                >
+                  <Plus className="h-4 w-4" strokeWidth={3} />
+                </RoundBtn>
+              </div>
+            ) : (
+              <button
+                type="button"
+                aria-label="Wie oft?"
+                disabled={ctx.locked}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  ctx.update(block.id, (b) => (b.type === 'repeat' ? { ...b, count: b.count >= maxCount ? 2 : b.count + 1 } : b));
+                }}
+                className="flex h-10 min-w-[54px] items-center justify-center rounded-xl bg-white px-2 text-xl font-bold text-orange-600 shadow active:scale-90 [text-shadow:none]"
               >
-                <Minus className="h-4 w-4" />
-              </RoundBtn>
-              <span className="min-w-[2ch] rounded-lg bg-white px-1.5 text-center text-lg font-black text-orange-600">
-                {block.count}
-              </span>
-              <RoundBtn
-                disabled={ctx.locked || block.count >= 20}
-                onClick={() => ctx.update(block.id, (b) => (b.type === 'repeat' ? { ...b, count: b.count + 1 } : b))}
-                label="mehr"
-              >
-                <Plus className="h-4 w-4" />
-              </RoundBtn>
-              <span className="font-bold">mal</span>
-            </div>
-          )}
+                {block.count}×
+              </button>
+            ))}
 
           {block.type === 'if' && (
             <button
@@ -208,75 +245,58 @@ function BlockItem({ block, ctx }: { block: Block; ctx: Ctx }) {
               onClick={(e) => {
                 e.stopPropagation();
                 ctx.update(block.id, (b) =>
-                  b.type === 'if' ? { ...b, cond: b.cond === 'pathBlocked' ? 'pathClear' : 'pathBlocked' } : b,
+                  b.type === 'if' ? { ...b, cond: COND_ORDER[(COND_ORDER.indexOf(b.cond) + 1) % COND_ORDER.length] } : b,
                 );
               }}
-              className="rounded-lg bg-white px-2 py-0.5 text-sm font-extrabold text-cyan-700 active:scale-95"
+              className="rounded-xl bg-white px-2 py-1 text-sm font-bold text-cyan-700 shadow active:scale-95 [text-shadow:none]"
             >
-              {block.cond === 'pathBlocked' ? '🚧 ' : '🟢 '}
-              {COND_LABEL[block.cond]} ⇄
+              {COND_LABEL[block.cond].emoji} {COND_LABEL[block.cond].text} ⇄
             </button>
           )}
 
           <span className="ml-auto flex items-center gap-1">
             {loopNow !== undefined && block.type === 'repeat' && (
-              <span className="rounded-full bg-yellow-300 px-2 text-xs font-black text-yellow-900">
+              <span className="animate-pop rounded-full bg-yellow-300 px-2 text-xs font-bold text-yellow-900 [text-shadow:none]">
                 Runde {loopNow}/{block.count}
               </span>
             )}
             {current && block.type === 'if' && ctx.condResult !== undefined && (
-              <span className={`rounded-full px-2 text-xs font-black ${ctx.condResult ? 'bg-green-300 text-green-900' : 'bg-red-200 text-red-800'}`}>
+              <span
+                className={`animate-pop rounded-full px-2 text-xs font-bold [text-shadow:none] ${
+                  ctx.condResult ? 'bg-green-300 text-green-900' : 'bg-red-200 text-red-800'
+                }`}
+              >
                 {ctx.condResult ? 'Ja!' : 'Nein'}
               </span>
             )}
             {removeBtn}
           </span>
         </div>
-        <div
-          onClick={() => !ctx.locked && ctx.setTarget({ root: ctx.root, parentId: block.id })}
-          className={`ml-3 border-l-4 ${meta.border} py-1.5 pl-2 pr-1.5 ${isTarget ? 'bg-yellow-100/80' : ''}`}
-        >
+        <div onClick={selectThis} className={`ml-3 border-l-[5px] py-2 pl-2 pr-2 ${isTarget ? 'bg-yellow-100/90' : ''}`} style={{ borderColor: meta.color }}>
           <BlockList blocks={block.body} ctx={ctx} emptyHint={isTarget ? 'Neue Blöcke landen hier ⬇' : 'Tippe hier, dann auf Blöcke'} />
           {isTarget && block.body.length > 0 && (
-            <div className="mt-1 rounded-lg border-2 border-dashed border-yellow-400 py-0.5 text-center text-xs font-bold text-yellow-700">
+            <div className="mt-1.5 rounded-xl border-[3px] border-dashed border-yellow-400 py-0.5 text-center text-xs font-bold text-yellow-700">
               + neue Blöcke landen hier
             </div>
           )}
         </div>
-        <div className={`h-3 rounded-b-xl ${meta.color}`} />
+        <div className="squish h-3 rounded-b-[1.3rem]" style={cvar} />
       </div>
     );
   }
 
-  const hasTimes = ctx.allowTimes && (block.type === 'move' || block.type === 'jump');
-  const times = block.type === 'move' || block.type === 'jump' ? block.times : 1;
-  const loopNow = ctx.loops[block.id];
-
   return (
     <div
       ref={ref}
-      className={`flex min-h-[52px] items-center gap-2 rounded-2xl ${meta.color} px-3 py-1.5 text-white shadow-md transition-all duration-200 ${glow}`}
+      className={`squish relative flex min-h-[54px] items-center gap-2 rounded-[1.2rem] px-3 py-1.5 transition-all duration-200 ${
+        current ? 'gold-glow scale-[1.03]' : active ? 'ring-2 ring-yellow-200' : ''
+      }`}
+      style={cvar}
     >
-      <Icon className="h-6 w-6 shrink-0" strokeWidth={3} />
-      <span className="text-lg font-extrabold">{block.type === 'call' ? '✨ Zauber-Makro' : meta.label}</span>
-      <span className="ml-auto flex items-center gap-1">
-        {hasTimes && (
-          <button
-            type="button"
-            disabled={ctx.locked}
-            aria-label="Wie oft?"
-            onClick={() =>
-              ctx.update(block.id, (b) =>
-                b.type === 'move' || b.type === 'jump' ? { ...b, times: (b.times % 5) + 1 } : b,
-              )
-            }
-            className="flex h-10 min-w-[52px] items-center justify-center rounded-xl bg-white px-2 text-xl font-black text-slate-800 shadow active:scale-90"
-          >
-            {loopNow !== undefined ? `${loopNow}/${times}` : `${times}×`}
-          </button>
-        )}
-        {removeBtn}
-      </span>
+      {current && <GoldPulse ctx={ctx} />}
+      <Icon className="h-7 w-7 shrink-0" strokeWidth={3} />
+      <span className="text-lg font-bold">{block.type === 'call' ? '🪄 Zauber F1' : meta.label}</span>
+      <span className="ml-auto flex items-center">{removeBtn}</span>
     </div>
   );
 }
@@ -288,7 +308,7 @@ function RoundBtn(p: { onClick: () => void; disabled?: boolean; label: string; c
       aria-label={p.label}
       disabled={p.disabled}
       onClick={p.onClick}
-      className="flex h-8 w-8 items-center justify-center rounded-full bg-white/30 active:scale-90 disabled:opacity-40"
+      className="flex h-8 w-8 items-center justify-center rounded-full bg-white/35 active:scale-90 disabled:opacity-40"
     >
       {p.children}
     </button>

@@ -74,7 +74,14 @@ export function useProgramRunner({ level, speed, play, onFinish }: Options) {
           }, base * 0.9);
           return;
         }
-        const wait = f.motion === 'think' ? base * 0.55 : i === 1 ? base * 0.4 : base;
+        const wait =
+          f.motion === 'think'
+            ? base * 0.55
+            : f.motion === 'teleportOut' || f.motion === 'teleportIn'
+              ? base * 0.6
+              : i === 1
+                ? base * 0.4
+                : base;
         timerRef.current = setTimeout(next, wait);
       };
       next();

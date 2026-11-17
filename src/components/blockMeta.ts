@@ -1,4 +1,4 @@
-// Aussehen der Blöcke: Farbe, Icon, Beschriftung
+// Aussehen der Blöcke: Farbe (für die Glossy-Buttons), Icon, Beschriftung
 import {
   ArrowBigUp,
   ArrowDown,
@@ -13,37 +13,41 @@ import {
   WandSparkles,
   type LucideIcon,
 } from 'lucide-react';
-import type { Block, PaletteKind } from '../types';
+import type { Block, Condition, PaletteKind } from '../types';
 
 export interface BlockMeta {
   label: string;
+  /** Kurzes Label für die Palette */
+  short: string;
   Icon: LucideIcon;
-  /** Tailwind-Hintergrund */
+  /** Grundfarbe (Hex) – erzeugt den Glossy-Verlauf */
   color: string;
-  /** Hellere Variante für Container-Körper */
+  /** Helle Fläche für Container-Körper */
   soft: string;
-  border: string;
 }
 
 export const BLOCK_META: Record<PaletteKind, BlockMeta> = {
-  up: { label: 'Hoch', Icon: ArrowUp, color: 'bg-sky-500', soft: 'bg-sky-100', border: 'border-sky-500' },
-  down: { label: 'Runter', Icon: ArrowDown, color: 'bg-amber-500', soft: 'bg-amber-100', border: 'border-amber-500' },
-  left: { label: 'Links', Icon: ArrowLeft, color: 'bg-violet-500', soft: 'bg-violet-100', border: 'border-violet-500' },
-  right: { label: 'Rechts', Icon: ArrowRight, color: 'bg-pink-500', soft: 'bg-pink-100', border: 'border-pink-500' },
-  jump: { label: 'Springen', Icon: Rabbit, color: 'bg-lime-600', soft: 'bg-lime-100', border: 'border-lime-600' },
-  forward: { label: 'Vorwärts', Icon: ArrowBigUp, color: 'bg-emerald-500', soft: 'bg-emerald-100', border: 'border-emerald-500' },
-  turnLeft: { label: 'Links drehen', Icon: RotateCcw, color: 'bg-violet-500', soft: 'bg-violet-100', border: 'border-violet-500' },
-  turnRight: { label: 'Rechts drehen', Icon: RotateCw, color: 'bg-pink-500', soft: 'bg-pink-100', border: 'border-pink-500' },
-  repeat: { label: 'Wiederhole', Icon: Repeat, color: 'bg-orange-500', soft: 'bg-orange-50', border: 'border-orange-500' },
-  if: { label: 'Wenn', Icon: Split, color: 'bg-cyan-600', soft: 'bg-cyan-50', border: 'border-cyan-600' },
-  call: { label: 'Zauber-Makro', Icon: WandSparkles, color: 'bg-fuchsia-600', soft: 'bg-fuchsia-50', border: 'border-fuchsia-600' },
+  up: { label: 'Hoch', short: 'Hoch', Icon: ArrowUp, color: '#0ea5e9', soft: '#e0f2fe' },
+  down: { label: 'Runter', short: 'Runter', Icon: ArrowDown, color: '#f59e0b', soft: '#fef3c7' },
+  left: { label: 'Links', short: 'Links', Icon: ArrowLeft, color: '#8b5cf6', soft: '#ede9fe' },
+  right: { label: 'Rechts', short: 'Rechts', Icon: ArrowRight, color: '#ec4899', soft: '#fce7f3' },
+  jump: { label: 'Springen', short: 'Sprung', Icon: Rabbit, color: '#65a30d', soft: '#ecfccb' },
+  forward: { label: 'Vorwärts', short: 'Vorwärts', Icon: ArrowBigUp, color: '#10b981', soft: '#d1fae5' },
+  turnLeft: { label: 'Links drehen', short: 'Links', Icon: RotateCcw, color: '#8b5cf6', soft: '#ede9fe' },
+  turnRight: { label: 'Rechts drehen', short: 'Rechts', Icon: RotateCw, color: '#ec4899', soft: '#fce7f3' },
+  repeat: { label: 'Wiederhole', short: 'Schleife', Icon: Repeat, color: '#f97316', soft: '#fff7ed' },
+  if: { label: 'Wenn', short: 'Wenn', Icon: Split, color: '#0891b2', soft: '#ecfeff' },
+  call: { label: 'Zauber F1', short: 'F1', Icon: WandSparkles, color: '#c026d3', soft: '#fae8ff' },
 };
 
 export function kindOf(b: Block): PaletteKind {
   return b.type === 'move' ? b.dir : b.type;
 }
 
-export const COND_LABEL = {
-  pathClear: 'Weg frei',
-  pathBlocked: 'Weg blockiert',
-} as const;
+export const COND_LABEL: Record<Condition, { text: string; emoji: string }> = {
+  pathClear: { text: 'Weg frei', emoji: '🟢' },
+  pathBlocked: { text: 'Weg versperrt', emoji: '🚧' },
+  obstacleAhead: { text: 'Hindernis voraus', emoji: '📦' },
+};
+
+export const COND_ORDER: Condition[] = ['pathBlocked', 'pathClear', 'obstacleAhead'];

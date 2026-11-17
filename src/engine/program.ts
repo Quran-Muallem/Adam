@@ -13,9 +13,9 @@ export function createBlock(kind: PaletteKind): Block {
     case 'down':
     case 'left':
     case 'right':
-      return { id, type: 'move', dir: kind, times: 1 };
+      return { id, type: 'move', dir: kind };
     case 'jump':
-      return { id, type: 'jump', times: 1 };
+      return { id, type: 'jump' };
     case 'forward':
       return { id, type: 'forward' };
     case 'turnLeft':
@@ -23,7 +23,7 @@ export function createBlock(kind: PaletteKind): Block {
     case 'turnRight':
       return { id, type: 'turnRight' };
     case 'repeat':
-      return { id, type: 'repeat', count: 3, body: [] };
+      return { id, type: 'repeat', count: 2, body: [] };
     case 'if':
       return { id, type: 'if', cond: 'pathBlocked', body: [] };
     case 'call':

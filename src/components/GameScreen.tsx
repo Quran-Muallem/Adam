@@ -1,22 +1,14 @@
 // ─────────────────────────────────────────────────────────────
-// GameScreen: Spielfeld + Programm + Palette + Steuerung
+// GameScreen: Spielfeld + Sparky-Sprechblase + Programm + Palette
 // ─────────────────────────────────────────────────────────────
-import { ChevronLeft, Lightbulb, Play, RotateCcw, Square, Star, Trash2, Turtle, Volume2, VolumeX, Zap } from 'lucide-react';
-import { useCallback, useMemo, useRef, useState, type ReactNode } from 'react';
-import { AGE_GROUPS } from '../data/ageGroups';
+import { ChevronLeft, Play, RotateCcw, Square, Star, Trash2, Turtle, Volume2, VolumeX, Zap } from 'lucide-react';
+import { useCallback, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { COSTUMES, type Costume, type CostumeId } from '../data/costumes';
 import { levelsFor } from '../data/levels';
-import { FAIL_MESSAGES, pick, WIN_MESSAGES } from '../data/messages';
-import {
-  countProgram,
-  createBlock,
-  emptyProgram,
-  insertBlock,
-  isContainer,
-  removeBlock,
-  targetExists,
-  updateBlock,
-} from '../engine/program';
-import { rate } from '../engine/rating';
+import { failMessages, pick, START_LINES, WIN_MESSAGES } from '../data/messages';
+import { WORLDS } from '../data/worlds';
+import { countProgram, createBlock, emptyProgram, insertBlock, isContainer, removeBlock, targetExists, updateBlock } from '../engine/program';
+import { hasBonus, rate } from '../engine/rating';
 import { STEP_MS, useProgramRunner, type Speed } from '../hooks/useProgramRunner';
 import type { SoundApi } from '../hooks/useSoundEffects';
 import type { Block, InsertTarget, LevelDef, PaletteKind, Program, RunResult } from '../types';
@@ -24,7 +16,9 @@ import { Board } from './Board';
 import { Confetti } from './Confetti';
 import { MiniWorkspace } from './MiniWorkspace';
 import { Palette } from './Palette';
+import { Particles } from './Particles';
 import { ResultOverlay } from './ResultOverlay';
+import { Sparky, type SparkyMood } from './Sparky';
 import { Workspace } from './Workspace';
 
 interface Props {
@@ -33,60 +27,72 @@ interface Props {
   speed: Speed;
   onToggleSpeed: () => void;
   bestStars: number;
+  totalStars: number;
+  costume: CostumeId;
   onSaveStars: (levelId: string, stars: number) => void;
+  onWear: (id: CostumeId) => void;
   onBack: () => void;
   onOpenLevel: (id: string) => void;
 }
 
 const MAIN_TARGET: InsertTarget = { root: 'main', parentId: null };
 
-export function GameScreen({ level, sound, speed, onToggleSpeed, bestStars, onSaveStars, onBack, onOpenLevel }: Props) {
-  const group = AGE_GROUPS[level.group];
+export function GameScreen(props: Props) {
+  const { level, sound, speed, bestStars, totalStars, costume } = props;
+  const world = WORLDS[level.group];
   const { play } = sound;
   const isMini = level.group === 'mini';
   const hasMacro = level.palette.includes('call');
 
   const [program, setProgram] = useState<Program>(emptyProgram);
   const [target, setTarget] = useState<InsertTarget>(MAIN_TARGET);
-  const [result, setResult] = useState<{ kind: 'success' | 'fail'; stars: number; message: string } | null>(null);
+  const [result, setResult] = useState<{ kind: 'success' | 'fail'; stars: number; message: string; newCostume: Costume | null } | null>(null);
   const [limitFlash, setLimitFlash] = useState(false);
+  const [startLine, setStartLine] = useState(START_LINES[0]);
   const programRef = useRef(program);
   programRef.current = program;
+  const statsRef = useRef({ bestStars, totalStars });
+  statsRef.current = { bestStars, totalStars };
 
   const siblings = levelsFor(level.group);
   const index = siblings.findIndex((l) => l.id === level.id);
   const nextLevel = siblings[index + 1];
   const blockCount = countProgram(program);
+  const bonus = hasBonus(level);
 
   const handleFinish = useCallback(
     (res: RunResult) => {
       if (res.outcome === 'success') {
         const stars = rate(level, res, countProgram(programRef.current));
+        const { bestStars: prevBest, totalStars: prevTotal } = statsRef.current;
+        const newTotal = prevTotal - prevBest + Math.max(prevBest, stars);
+        const unlocked = COSTUMES.filter((c) => c.stars > prevTotal && c.stars <= newTotal);
         play('win');
-        onSaveStars(level.id, stars);
-        setResult({ kind: 'success', stars, message: pick(WIN_MESSAGES) });
+        props.onSaveStars(level.id, stars);
+        setResult({ kind: 'success', stars, message: pick(WIN_MESSAGES), newCostume: unlocked[unlocked.length - 1] ?? null });
       } else {
         play('fail');
-        setResult({ kind: 'fail', stars: 0, message: pick(FAIL_MESSAGES[res.reason ?? 'notReached']) });
+        setResult({ kind: 'fail', stars: 0, message: pick(failMessages(res.reason ?? 'notReached', level.group)), newCostume: null });
       }
     },
-    [level, onSaveStars, play],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [level, play],
   );
 
   const runner = useProgramRunner({ level, speed, play, onFinish: handleFinish });
   const { frame, frameIndex, isRunning } = runner;
   const locked = isRunning || result !== null;
+  const stepMs = STEP_MS[speed];
 
   // ── Programm bearbeiten ──
   const addBlock = (kind: PaletteKind) => {
     if (locked) return;
     if (blockCount >= level.maxBlocks) {
-      play('bump');
+      play('boing');
       setLimitFlash(true);
       setTimeout(() => setLimitFlash(false), 500);
       return;
     }
-    // Wurde der Figur-Zustand nach einem Lauf noch nicht zurückgesetzt? Jetzt tun.
     if (frame) runner.reset();
     const block = createBlock(kind);
     const t = targetExists(program, target) ? target : MAIN_TARGET;
@@ -120,12 +126,9 @@ export function GameScreen({ level, sound, speed, onToggleSpeed, bestStars, onSa
 
   const runOrStop = () => {
     if (result) return;
-    if (isRunning) {
-      runner.stop();
-      play('click');
-      return;
-    }
     play('click');
+    if (isRunning) return runner.stop();
+    setStartLine(pick(START_LINES));
     runner.start(program);
   };
 
@@ -135,62 +138,55 @@ export function GameScreen({ level, sound, speed, onToggleSpeed, bestStars, onSa
     play('click');
   };
 
-  const mood = result?.kind === 'fail' ? 'sad' : result?.kind === 'success' ? 'happy' : 'normal';
-  const isKindDisabled = useMemo(
-    () => (k: PaletteKind) => k === 'call' && target.root === 'macro',
-    [target.root],
-  );
+  // ── Sparkys Stimmung ──
+  let mood: SparkyMood = 'idle';
+  if (result?.kind === 'success') mood = 'happy';
+  else if (result?.kind === 'fail') mood = 'sad';
+  else if (frame?.motion === 'bump') mood = 'boing';
+  else if (isRunning && (frame?.motion === 'walk' || frame?.motion === 'jump')) mood = 'walk';
+  else if (isRunning && frame?.motion === 'think') mood = 'think';
 
-  const pageText = group.id === 'hero' ? 'text-white' : 'text-slate-800';
+  const isKindDisabled = useMemo(() => (k: PaletteKind) => k === 'call' && target.root === 'macro', [target.root]);
+  const bubble = isRunning ? startLine : level.hint;
 
   return (
-    <div className={`safe-area flex h-[100dvh] flex-col bg-gradient-to-br ${group.theme.page}`}>
+    <div className={`safe-area relative flex h-[100dvh] flex-col overflow-hidden bg-gradient-to-br ${world.bg}`}>
+      <Particles kind={world.particles} />
+
       {/* ── Kopfzeile ── */}
-      <header className="flex items-center gap-2 px-3 pt-2">
-        <IconBtn label="Zurück" onClick={onBack}>
+      <header className="relative z-10 flex items-center gap-2 px-3 pt-2">
+        <RoundBtn label="Zur Karte" onClick={props.onBack} color="#ffffff" dark>
           <ChevronLeft className="h-7 w-7" strokeWidth={3} />
-        </IconBtn>
-        <div className={`flex min-w-0 flex-1 flex-col leading-tight ${pageText}`}>
-          <span className="truncate text-lg font-extrabold">
-            {group.showText ? `Level ${index + 1}: ${level.title}` : `${group.emoji} ${index + 1}`}
-          </span>
+        </RoundBtn>
+        <div className={`flex min-w-0 flex-1 flex-col leading-tight ${world.text} drop-shadow`}>
+          <span className="truncate text-lg font-bold">{world.showText ? `${index + 1}. ${level.title}` : `${world.emoji} ${index + 1}`}</span>
           <span className="flex">
             {[1, 2, 3].map((i) => (
-              <Star
-                key={i}
-                className={`h-4 w-4 ${i <= bestStars ? 'fill-yellow-300 text-yellow-400' : 'text-white/60'}`}
-              />
+              <Star key={i} className={`h-4 w-4 ${i <= bestStars ? 'fill-yellow-300 text-amber-500' : 'text-white/70'}`} />
             ))}
           </span>
         </div>
-        <IconBtn label={speed === 'turbo' ? 'Turbo an' : 'Normal'} onClick={onToggleSpeed} active={speed === 'turbo'}>
-          {speed === 'turbo' ? <Zap className="h-6 w-6 fill-yellow-300" /> : <Turtle className="h-6 w-6" />}
-          {group.showText && <span className="hidden text-sm font-bold sm:inline">{speed === 'turbo' ? 'Turbo' : 'Normal'}</span>}
-        </IconBtn>
-        <IconBtn label={sound.muted ? 'Ton an' : 'Ton aus'} onClick={sound.toggleMute}>
+        <RoundBtn label={speed === 'turbo' ? 'Turbo' : 'Normal'} onClick={props.onToggleSpeed} color={speed === 'turbo' ? '#facc15' : '#ffffff'} dark>
+          {speed === 'turbo' ? <Zap className="h-6 w-6 fill-amber-500 text-amber-700" /> : <Turtle className="h-6 w-6" />}
+          {world.showText && <span className="hidden text-sm font-bold sm:inline">{speed === 'turbo' ? 'Turbo' : 'Normal'}</span>}
+        </RoundBtn>
+        <RoundBtn label={sound.muted ? 'Ton an' : 'Ton aus'} onClick={sound.toggleMute} color="#ffffff" dark>
           {sound.muted ? <VolumeX className="h-6 w-6" /> : <Volume2 className="h-6 w-6" />}
-        </IconBtn>
+        </RoundBtn>
       </header>
 
-      <main className="flex min-h-0 flex-1 flex-col gap-3 p-3 md:flex-row md:gap-5">
+      <main className="relative z-10 flex min-h-0 flex-1 flex-col gap-3 p-3 md:flex-row md:gap-5">
         {/* ── Spielfeld ── */}
-        <div
-          className={`flex shrink-0 flex-col gap-2 md:w-1/2 md:shrink md:justify-center ${
-            isMini ? '[--board-h:36dvh]' : '[--board-h:25dvh]'
-          } md:[--board-h:65dvh]`}
-        >
-          <Board
-            level={level}
-            group={group}
-            frame={frame}
-            frameIndex={frameIndex}
-            stepMs={STEP_MS[speed]}
-            mood={mood}
-          />
-          {group.showText && (
-            <div className="flex items-start gap-2 rounded-2xl bg-white/85 px-3 py-1.5 text-xs font-semibold sm:text-sm text-slate-700 shadow">
-              <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
-              <span className="flex-1">{level.hint}</span>
+        <div className={`flex shrink-0 flex-col gap-2 md:w-1/2 md:shrink md:justify-center ${isMini ? '[--board-h:34dvh]' : '[--board-h:27dvh]'} md:[--board-h:62dvh]`}>
+          <Board level={level} world={world} frame={frame} frameIndex={frameIndex} stepMs={stepMs} mood={mood} costume={costume} />
+          {world.showText && bubble && (
+            <div className="flex items-end gap-1">
+              <div className="h-11 w-11 shrink-0">
+                <Sparky mood={isRunning ? 'think' : 'idle'} costume={costume} />
+              </div>
+              <div key={bubble} className="glass relative flex-1 animate-bounce-in rounded-2xl rounded-bl-md px-3 py-1.5 text-xs font-semibold text-slate-700 sm:text-sm">
+                {bubble}
+              </div>
             </div>
           )}
         </div>
@@ -199,29 +195,39 @@ export function GameScreen({ level, sound, speed, onToggleSpeed, bestStars, onSa
         <div className="flex min-h-0 flex-1 flex-col gap-3 md:w-1/2">
           {isMini ? (
             <>
-              <MiniWorkspace blocks={program.main} slots={level.maxBlocks} frame={frame} locked={locked} remove={remove} />
+              <MiniWorkspace
+                blocks={program.main}
+                slots={level.maxBlocks}
+                frame={frame}
+                frameIndex={frameIndex}
+                pulseMs={stepMs}
+                locked={locked}
+                remove={remove}
+              />
               <div className="flex flex-1 items-center justify-center gap-4">
-                <Palette kinds={level.palette} group={group} onAdd={addBlock} disabled={locked} />
+                <Palette kinds={level.palette} world={world} onAdd={addBlock} disabled={locked} />
                 <div className="flex flex-col items-center gap-3">
-                  <RunButton running={isRunning} onClick={runOrStop} disabled={!!result || program.main.length === 0} showText={false} />
+                  <RunButton running={isRunning} onClick={runOrStop} disabled={!!result || program.main.length === 0} />
                   <div className="flex gap-2">
-                    <SmallCtl label="Zurücksetzen" onClick={() => runner.reset()} disabled={locked || !frame}>
-                      <RotateCcw className="h-7 w-7" />
-                    </SmallCtl>
-                    <SmallCtl label="Alles löschen" onClick={clearAll} disabled={locked || program.main.length === 0}>
-                      <Trash2 className="h-7 w-7" />
-                    </SmallCtl>
+                    <RoundBtn label="Zurücksetzen" onClick={() => runner.reset()} disabled={locked || !frame} color="#ffffff" dark big>
+                      <RotateCcw className="h-7 w-7" strokeWidth={3} />
+                    </RoundBtn>
+                    <RoundBtn label="Alles löschen" onClick={clearAll} disabled={locked || program.main.length === 0} color="#ffffff" dark big>
+                      <Trash2 className="h-7 w-7" strokeWidth={2.5} />
+                    </RoundBtn>
                   </div>
                 </div>
               </div>
             </>
           ) : (
             <>
-              <div className="thin-scroll min-h-[120px] flex-1 overflow-y-auto rounded-3xl bg-black/10 p-2">
+              <div className="thin-scroll min-h-[110px] flex-1 overflow-y-auto rounded-[1.8rem] bg-black/15 p-2 shadow-inner">
                 <Workspace
                   program={program}
-                  group={group}
+                  group={level.group}
                   frame={frame}
+                  frameIndex={frameIndex}
+                  pulseMs={stepMs}
                   target={target}
                   setTarget={(t) => {
                     setTarget(t);
@@ -234,32 +240,31 @@ export function GameScreen({ level, sound, speed, onToggleSpeed, bestStars, onSa
                 />
               </div>
 
-              <div className="rounded-3xl bg-white/25 p-2 backdrop-blur-sm">
-                <div className={`mb-2 flex items-center justify-between px-1 text-sm font-extrabold ${pageText}`}>
+              <div className="rounded-[1.8rem] bg-white/25 p-2 shadow-lg backdrop-blur-md">
+                <div className={`mb-2 flex items-center justify-between px-1 text-sm font-bold ${world.text}`}>
                   <span className={`rounded-full px-2 transition ${limitFlash ? 'animate-shake bg-red-500 text-white' : ''}`}>
-                    🧱 {blockCount} / {level.maxBlocks} Blöcke
+                    🧱 {blockCount} / {level.maxBlocks}
                   </span>
-                  {level.group === 'hero' && (
-                    <span className={blockCount <= level.par ? 'text-yellow-300' : ''}>⭐⭐⭐ bei ≤ {level.par}</span>
+                  {bonus ? (
+                    <span>
+                      {world.bonus} sammeln = ⭐⭐⭐
+                    </span>
+                  ) : (
+                    <span className={blockCount > 0 && blockCount <= level.parBlocks ? 'text-yellow-300 drop-shadow' : ''}>
+                      ⭐⭐⭐ mit ≤ {level.parBlocks} Blöcken
+                    </span>
                   )}
-                  {level.group === 'junior' && <span>Sammle die ⭐!</span>}
                 </div>
-                <Palette
-                  kinds={level.palette}
-                  group={group}
-                  onAdd={addBlock}
-                  disabled={locked}
-                  isKindDisabled={isKindDisabled}
-                />
+                <Palette kinds={level.palette} world={world} onAdd={addBlock} disabled={locked} isKindDisabled={isKindDisabled} />
               </div>
 
               <div className="flex items-center gap-2">
-                <SmallCtl label="Alles löschen" onClick={clearAll} disabled={locked || blockCount === 0}>
-                  <Trash2 className="h-6 w-6" />
-                </SmallCtl>
-                <SmallCtl label="Figur zurücksetzen" onClick={() => runner.reset()} disabled={locked || !frame}>
-                  <RotateCcw className="h-6 w-6" />
-                </SmallCtl>
+                <RoundBtn label="Alles löschen" onClick={clearAll} disabled={locked || blockCount === 0} color="#ffffff" dark big>
+                  <Trash2 className="h-6 w-6" strokeWidth={2.5} />
+                </RoundBtn>
+                <RoundBtn label="Sparky zurücksetzen" onClick={() => runner.reset()} disabled={locked || !frame} color="#ffffff" dark big>
+                  <RotateCcw className="h-6 w-6" strokeWidth={3} />
+                </RoundBtn>
                 <div className="flex-1">
                   <RunButton running={isRunning} onClick={runOrStop} disabled={!!result || blockCount === 0} showText wide />
                 </div>
@@ -275,25 +280,42 @@ export function GameScreen({ level, sound, speed, onToggleSpeed, bestStars, onSa
           kind={result.kind}
           stars={result.stars}
           message={result.message}
-          group={group}
+          world={world}
+          costume={costume}
+          newCostume={result.newCostume}
           hasNext={!!nextLevel}
           onRetry={retry}
-          onNext={() => nextLevel && onOpenLevel(nextLevel.id)}
-          onLevels={onBack}
+          onNext={() => nextLevel && props.onOpenLevel(nextLevel.id)}
+          onMap={props.onBack}
+          onWear={(id) => {
+            props.onWear(id);
+            play('unlock');
+            setResult((r) => (r ? { ...r, newCostume: null } : r));
+          }}
         />
       )}
     </div>
   );
 }
 
-function IconBtn(p: { label: string; onClick: () => void; active?: boolean; children: ReactNode }) {
+export function RoundBtn(p: {
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  color: string;
+  dark?: boolean;
+  big?: boolean;
+  children: ReactNode;
+}) {
   return (
     <button
       type="button"
       aria-label={p.label}
       onClick={p.onClick}
-      className={`flex h-12 min-w-[48px] items-center justify-center gap-1 rounded-2xl px-2 shadow-md active:scale-95 ${
-        p.active ? 'bg-yellow-400 text-yellow-950' : 'bg-white/90 text-slate-700'
+      disabled={p.disabled}
+      style={{ '--c': p.color } as CSSProperties}
+      className={`squish flex items-center justify-center gap-1 rounded-[1.2rem] px-2 ${p.big ? 'h-16 min-w-[64px]' : 'h-12 min-w-[48px]'} ${
+        p.dark ? '!text-slate-700 [text-shadow:none]' : ''
       }`}
     >
       {p.children}
@@ -301,30 +323,17 @@ function IconBtn(p: { label: string; onClick: () => void; active?: boolean; chil
   );
 }
 
-function SmallCtl(p: { label: string; onClick: () => void; disabled?: boolean; children: ReactNode }) {
-  return (
-    <button
-      type="button"
-      aria-label={p.label}
-      onClick={p.onClick}
-      disabled={p.disabled}
-      className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/90 text-slate-600 shadow-[0_4px_0_rgba(0,0,0,0.2)] active:translate-y-1 active:shadow-none disabled:opacity-40"
-    >
-      {p.children}
-    </button>
-  );
-}
-
-function RunButton(p: { running: boolean; onClick: () => void; disabled: boolean; showText: boolean; wide?: boolean }) {
+function RunButton(p: { running: boolean; onClick: () => void; disabled: boolean; showText?: boolean; wide?: boolean }) {
   return (
     <button
       type="button"
       aria-label={p.running ? 'Stopp' : 'Start'}
       onClick={p.onClick}
       disabled={p.disabled && !p.running}
-      className={`flex h-20 items-center justify-center gap-2 rounded-3xl text-2xl font-black text-white shadow-[0_6px_0_rgba(0,0,0,0.25)] transition active:translate-y-1 active:shadow-none disabled:opacity-50 ${
-        p.wide ? 'w-full' : 'w-24'
-      } ${p.running ? 'bg-red-500' : 'bg-green-500'} ${!p.running && !p.disabled ? 'animate-pulse' : ''}`}
+      style={{ '--c': p.running ? '#ef4444' : '#22c55e' } as CSSProperties}
+      className={`squish flex h-20 items-center justify-center gap-2 rounded-[1.8rem] text-2xl font-bold ${p.wide ? 'w-full' : 'w-24'} ${
+        !p.running && !p.disabled ? 'animate-breathe' : ''
+      }`}
     >
       {p.running ? <Square className="h-9 w-9 fill-white" /> : <Play className="h-10 w-10 fill-white" />}
       {p.showText && <span>{p.running ? 'Stopp' : 'Los!'}</span>}

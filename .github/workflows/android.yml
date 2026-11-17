@@ -52,20 +52,20 @@ jobs:
           ./gradlew assembleDebug --no-daemon
 
       - name: APK umbenennen
-        run: cp android/app/build/outputs/apk/debug/app-debug.apk robo-code.apk
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk sparky-code.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: robo-code-apk
-          path: robo-code.apk
+          name: sparky-code.apk
+          path: sparky-code.apk
 
       - name: Release veröffentlichen
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v1.0.${{ github.run_number }}
-          name: Robo Code v1.0.${{ github.run_number }}
+          name: Sparky Code v1.0.${{ github.run_number }}
           body: |
-            📱 **robo-code.apk** herunterladen und auf dem Android-Handy öffnen, um die App zu installieren.
+            📱 **sparky-code.apk** herunterladen und auf dem Android-Handy öffnen, um die App zu installieren.
             (Beim ersten Mal „Installation aus unbekannten Quellen“ erlauben.)
-          files: robo-code.apk
+          files: sparky-code.apk
           make_latest: true

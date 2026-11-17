@@ -4,17 +4,17 @@
 
 export type Dir = 'up' | 'down' | 'left' | 'right';
 
-/** Die drei Altersstufen */
+/** Die drei Altersstufen / Themenwelten */
 export type AgeGroupId = 'mini' | 'junior' | 'hero';
 
 /**
  * Block-Arten, die in einer Palette angeboten werden können.
  * - up/down/left/right: absolute Richtung (Stufe 1 & 2)
- * - jump: springt 2 Felder in Blickrichtung über ein Hindernis (Stufe 2)
+ * - jump: springt 2 Felder in Blickrichtung über ein niedriges Hindernis
  * - forward/turnLeft/turnRight: relative Bewegung (Stufe 3)
- * - repeat: Schleife mit Körper (Stufe 3)
- * - if: Bedingung mit Körper (Stufe 3)
- * - call: ruft das Zauber-Makro auf (Stufe 3)
+ * - repeat: Schleifen-Container
+ * - if: Bedingungs-Container (Stufe 3)
+ * - call: ruft das Zauber-Makro F1 auf (Stufe 3)
  */
 export type PaletteKind =
   | 'up'
@@ -29,11 +29,12 @@ export type PaletteKind =
   | 'if'
   | 'call';
 
-export type Condition = 'pathClear' | 'pathBlocked';
+/** Bedingungen: frei / versperrt (Wand, Rand, Hindernis, Tor) / niedriges Hindernis voraus */
+export type Condition = 'pathClear' | 'pathBlocked' | 'obstacleAhead';
 
 export type Block =
-  | { id: string; type: 'move'; dir: Dir; times: number }
-  | { id: string; type: 'jump'; times: number }
+  | { id: string; type: 'move'; dir: Dir }
+  | { id: string; type: 'jump' }
   | { id: string; type: 'forward' }
   | { id: string; type: 'turnLeft' }
   | { id: string; type: 'turnRight' }
@@ -43,7 +44,7 @@ export type Block =
 
 export type ContainerBlock = Extract<Block, { body: Block[] }>;
 
-/** Ein Programm besteht aus Hauptprogramm + optionalem Zauber-Makro (Funktion) */
+/** Ein Programm besteht aus Hauptprogramm + optionalem Zauber-Makro F1 */
 export interface Program {
   main: Block[];
   macro: Block[];
@@ -57,27 +58,30 @@ export interface InsertTarget {
 }
 
 /**
- * JSON-Level-Schema.
+ * Kompaktes Grid-String-Level-Schema.
  *
- * Karten-Legende (map):
- *   S = Start          G = Ziel (Apfel / Schatz)
- *   . = freies Feld    # = Stein / Hindernis
- *   * = Bonus-Stern    K = Schlüssel
- *   C = Truhe (Ziel, braucht den Schlüssel)
+ * Karten-Legende:
+ *   S = Start            G = Ziel
+ *   . = freies Feld      # = hohes Hindernis (Baum/Palme/Asteroid – nicht überspringbar)
+ *   o = niedriges Hindernis (Stein/Fass/Kiste – überspringbar)
+ *   B = schlafender Bär  P = Pfütze   (beide niedrig, blockieren den Weg)
+ *   * = Bonus (Beere / Kristall / Stern)
+ *   K = Schlüssel        D = magisches Tor (öffnet sich mit Schlüssel)
+ *   1, 2, 3 = Teleporter-Paare (jede Ziffer kommt genau zweimal vor)
  */
 export interface LevelDef {
   id: string;
   group: AgeGroupId;
   title: string;
-  /** Kurzer Tipp (wird bei "Mini-Entdecker" nicht angezeigt) */
+  /** Sprechblase von Sparky (bei Stufe 1 nicht angezeigt) */
   hint?: string;
-  map: string[];
+  grid: string[];
   startDir: Dir;
   palette: PaletteKind[];
-  /** Harte Obergrenze für die Anzahl Blöcke im Programm */
+  /** Harte Obergrenze für die Anzahl Blöcke */
   maxBlocks: number;
-  /** Blöcke, mit denen man 3 Sterne bekommt (Stufe 1 & 3) */
-  par: number;
+  /** Blöcke für 3 Sterne (nur relevant, wenn das Level keine Bonus-Items hat) */
+  parBlocks: number;
 }
 
 export interface Pos {
@@ -89,25 +93,39 @@ export interface WorldState {
   pos: Pos;
   dir: Dir;
   hasKey: boolean;
-  /** "x,y" der eingesammelten Sterne */
+  /** "x,y" der eingesammelten Bonus-Items */
   collected: string[];
-  chestOpen: boolean;
+  /** "x,y" der geöffneten Tore */
+  openGates: string[];
 }
 
-export type FailReason = 'rock' | 'edge' | 'locked' | 'notReached' | 'tooLong' | 'empty';
+export type FailReason =
+  | 'wall'
+  | 'obstacle'
+  | 'bear'
+  | 'puddle'
+  | 'edge'
+  | 'locked'
+  | 'tooHigh'
+  | 'notReached'
+  | 'tooLong'
+  | 'empty';
 
 export type SoundName =
   | 'click'
   | 'step'
   | 'turn'
   | 'jump'
-  | 'bump'
+  | 'boing'
   | 'collect'
   | 'key'
+  | 'gate'
+  | 'teleport'
   | 'win'
   | 'fail'
   | 'remove'
-  | 'unlock';
+  | 'unlock'
+  | 'tick';
 
 /** Ein Animations-Frame der vorab berechneten Ausführung */
 export interface Frame {
@@ -116,7 +134,7 @@ export interface Frame {
   state: WorldState;
   sound?: SoundName;
   /** Animationsart der Figur */
-  motion?: 'walk' | 'jump' | 'turn' | 'bump' | 'think';
+  motion?: 'walk' | 'jump' | 'turn' | 'bump' | 'think' | 'teleportOut' | 'teleportIn';
   /** Richtung des "Anstupsens" bei einem Fehler */
   bumpDir?: Dir;
   /** Aktueller Schleifen-Durchlauf je repeat-Block-id */

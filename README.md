@@ -1,32 +1,34 @@
-# 🤖 Robo Code-Abenteuer
+# 🐉 Sparkys Code-Abenteuer
 
-Eine spielerische, interaktive Lern-Web-App, die Kindern von **4 bis 12 Jahren** Programmierkonzepte beibringt – mit Monster, Roboter, Sternen, Konfetti und ganz ohne Werbung.
+Eine extrem bunte, verspielte Lern-App im Animationsfilm-Stil, die Kindern von **4 bis 12 Jahren** Programmieren beibringt. Begleiter ist **Sparky**, ein kleiner runder Weltraum-Drache mit großen Kulleraugen, der hüpft, staunt, wackelt und bei Hindernissen ein lustiges „Boing“-Gesicht macht.
 
-**Tech:** React 18 · TypeScript · Tailwind CSS · Lucide-Icons · Vite · Web Audio API (keine Sound-Dateien)
+**Tech:** React 18 · TypeScript · Tailwind CSS · Lucide-Icons · Vite · Web Audio API (keine Sound-Dateien) · Capacitor (Android)
 
-## Altersstufen
+## 3 Welten · 60 Level
 
-| Stufe | Alter | Mechanik |
+| Welt | Alter | Level 1–20 |
 |---|---|---|
-| 👾 **Mini-Entdecker** | 4–5 | Rein visuell, keine Lesekenntnisse nötig. Steuerkreuz mit großen Buttons (≥ 64 px), max. 4 Schritte, das hungrige Monster läuft zum Apfel. |
-| 🤖 **Junior-Coder** | 6–8 | Bewegungsblöcke mit Wiederholungszahl (`2×`, `3×` …), **Springen** über Steine, Bonus-Sterne, Schlüssel ➜ Truhe. |
-| 🚀 **Code-Helden** | 9–12 | Relative Steuerung (Vorwärts / Drehen), **Schleifen**, **Bedingungen** („Wenn Weg blockiert“), **Zauber-Makro** (Funktion), Block-Limit für 3 Sterne. |
+| 🌳 **Zauberwald der Glühwürmchen** – Mini-Entdecker | 4–5 | Ohne Lesen: Steuerkreuz mit großen Buttons (≥ 68 px). 1–5 gerade Wege, 6–12 Kurven & Zauberbeeren 🫐, 13–20 Mini-Labyrinthe mit schlafenden Bären 🐻 und Pfützen. |
+| 🏴‍☠️ **Kristall-Lagune der Piraten** – Junior-Coder | 6–8 | Sparky-Sprechblasen. 1–6 Wiederholen-Container (2×–6×), 7–13 Springen über Fässer & Kristalle 💎, 14–20 Schlüssel 🗝️ + magische Tore 🚪 + Kombinationen. |
+| 🚀 **Sternen-Akademie der Roboter** – Code-Helden | 9–12 | 1–6 verschachtelte Schleifen & Effizienz, 7–13 Bedingungen („Wenn Weg frei / versperrt / Hindernis voraus“), 14–20 Zauber-Makro F1 & Teleporter-Rätsel 🌀. |
 
-## Features
+## Spielgefühl
 
-- ⭐ 1–3 Sterne pro Level, Konfetti bei Erfolg, Fortschritt im `localStorage`
-- 🔦 **Visuelles Debugging:** Der gerade ausgeführte Block leuchtet live auf (inkl. Schleifen-Runde und Ja/Nein-Anzeige bei Bedingungen)
-- 🐢/⚡ Geschwindigkeit **Normal / Turbo** (auch mitten im Lauf umschaltbar)
-- 🔇 Mute-Button, Einstellung wird gespeichert
-- 😄 Witzige, ermutigende Fehlermeldungen („Ups, gegen den Stein geknuddelt!“)
-- 📱 Mobile-First / Tablet-Layout, kein versehentliches Zoomen oder Scrollen
+- 🗺️ Illustrierte Abenteuerkarte + scrollbare Welt-Karten mit geschwungenem Pfad und Level-Inseln
+- ⭐ 1–3 Sterne pro Level (Bonus-Items einsammeln **oder** mit wenigen Blöcken lösen), gespeichert im `localStorage`
+- 🔦 Visuelles Debugging: Der laufende Block leuchtet golden und pulsiert im Takt der Schritte
+- 🎉 Konfetti-Explosion, Fanfare, hüpfender Sparky
+- 👗 Kostüm-Schrank: Partyhut, Zauberhut, Piratenklappe, Blumenkranz, Astronautenhelm, Krone, Umhang – freigeschaltet durch Sterne
+- 🐢/⚡ Normal- und Turbo-Modus · 🔇 Mute
+- 🎵 Marimba-/Harfen-Klänge, „Boing“ und Sieges-Fanfare – alles live synthetisiert
+- 📱 Mobile-First & Tablet-Layout, kein Zoomen/ungewolltes Scrollen
 
 ## Starten
 
 ```bash
 npm install
 npm run dev       # Entwicklungsserver
-npm test          # prüft, dass jedes Level lösbar ist
+npm test          # prüft alle 60 Level (Referenzlösungen + Breitensuche)
 npm run build     # Produktions-Build nach dist/
 ```
 
@@ -36,69 +38,46 @@ npm run build     # Produktions-Build nach dist/
 src/
 ├── types.ts                 # Level-Schema, Block-Typen, Weltzustand
 ├── data/
-│   ├── levels.ts            # ⭐ Alle Level (JSON-kompatibel) – hier neue Level anlegen
-│   ├── ageGroups.ts         # Design & Mechanik je Altersstufe
-│   └── messages.ts          # Lob & witzige Fehlermeldungen
-├── engine/
-│   ├── world.ts             # Karte parsen, Richtungen, Kollision
-│   ├── interpreter.ts       # Führt Programme aus ➜ Animations-Frames
-│   ├── program.ts           # Programm-Baum bearbeiten (immutable)
-│   └── rating.ts            # Sterne-Bewertung
+│   ├── levels.ts            # ⭐ alle 60 Level im Grid-String-Format
+│   ├── worlds.ts            # die 3 Themenwelten (Farben, Emojis, Partikel)
+│   ├── costumes.ts          # freischaltbare Kostüme
+│   └── messages.ts          # Sparkys Sprüche & Fehlermeldungen
+├── engine/                  # Interpreter (Frames vorab berechnet), Karte, Bewertung
 ├── hooks/
-│   ├── useSoundEffects.ts   # Web-Audio-Sounds + Mute
-│   ├── useProgramRunner.ts  # Spielt Frames ab (useRef-Timer, ohne Race-Conditions)
-│   └── useProgress.ts       # Fortschritt im localStorage
-└── components/              # UI (Start, Level-Auswahl, Spiel, Board, Workspace …)
-tests/levels.test.ts         # Referenzlösung pro Level
+│   ├── useSoundEffects.ts   # Web-Audio-Synthesizer + Mute
+│   ├── useProgramRunner.ts  # spielt Frames ab (useRef-Timer, ohne Race-Conditions)
+│   └── useProgress.ts       # Sterne & Kostüm im localStorage
+└── components/              # Sparky (SVG), Board, Workspace, Karten, Kostüm-Schrank …
+tests/levels.test.ts         # geprüfte Lösung für jedes Level
 ```
-
-**Architektur-Idee:** Der Interpreter berechnet die komplette Ausführung *vorab* als Liste von Frames. Die UI spielt diese Frames nur noch ab. Ein Lauf-Token im `useProgramRunner` sorgt dafür, dass gestoppte oder neu gestartete Läufe sich nie in die Quere kommen.
 
 ## Neues Level hinzufügen
 
-In `src/data/levels.ts` ein Objekt ergänzen:
+In `src/data/levels.ts` eine Zeile ergänzen:
 
 ```ts
-{
-  id: 'junior-5',
-  group: 'junior',            // 'mini' | 'junior' | 'hero'
-  title: 'Sternenregen',
-  hint: 'Sammle alle Sterne!',
-  map: [
-    'S.*..',
-    '.#.#.',
-    '..*.G',
-  ],
-  startDir: 'right',
-  palette: ['up', 'down', 'left', 'right', 'jump'],
-  maxBlocks: 8,
-  par: 4,
-}
+L('junior', 21, 'Sternenregen', ['S.*..', '.#o#.', '..*.G'], 'right', J_JUMP, 10, 6, 'Sparkys Tipp …'),
 ```
 
-Karten-Legende: `S` Start · `G` Ziel · `.` frei · `#` Stein · `*` Bonus-Stern · `K` Schlüssel · `C` Truhe (Ziel, braucht Schlüssel).
-Danach in `tests/levels.test.ts` eine Referenzlösung eintragen und `npm test` laufen lassen.
+**Legende:** `S` Start · `G` Ziel · `.` frei · `#` hohes Hindernis (nicht überspringbar) · `o` niedriges Hindernis (überspringbar) · `B` schlafender Bär · `P` Pfütze · `*` Bonus · `K` Schlüssel · `D` Tor · `1`/`2`/`3` Teleporter-Paare.
+Danach in `tests/levels.test.ts` eine Lösung eintragen und `npm test` laufen lassen.
 
 ## Als iOS-/Android-App (Capacitor)
 
-`vite.config.ts` nutzt bereits `base: './'`, damit die App in Capacitor funktioniert.
+Capacitor ist eingerichtet (`capacitor.config.ts`). Lokal:
 
 ```bash
-npm install @capacitor/core @capacitor/cli @capacitor/android @capacitor/ios
-npx cap init "Robo Code" com.example.robocode --web-dir dist
 npm run build
 npx cap add android      # bzw. ios (braucht einen Mac mit Xcode)
 npx cap sync
 npx cap open android
 ```
 
-Hinweis: Die Schriftart „Baloo 2“ wird von Google Fonts geladen. Offline fällt die App automatisch auf eine runde Systemschrift zurück; für eine reine Offline-App die Schrift lokal unter `public/` ablegen.
-
 ## Automatische Builds (GitHub Actions)
 
 Bei jedem Push auf `main` laufen zwei Workflows:
 
 - **Web (GitHub Pages)** – baut die App und legt sie im Branch `gh-pages` ab. Spielbar unter **https://quran-muallem.github.io/Adam/** (einmalig unter *Settings → Pages* die Quelle „Deploy from a branch → gh-pages / root“ wählen, falls die Seite nicht von selbst erscheint).
-- **Android APK** – baut mit Capacitor eine installierbare APK und veröffentlicht sie unter **Releases** (`robo-code.apk`).
+- **Android APK** – baut mit Capacitor eine installierbare APK und veröffentlicht sie unter **Releases** (`sparky-code.apk`).
 
 `android-signing/debug.keystore` ist ein reiner Test-Schlüssel (Passwort `android`), damit jede neue APK über die alte installiert werden kann. Für eine Veröffentlichung im Play Store einen eigenen, geheimen Schlüssel verwenden.

@@ -12,62 +12,80 @@ export const TURN_RIGHT: Record<Dir, Dir> = { up: 'right', right: 'down', down: 
 
 export const DIR_ANGLE: Record<Dir, number> = { up: -90, right: 0, down: 90, left: 180 };
 
-export type Tile = '.' | '#' | 'S' | 'G' | '*' | 'K' | 'C';
+/** Niedrige, überspringbare Hindernisse */
+export const LOW_OBSTACLES = new Set(['o', 'B', 'P']);
 
 export interface ParsedMap {
   cols: number;
   rows: number;
-  tiles: Tile[][];
+  tiles: string[][];
   start: Pos;
   goal: Pos;
-  /** true, wenn das Ziel eine Truhe ist (Schlüssel nötig) */
-  goalIsChest: boolean;
   stars: Pos[];
-  key: Pos | null;
+  /** Teleporter-Ziel je "x,y" */
+  teleports: Record<string, Pos>;
 }
 
 export const posKey = (p: Pos) => `${p.x},${p.y}`;
 
+const cache = new WeakMap<LevelDef, ParsedMap>();
+
 export function parseMap(level: LevelDef): ParsedMap {
-  const rows = level.map.length;
-  const cols = Math.max(...level.map.map((r) => r.length));
-  const tiles: Tile[][] = [];
+  const hit = cache.get(level);
+  if (hit) return hit;
+
+  const rows = level.grid.length;
+  const cols = Math.max(...level.grid.map((r) => r.length));
+  const tiles: string[][] = [];
   let start: Pos | null = null;
   let goal: Pos | null = null;
-  let goalIsChest = false;
-  let key: Pos | null = null;
   const stars: Pos[] = [];
+  const portals: Record<string, Pos[]> = {};
 
   for (let y = 0; y < rows; y++) {
-    const row: Tile[] = [];
+    const row: string[] = [];
     for (let x = 0; x < cols; x++) {
-      const ch = (level.map[y][x] ?? '#') as Tile;
+      const ch = level.grid[y][x] ?? '#';
       row.push(ch);
       if (ch === 'S') start = { x, y };
       if (ch === 'G') goal = { x, y };
-      if (ch === 'C') {
-        goal = { x, y };
-        goalIsChest = true;
-      }
-      if (ch === 'K') key = { x, y };
       if (ch === '*') stars.push({ x, y });
+      if (/[1-9]/.test(ch)) (portals[ch] ??= []).push({ x, y });
     }
     tiles.push(row);
   }
-  if (!start || !goal) throw new Error(`Level ${level.id}: Start (S) und Ziel (G/C) sind Pflicht.`);
-  return { cols, rows, tiles, start, goal, goalIsChest, stars, key };
+  if (!start || !goal) throw new Error(`Level ${level.id}: Start (S) und Ziel (G) sind Pflicht.`);
+
+  const teleports: Record<string, Pos> = {};
+  for (const [digit, ps] of Object.entries(portals)) {
+    if (ps.length !== 2) throw new Error(`Level ${level.id}: Teleporter ${digit} braucht genau 2 Felder.`);
+    teleports[posKey(ps[0])] = ps[1];
+    teleports[posKey(ps[1])] = ps[0];
+  }
+
+  const parsed = { cols, rows, tiles, start, goal, stars, teleports };
+  cache.set(level, parsed);
+  return parsed;
 }
 
 export function initialState(level: LevelDef, map = parseMap(level)): WorldState {
-  return { pos: map.start, dir: level.startDir, hasKey: false, collected: [], chestOpen: false };
+  return { pos: map.start, dir: level.startDir, hasKey: false, collected: [], openGates: [] };
 }
 
 export function inBounds(map: ParsedMap, p: Pos) {
   return p.x >= 0 && p.y >= 0 && p.x < map.cols && p.y < map.rows;
 }
 
-export function isBlocked(map: ParsedMap, p: Pos) {
-  return !inBounds(map, p) || map.tiles[p.y][p.x] === '#';
+export function tileAt(map: ParsedMap, p: Pos): string | null {
+  return inBounds(map, p) ? map.tiles[p.y][p.x] : null;
+}
+
+/** Kann die Figur dieses Feld betreten? */
+export function isBlocked(map: ParsedMap, p: Pos, state: WorldState) {
+  const t = tileAt(map, p);
+  if (t === null || t === '#' || LOW_OBSTACLES.has(t)) return true;
+  if (t === 'D' && !state.hasKey && !state.openGates.includes(posKey(p))) return true;
+  return false;
 }
 
 export function add(p: Pos, d: Dir, n = 1): Pos {

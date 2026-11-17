@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.quranmuallem.robocode',
-  appName: 'Robo Code',
+  appName: 'Sparky Code',
   webDir: 'dist',
   android: {
     // Kindgerecht: keine Debug-Overlays, Hintergrund passend zur App

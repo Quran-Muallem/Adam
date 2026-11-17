@@ -1,42 +1,55 @@
-// Fortschritt (Sterne pro Level) im LocalStorage speichern
-import { useCallback, useState } from 'react';
-import { levelsFor } from '../data/levels';
+// Fortschritt (Sterne pro Level) + gewähltes Kostüm im LocalStorage
+import { useCallback, useMemo, useState } from 'react';
+import { COSTUMES, type CostumeId } from '../data/costumes';
+import { LEVELS, levelsFor } from '../data/levels';
 import type { AgeGroupId } from '../types';
 
-const KEY = 'robo-code:progress:v1';
+const KEY = 'sparky:progress:v2';
 
 export interface Progress {
   stars: Record<string, number>;
+  costume: CostumeId;
 }
 
 function load(): Progress {
   try {
     const raw = localStorage.getItem(KEY);
     if (raw) {
-      const parsed = JSON.parse(raw) as Progress;
-      if (parsed && typeof parsed.stars === 'object') return parsed;
+      const p = JSON.parse(raw) as Partial<Progress>;
+      return { stars: p.stars ?? {}, costume: p.costume ?? 'none' };
     }
   } catch {
     /* ignorieren */
   }
-  return { stars: {} };
+  return { stars: {}, costume: 'none' };
+}
+
+function persist(p: Progress) {
+  try {
+    localStorage.setItem(KEY, JSON.stringify(p));
+  } catch {
+    /* ignorieren */
+  }
 }
 
 export function useProgress() {
   const [progress, setProgress] = useState<Progress>(load);
 
-  const saveStars = useCallback((levelId: string, stars: number) => {
+  const update = useCallback((fn: (p: Progress) => Progress) => {
     setProgress((p) => {
-      const best = Math.max(p.stars[levelId] ?? 0, stars);
-      const next = { ...p, stars: { ...p.stars, [levelId]: best } };
-      try {
-        localStorage.setItem(KEY, JSON.stringify(next));
-      } catch {
-        /* ignorieren */
-      }
+      const next = fn(p);
+      persist(next);
       return next;
     });
   }, []);
+
+  const saveStars = useCallback(
+    (levelId: string, stars: number) =>
+      update((p) => ({ ...p, stars: { ...p.stars, [levelId]: Math.max(p.stars[levelId] ?? 0, stars) } })),
+    [update],
+  );
+
+  const setCostume = useCallback((costume: CostumeId) => update((p) => ({ ...p, costume })), [update]);
 
   /** Ein Level ist frei, wenn es das erste ist oder das vorherige geschafft wurde */
   const isUnlocked = useCallback(
@@ -48,19 +61,19 @@ export function useProgress() {
     [progress],
   );
 
-  const totalStars = useCallback(
+  const starsIn = useCallback(
     (group: AgeGroupId) => levelsFor(group).reduce((n, l) => n + (progress.stars[l.id] ?? 0), 0),
     [progress],
   );
 
-  const reset = useCallback(() => {
-    try {
-      localStorage.removeItem(KEY);
-    } catch {
-      /* ignorieren */
-    }
-    setProgress({ stars: {} });
-  }, []);
+  const totalStars = useMemo(() => LEVELS.reduce((n, l) => n + (progress.stars[l.id] ?? 0), 0), [progress]);
 
-  return { progress, saveStars, isUnlocked, totalStars, reset };
+  const reset = useCallback(() => update(() => ({ stars: {}, costume: 'none' })), [update]);
+
+  // Kostüm nur behalten, wenn es (noch) freigeschaltet ist
+  const costume = COSTUMES.find((c) => c.id === progress.costume && totalStars >= c.stars)?.id ?? 'none';
+
+  return { progress, costume, saveStars, setCostume, isUnlocked, starsIn, totalStars, reset };
 }
+
+export type ProgressApi = ReturnType<typeof useProgress>;
