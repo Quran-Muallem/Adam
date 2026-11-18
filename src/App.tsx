@@ -994,6 +994,26 @@ function Flag3({ colors, className = 'w-10 h-10' }: { colors: string[]; classNam
       <circle cx="20" cy="20" r="17" fill="none" stroke="#1e1240" strokeWidth="3.5" /><ellipse cx="14" cy="11" rx="6" ry="3" fill="#fff" opacity=".5" /></svg>
   );
 }
+/** Runde Länderflagge je Sprache (Arabisch = Saudi-Arabien) */
+function FlagIcon({ id, className = 'w-10 h-10' }: { id: Lang; className?: string }) {
+  const cid = 'flag-' + id;
+  const body: Record<Lang, React.ReactNode> = {
+    de: <><rect width="40" height="13.4" fill="#000" /><rect y="13.3" width="40" height="13.4" fill="#dd0000" /><rect y="26.6" width="40" height="13.4" fill="#ffce00" /></>,
+    en: <><rect width="40" height="40" fill="#012169" /><path d="M0 0L40 40M40 0L0 40" stroke="#fff" strokeWidth="8" /><path d="M0 0L40 40M40 0L0 40" stroke="#c8102e" strokeWidth="3" /><path d="M20 0V40M0 20H40" stroke="#fff" strokeWidth="11" /><path d="M20 0V40M0 20H40" stroke="#c8102e" strokeWidth="6.5" /></>,
+    fr: <><rect width="13.4" height="40" fill="#0055a4" /><rect x="13.3" width="13.4" height="40" fill="#fff" /><rect x="26.6" width="13.4" height="40" fill="#ef4135" /></>,
+    ar: <><rect width="40" height="40" fill="#006c35" />
+      <text x="20" y="20" textAnchor="middle" fontSize="7.5" fill="#fff" fontFamily="'Noto Naskh Arabic','Amiri','Segoe UI',sans-serif" direction="rtl">لا إله إلا الله</text>
+      <path d="M9 25.5 H29 l3 -1.2 l-3 -1 H11.5 v-1.6 h-2.5 v1.6 H8 v2.2 z" fill="#fff" /></>,
+    tr: <><rect width="40" height="40" fill="#e30a17" /><circle cx="17" cy="20" r="8" fill="#fff" /><circle cx="19" cy="20" r="6.4" fill="#e30a17" /><path d="M24.5 20 l5.8 -1.9 -3.6 4.9 0 -6 3.6 4.9z" fill="#fff" /></>,
+    es: <><rect width="40" height="40" fill="#aa151b" /><rect y="10" width="40" height="20" fill="#f1bf00" /></>,
+    it: <><rect width="13.4" height="40" fill="#009246" /><rect x="13.3" width="13.4" height="40" fill="#fff" /><rect x="26.6" width="13.4" height="40" fill="#ce2b37" /></>,
+  };
+  return (
+    <svg viewBox="0 0 40 40" className={className}><defs><clipPath id={cid}><circle cx="20" cy="20" r="17" /></clipPath></defs>
+      <g clipPath={`url(#${cid})`}>{body[id]}</g>
+      <circle cx="20" cy="20" r="17" fill="none" stroke="#1e1240" strokeWidth="3.5" /><ellipse cx="14" cy="11" rx="6" ry="3" fill="#fff" opacity=".35" /></svg>
+  );
+}
 
 /* ============================================================================
  * 11) SPARKY – der violette Drache mit Fliegerbrille, Kopfhörern und Schal
@@ -1544,17 +1564,19 @@ function GameScreen({ save, update, world, level, onExit, onNext, seasonTheme }:
     <div className="relative h-[100dvh] w-full overflow-hidden flex flex-col">
       <SkyBackground sky={world.sky} particle={seasonTheme.particle} night={night} />
       {/* Kopfzeile */}
-      <div className="relative z-10 flex items-start justify-between gap-2 px-3 pt-3">
+      <div className="relative z-10 flex items-center justify-between gap-2 px-3 pt-3">
         <IconBtn title={tr(lang, 'paused')} onClick={() => { reset(); setPaused(true); }}><Pause className="w-6 h-6" strokeWidth={3} /></IconBtn>
-        <div className="flex flex-col items-center -mt-1 min-w-0">
-          <Ribbon text={tr(lang, world.key)} small color={`${world.ribbon}`} />
-          <div className="flex items-center gap-1 -mt-1 z-10">
-            {[1, 2, 3].map(i => <StarIcon key={i} on={i <= best} className="w-7 h-7 sm:w-8 sm:h-8" />)}
-            <span className="ml-1 px-2 rounded-full bg-slate-900/70 border-2 border-white/30 font-game text-white text-sm">{tr(lang, 'level')} {level}{level > 15 ? ' ∞' : ''}</span>
+        <div className="flex-1 min-w-0 flex flex-col items-center">
+          <div className={`gloss max-w-full px-4 py-0.5 rounded-2xl bg-gradient-to-b ${world.ribbon} border-4 border-amber-300 outline outline-[3px] outline-slate-900/80 shadow-[0_5px_0_rgba(0,0,0,0.4)]`}>
+            <h1 className="relative font-game text-white txt-o-sm text-xl sm:text-3xl leading-tight truncate text-center">{tr(lang, world.key)}</h1>
+          </div>
+          <div className="flex items-center gap-1 mt-1">
+            {[1, 2, 3].map(i => <StarIcon key={i} on={i <= best} className="w-6 h-6 sm:w-8 sm:h-8" />)}
+            <span className="ml-1 px-2 rounded-full bg-slate-900/70 border-2 border-white/30 font-game text-white text-xs sm:text-sm whitespace-nowrap">{tr(lang, 'level')} {level}{level > 15 ? ' ∞' : ''}</span>
           </div>
         </div>
-        <div className="flex flex-col items-end gap-2">
-          <Counter icon={<GemIcon className="w-9 h-9" />} value={save.crystals} />
+        <div className="flex flex-col items-end gap-1.5 shrink-0">
+          <Counter icon={<GemIcon className="w-8 h-8" />} value={save.crystals} />
           <button onClick={() => { audio.play('tap'); update(s => ({ ...s, fast: !s.fast })); }} className={`flex items-center gap-1 px-2 py-0.5 rounded-full border-2 border-slate-900/70 font-game text-xs text-white ${save.fast ? 'bg-orange-500' : 'bg-slate-700/80'}`}><FastForward className="w-3.5 h-3.5" />{save.fast ? '2×' : '1×'}</button>
         </div>
       </div>
@@ -1603,10 +1625,10 @@ function GameScreen({ save, update, world, level, onExit, onNext, seasonTheme }:
               {ctrl.map(c => <button key={c.k} onClick={() => { audio.play('tap'); buzz(8); addCmd(c.k); }} disabled={running}
                 className={`gloss flex flex-col items-center justify-center h-14 sm:h-16 rounded-2xl bg-gradient-to-b ${BTN[c.color]} border-4 border-slate-900/80 shadow-[0_5px_0_rgba(0,0,0,0.45)] active:translate-y-1 active:shadow-none disabled:opacity-60`}>
                 <c.icon className="relative w-6 h-6 sm:w-7 sm:h-7 text-white drop-shadow-[0_2px_0_rgba(0,0,0,0.6)]" />
-                <span className={`relative font-game text-white txt-o-xs text-[10px] sm:text-xs leading-none mt-0.5 truncate max-w-full px-0.5 ${ctrl.length > 5 ? 'hidden sm:block' : ''}`}>{tr(lang, tkey(c.k))}</span>
+                <span className={`relative font-game text-white txt-o-xs text-[9px] sm:text-xs leading-none mt-0.5 max-w-full ${ctrl.length > 5 ? 'hidden sm:block' : ''}`}>{tr(lang, tkey(c.k))}</span>
               </button>)}
             </div>
-            <Btn3D color={running ? 'red' : 'green'} onClick={run} className="h-16 sm:h-[72px] !px-4 sm:!px-6 !text-2xl sm:!text-3xl">
+            <Btn3D color={running ? 'red' : 'green'} onClick={run} className="h-14 sm:h-[72px] !px-3 sm:!px-6 !text-xl sm:!text-3xl shrink-0">
               {running ? <X className="w-7 h-7" strokeWidth={4} /> : <Play className="w-7 h-7 fill-white" />}{running ? '' : tr(lang, 'go')}
             </Btn3D>
           </div>
@@ -1672,7 +1694,7 @@ function TopBar({ save, onBack, onSettings, onLang }: { save: Save; onBack?: () 
     <div className="relative z-20 flex items-center gap-2 px-3 pt-3">
       {onBack ? <IconBtn title="Back" color="gray" className="!from-white !via-slate-100 !to-slate-300 !text-indigo-700" onClick={onBack}><ChevronLeft className="w-7 h-7 text-indigo-700 rtl:rotate-180" strokeWidth={4} /></IconBtn>
         : <IconBtn title="Home" color="gray" className="!from-white !via-slate-100 !to-slate-300" onClick={onLang}><Globe className="w-7 h-7 text-indigo-700" strokeWidth={3} /></IconBtn>}
-      <button onClick={() => { audio.play('tap'); onLang(); }} className="shrink-0 rounded-full shadow-[0_4px_0_rgba(0,0,0,0.35)] active:translate-y-0.5"><Flag3 colors={L.flag} className="w-11 h-11 sm:w-12 sm:h-12" /></button>
+      <button onClick={() => { audio.play('tap'); onLang(); }} className="shrink-0 rounded-full shadow-[0_4px_0_rgba(0,0,0,0.35)] active:translate-y-0.5"><FlagIcon id={L.id} className="w-11 h-11 sm:w-12 sm:h-12" /></button>
       <div className="flex-1" />
       <Counter icon={<StarIcon className="w-9 h-9" />} value={totalStars(save)} />
       <Counter icon={<GemIcon className="w-9 h-9" />} value={save.crystals} color="from-cyan-800 to-indigo-950" />
@@ -1759,12 +1781,12 @@ function HomeScreen({ save, theme, season, go, openWorld }: { save: Save; theme:
 function MapScreen({ save, world, theme, go, play }: { save: Save; world: WorldDef; theme: SeasonTheme; go: (s: Screen) => void; play: (l: number) => void }) {
   const lang = save.lang; const un = save.unlocked[world.id]; const count = Math.max(15, un + 6);
   const STEP = 118; const W = 340; const xs = (i: number) => W / 2 + Math.sin(i * 0.9) * 105;
-  const H = count * STEP + 160; const cur = useRef<HTMLDivElement>(null);
+  const H = count * STEP + 330; const cur = useRef<HTMLDivElement>(null);
   useEffect(() => { cur.current?.scrollIntoView({ block: 'center' }); }, []);
   const look: SparkyLook = { hat: save.hat, glasses: save.glasses, outfit: save.outfit, prop: theme.prop };
   const ws = worldStars(save, world.id);
-  const pts = Array.from({ length: count }, (_, i) => [xs(i), 120 + i * STEP]);
-  const pathD = pts.map((p, i) => (i === 0 ? `M${p[0]} ${p[1]}` : `Q${(pts[i - 1][0] + p[0]) / 2 + (i % 2 ? 60 : -60)} ${p[1] - STEP / 2} ${p[0]} ${p[1]}`)).join(' ');
+  const pts = Array.from({ length: count }, (_, i) => [xs(i), H - 280 - i * STEP]); // Level 1 unten, nach oben weiter
+  const pathD = pts.map((p, i) => (i === 0 ? `M${p[0]} ${p[1]}` : `Q${(pts[i - 1][0] + p[0]) / 2 + (i % 2 ? 60 : -60)} ${p[1] + STEP / 2} ${p[0]} ${p[1]}`)).join(' ');
   return (
     <div className="relative min-h-[100dvh] w-full overflow-x-hidden">
       <div className="fixed inset-0"><SkyBackground sky={world.sky} particle={theme.particle} night={world.id >= 2} /></div>
@@ -2054,7 +2076,7 @@ function SettingsScreen({ save, update, theme, go, autoSeason }: { save: Save; u
           {row(<Music className="w-6 h-6" />, tr(lang, 'music'), <Toggle on={save.music} onClick={() => update(s => ({ ...s, music: !s.music }))} />)}
           {row(<Volume2 className="w-6 h-6" />, tr(lang, 'sound'), <Toggle on={save.sound} onClick={() => update(s => ({ ...s, sound: !s.sound }))} />)}
           {row(<Smartphone className="w-6 h-6" />, tr(lang, 'vibration'), <Toggle on={save.vibe} onClick={() => update(s => ({ ...s, vibe: !s.vibe }))} />)}
-          {row(<Globe className="w-6 h-6" />, tr(lang, 'language'), <Btn3D small color="blue" onClick={() => go('language')}><Flag3 colors={L.flag} className="w-6 h-6" />{L.name}</Btn3D>)}
+          {row(<Globe className="w-6 h-6" />, tr(lang, 'language'), <Btn3D small color="blue" onClick={() => go('language')}><FlagIcon id={L.id} className="w-6 h-6" />{L.name}</Btn3D>)}
         </Panel>
         <Panel tone="blue" className="p-3">
           <div className="flex items-center gap-2 mb-2"><MapPin className="w-6 h-6 text-white" /><span className="font-game text-white txt-o-xs text-xl">{tr(lang, 'region')}</span></div>
@@ -2102,7 +2124,7 @@ function LanguageScreen({ save, update, theme, go, back }: { save: Save; update:
           const sel = save.lang === l.id;
           return <button key={l.id} onClick={() => { audio.play('tap'); update(s => ({ ...s, lang: l.id })); }} className="a-pop active:translate-y-1" style={{ animationDelay: `${i * 0.05}s` }}>
             <div className={`flex items-center gap-4 px-4 py-3 rounded-3xl border-4 border-slate-900/80 shadow-[0_6px_0_rgba(0,0,0,0.4)] bg-gradient-to-b ${sel ? 'from-lime-300 via-green-500 to-green-700' : 'from-violet-400 via-purple-600 to-indigo-800'}`}>
-              <Flag3 colors={l.flag} className="w-12 h-12" />
+              <FlagIcon id={l.id} className="w-12 h-12" />
               <span className="flex-1 text-start font-game text-white txt-o-sm text-2xl" dir={l.id === 'ar' ? 'rtl' : 'ltr'}>{l.name}</span>
               {sel && <span className="w-9 h-9 rounded-full bg-white border-[3px] border-slate-900/80 flex items-center justify-center"><Check className="w-6 h-6 text-green-600" strokeWidth={4} /></span>}
             </div>

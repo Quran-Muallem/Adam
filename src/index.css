@@ -2,12 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-/* App-artiges Verhalten: kein Zoomen, kein Gummiband-Scrollen */
+/* Seiten sind scrollbar (Unterseiten, Karte); kein Gummiband-Effekt, kein Zoom */
 html,
-body,
-#root {
-  height: 100%;
-  overflow: hidden;
+body {
+  min-height: 100%;
+  overflow-x: hidden;
   overscroll-behavior: none;
 }
 body {
