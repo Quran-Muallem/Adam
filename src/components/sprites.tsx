@@ -18,7 +18,7 @@ export type SpriteName =
   | 'moon' | 'lantern' | 'date' | 'baklava' | 'sheep' | 'pumpkin' | 'bat' | 'gift' | 'candycane'
   | 'xmastree' | 'snowflake' | 'firework' | 'egg' | 'blossom' | 'sunny' | 'leaf' | 'garland'
   // Deko & Embleme
-  | 'mushroom' | 'cloud' | 'planet' | 'rocket' | 'robot' | 'atom' | 'skyline' | 'ship' | 'chest' | 'train';
+  | 'island' | 'mushroom' | 'cloud' | 'planet' | 'rocket' | 'robot' | 'atom' | 'skyline' | 'ship' | 'chest' | 'train';
 
 const O = '#1d1530'; // Outline
 const SW = 3;
@@ -460,6 +460,20 @@ const S: Record<SpriteName, Draw> = {
       <path d="M8 26 L56 26 M20 10 L20 56 M44 10 L44 56" stroke="#facc15" strokeWidth="4" />
       <rect x="26" y="22" width="12" height="14" rx="3" fill="#fde047" stroke={O} strokeWidth="2.5" />
       <Shine x={18} y={16} rx={5} ry={2} />
+    </>
+  ),
+  island: (u) => (
+    <>
+      <defs>
+        <Lg id={u('g')} c={['#bef264', '#4ade80', '#16a34a']} />
+        <Lg id={u('r')} c={['#d6a77a', '#a16207', '#713f12']} />
+      </defs>
+      <path d="M4 30 Q32 22 60 30 L50 44 Q40 62 32 62 Q24 62 14 44 Z" fill={`url(#${u('r')})`} stroke={O} strokeWidth="2.5" strokeLinejoin="round" />
+      <path d="M2 30 Q32 18 62 30 Q60 36 32 36 Q4 36 2 30Z" fill={`url(#${u('g')})`} stroke={O} strokeWidth="2.5" strokeLinejoin="round" />
+      <path d="M44 28 L44 14" stroke="#78350f" strokeWidth="3" />
+      <circle cx="44" cy="12" r="8" fill="#22c55e" stroke={O} strokeWidth="2.5" />
+      <circle cx="18" cy="26" r="4" fill="#16a34a" stroke={O} strokeWidth="2" />
+      <ellipse cx="22" cy="24" rx="7" ry="2" fill="#fff" opacity="0.5" />
     </>
   ),
   cloud: (u) => (

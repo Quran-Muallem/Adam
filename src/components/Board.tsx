@@ -1,5 +1,5 @@
 // Spielfeld: 3D-Kacheln, Gegenstände, Portale und Sparky
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import type { CostumeId } from '../data/costumes';
 import type { WorldConfig } from '../data/worlds';
 import { DIR_ANGLE, DIR_VEC, initialState, parseMap, posKey } from '../engine/world';
@@ -53,28 +53,32 @@ export function Board({ level, world, frame, frameIndex, stepMs, mood, costume }
   return (
     <div
       ref={boxRef}
-      className="relative mx-auto w-full shrink-0"
-      style={{ aspectRatio: `${cols} / ${rows}`, maxWidth: `min(100%, calc(var(--board-h) * ${cols} / ${rows}))` }}
+      className="relative mx-auto my-[10px] w-[calc(100%-22px)] shrink-0"
+      style={{ aspectRatio: `${cols} / ${rows}`, maxWidth: `min(calc(100% - 22px), calc(var(--board-h) * ${cols} / ${rows}))` }}
     >
-      {/* Sockel mit weichem 3D-Schatten */}
-      <div className="absolute inset-0 translate-y-2 rounded-[1.6rem]" style={{ background: 'rgba(0,0,0,.28)', filter: 'blur(6px)' }} />
+      {/* Tablet-Rahmen mit Metall-Rand (wie im Casual-Game) */}
+      <div className="board-frame absolute -inset-[10px]" style={{ '--rim': world.frame } as CSSProperties} />
       <div
-        className="absolute inset-0 grid gap-[2px] overflow-hidden rounded-[1.6rem] p-[3px]"
+        className="absolute inset-0 grid gap-[3px] overflow-hidden rounded-[1.2rem] p-[4px]"
         style={{
           // minmax(0,1fr): alle Reihen/Spalten exakt gleich groß, egal wie groß der Inhalt ist
           gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
           gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
-          background: world.frame,
-          boxShadow: `inset 0 3px 0 rgba(255,255,255,.7), 0 0 0 4px ${world.frame}`,
+          background: world.boardBg,
+          boxShadow: 'inset 0 4px 14px rgba(0,0,0,.45)',
         }}
       >
         {map.tiles.flatMap((row, y) =>
           row.map((tile, x) => {
             const k = posKey({ x, y });
             const wall = tile === '#';
-            const bg = wall ? world.wallTile : (x + y) % 2 === 0 ? world.tileA : world.tileB;
+            const base = (x + y) % 2 === 0 ? world.tileA : world.tileB;
             return (
-              <div key={k} className="tile relative flex min-h-0 min-w-0 items-center justify-center overflow-hidden rounded-[22%] leading-none" style={{ background: bg, fontSize }}>
+              <div
+                key={k}
+                className={`relative flex min-h-0 min-w-0 items-center justify-center rounded-[20%] leading-none ${wall ? '' : 'path-tile'}`}
+                style={{ ['--t' as string]: base, fontSize }}
+              >
                 <TileContent tile={tile} world={world} state={state} k={k} season={season} />
               </div>
             );
@@ -144,7 +148,7 @@ export function Board({ level, world, frame, frameIndex, stepMs, mood, costume }
             ['--wob' as string]: `${moveMs}ms`,
           }}
         >
-          <div className="h-full w-full scale-110">
+          <div className="h-full w-full">
             <Sparky mood={mood} dir={state.dir} costume={costume} />
           </div>
         </div>
@@ -157,7 +161,7 @@ function TileContent({ tile, world, state, k, season }: { tile: string; world: W
   const sp = WORLD_SPRITES[world.id];
   switch (tile) {
     case '#':
-      return <Sprite name={sp.wall} className="h-[92%] w-[92%] drop-shadow-md" />;
+      return <Sprite name={sp.wall} className="h-[108%] w-[108%] drop-shadow-[0_4px_4px_rgba(0,0,0,.45)]" />;
     case 'o':
       return <Sprite name={sp.low} className="h-[80%] w-[80%] drop-shadow-md" />;
     case 'B':

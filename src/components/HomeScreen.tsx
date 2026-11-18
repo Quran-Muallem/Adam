@@ -41,6 +41,40 @@ const CARD: Record<AgeGroupId, { bg: string; ring: string; deco: SpriteName[] }>
   adult: { bg: 'linear-gradient(135deg,#5eead4 0%,#0f766e 40%,#020617 100%)', ring: '#042f2e', deco: ['crystal', 'qcore', 'spark'] },
 };
 
+/** Illustrierte Szenen auf den Welten-Karten */
+const SCENE: Record<AgeGroupId, { s: SpriteName; x: string; y: string; w: string; r?: number }[]> = {
+  mini: [
+    { s: 'mushroom', x: '8%', y: '22%', w: '34%' },
+    { s: 'tree', x: '52%', y: '6%', w: '42%' },
+    { s: 'berry', x: '40%', y: '38%', w: '18%' },
+    { s: 'strawberry', x: '74%', y: '40%', w: '16%' },
+  ],
+  junior: [
+    { s: 'ship', x: '10%', y: '14%', w: '38%' },
+    { s: 'palm', x: '58%', y: '4%', w: '38%' },
+    { s: 'gem', x: '44%', y: '34%', w: '16%' },
+    { s: 'treasure', x: '74%', y: '40%', w: '20%' },
+  ],
+  hero: [
+    { s: 'rocket', x: '10%', y: '8%', w: '30%', r: 20 },
+    { s: 'planet', x: '56%', y: '6%', w: '36%' },
+    { s: 'star', x: '40%', y: '36%', w: '16%' },
+    { s: 'meteor', x: '70%', y: '38%', w: '20%' },
+  ],
+  teen: [
+    { s: 'skyline', x: '4%', y: '6%', w: '52%' },
+    { s: 'robot', x: '60%', y: '10%', w: '28%' },
+    { s: 'battery', x: '50%', y: '38%', w: '14%' },
+    { s: 'disk', x: '74%', y: '42%', w: '16%' },
+  ],
+  adult: [
+    { s: 'atom', x: '8%', y: '8%', w: '40%' },
+    { s: 'crystal', x: '58%', y: '8%', w: '32%' },
+    { s: 'qcore', x: '44%', y: '38%', w: '16%' },
+    { s: 'spark', x: '76%', y: '42%', w: '14%' },
+  ],
+};
+
 export function HomeScreen({ sound, prog, onPick, onExpress, onWardrobe, onAlbum, onTrophies, onSettings }: Props) {
   const [confirmReset, setConfirmReset] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
@@ -59,16 +93,23 @@ export function HomeScreen({ sound, prog, onPick, onExpress, onWardrobe, onAlbum
   }, [season.preview, season.live, addFest]);
 
   return (
-    <div className="safe-area relative h-[100dvh] overflow-hidden bg-gradient-to-b from-sky-300 via-sky-400 to-blue-600">
-      <Particles kind="stars" count={18} />
-      {/* Wolken (eigene Grafik) */}
+    <div
+      className="safe-area relative h-[100dvh] overflow-hidden"
+      style={{ background: 'linear-gradient(180deg,#1fa2ef 0%,#45bdf6 30%,#8fdcfb 62%,#ffe7a3 88%,#ffd36e 100%)' }}
+    >
+      {/* Sonnenlicht von unten */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2" style={{ background: 'radial-gradient(ellipse at 70% 100%, rgba(255,240,180,.85), transparent 65%)' }} />
+      <Particles kind="stars" count={22} />
+      {/* Wolken & schwebende Inseln */}
       {[
-        { top: '6%', left: '-10%', w: '34%' },
-        { top: '9%', left: '76%', w: '30%' },
-        { top: '46%', left: '-14%', w: '28%' },
+        { top: '7%', left: '-12%', w: '36%', s: 'cloud' },
+        { top: '10%', left: '74%', w: '34%', s: 'cloud' },
+        { top: '24%', left: '-6%', w: '24%', s: 'island' },
+        { top: '27%', left: '80%', w: '22%', s: 'island' },
+        { top: '50%', left: '-16%', w: '30%', s: 'cloud' },
       ].map((c, i) => (
-        <div key={i} className="pointer-events-none absolute animate-float opacity-90" style={{ top: c.top, left: c.left, width: c.w, animationDelay: `${i * 0.9}s` }}>
-          <Sprite name="cloud" className="h-auto w-full" />
+        <div key={i} className="pointer-events-none absolute animate-float" style={{ top: c.top, left: c.left, width: c.w, animationDelay: `${i * 0.9}s` }}>
+          <Sprite name={c.s as SpriteName} className="h-auto w-full drop-shadow-[0_8px_8px_rgba(0,40,90,.25)]" />
         </div>
       ))}
       <SeasonLayer />
@@ -90,7 +131,7 @@ export function HomeScreen({ sound, prog, onPick, onExpress, onWardrobe, onAlbum
             </RoundBtn>
             <div className="relative flex h-16 w-16 items-center justify-center" aria-label={`${prog.totalStars} ⭐`}>
               <Sprite name="star" className="absolute inset-0 h-full w-full animate-breathe" />
-              <span className="relative mt-1 text-lg font-black text-amber-900">{prog.totalStars}</span>
+              <span className={`relative mt-1 font-black text-amber-900 ${prog.totalStars > 99 ? 'text-sm' : 'text-lg'}`}>{prog.totalStars}</span>
             </div>
             <RoundBtn label={t.settings.title} onClick={onSettings} color="#ffffff" dark>
               <Settings className="h-6 w-6" />
@@ -98,13 +139,13 @@ export function HomeScreen({ sound, prog, onPick, onExpress, onWardrobe, onAlbum
           </div>
 
           {/* Sparky in eigenem Container – mit Abstand, damit Mütze/Hörner nie in die Kopfzeile ragen */}
-          <div className="relative z-10 mt-4 flex h-36 w-36 items-end justify-center sm:h-44 sm:w-44">
-            <div className="absolute bottom-1 h-6 w-28 rounded-[50%] bg-blue-900/25 blur-[2px]" />
-            <div className="h-full w-full animate-float">
-              <Sparky mood="happy" />
+          <div className="relative z-10 mt-4 flex h-52 w-52 items-end justify-center sm:h-64 sm:w-64">
+            <div className="absolute inset-[12%] rounded-full bg-white/50 blur-2xl" />
+            <div className="relative h-full w-full animate-float">
+              <Sparky large />
             </div>
           </div>
-          <h1 className="game-title relative z-10 mt-2 text-center text-[2.6rem] uppercase leading-[0.95] sm:text-6xl">
+          <h1 className="game-title font-game relative z-10 mt-1 text-center text-[2.9rem] uppercase leading-[0.95] sm:text-6xl">
             {t.titleTop}
             <br />
             <span className="text-[1.9rem] sm:text-5xl">{t.titleBottom}</span>
@@ -194,8 +235,8 @@ export function HomeScreen({ sound, prog, onPick, onExpress, onWardrobe, onAlbum
 
           <p className="outline-text relative z-10 mt-6 text-center text-2xl font-black">{t.home.whereTo}</p>
 
-          {/* Welten als breite 3D-Sammelkarten */}
-          <div className="relative z-10 mt-3 flex w-full flex-col gap-5">
+          {/* Welten als illustrierte 3D-Sammelkarten (wischen) */}
+          <div className="thin-scroll relative z-10 -mx-4 mt-3 flex w-[calc(100%+2rem)] snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 pt-1">
             {WORLD_ORDER.map((id, i) => {
               const wt = t.worlds[id];
               const card = CARD[id];
@@ -207,35 +248,29 @@ export function HomeScreen({ sound, prog, onPick, onExpress, onWardrobe, onAlbum
                     sound.play('unlock');
                     onPick(id);
                   }}
-                  className="card3d relative flex min-h-[124px] w-full animate-bounce-in items-center gap-3 overflow-hidden rounded-[1.7rem] p-3 text-start transition active:translate-y-1"
+                  className="card3d relative h-[250px] w-[82%] shrink-0 snap-center overflow-hidden rounded-[1.8rem] text-start transition active:translate-y-1"
                   style={{ background: card.bg, animationDelay: `${i * 0.1}s` }}
                 >
-                  {/* Hintergrund-Illustration */}
-                  {card.deco.map((d, k) => (
-                    <span
-                      key={d}
-                      className="pointer-events-none absolute opacity-25"
-                      style={{ width: 70 - k * 14, right: `${18 + k * 17}%`, top: k % 2 ? '52%' : '-6%', transform: `rotate(${k * 14 - 10}deg)` }}
-                    >
-                      <Sprite name={d} className="h-auto w-full" />
+                  {/* Szene */}
+                  <span className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/60 to-transparent" />
+                  {SCENE[id].map((d, k) => (
+                    <span key={k} className={`pointer-events-none absolute ${k === 0 ? 'animate-float' : ''}`} style={{ left: d.x, top: d.y, width: d.w, transform: `rotate(${d.r ?? 0}deg)` }}>
+                      <Sprite name={d.s} className="h-auto w-full drop-shadow-[0_6px_6px_rgba(0,0,0,.35)]" />
                     </span>
                   ))}
-                  <span className="absolute inset-x-6 top-1.5 h-5 rounded-full bg-white/25" />
-                  {/* Emblem */}
-                  <span className="relative flex h-[76px] w-[76px] shrink-0 items-center justify-center rounded-[1.4rem] border-[3px] border-[#1d1530] bg-white/25 p-2 shadow-[inset_0_3px_0_rgba(255,255,255,.5)]">
-                    <Sprite name={WORLD_SPRITES[id].emblem} className="h-full w-full animate-float" />
-                  </span>
-                  {/* Titel */}
-                  <span className="relative min-w-0 flex-1">
-                    <span className="outline-text block text-[1.08rem] font-black uppercase leading-[1.08] hyphens-auto break-words">{wt.world}</span>
-                    <span className="outline-text mt-0.5 block text-[13px] font-bold leading-tight">{wt.ages}</span>
-                    <span className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-[#1d1530]/80 px-2 py-0.5 text-xs font-bold text-white">
-                      <Star className="h-3.5 w-3.5 fill-yellow-300 text-amber-400" /> {prog.starsIn(id)} · Lv {prog.frontier(id)}
+                  <span className="absolute inset-x-5 top-2 h-6 rounded-full bg-white/25" />
+                  {/* Titel + Spielen */}
+                  <span className="absolute inset-x-3 bottom-3 flex items-end gap-2">
+                    <span className="min-w-0 flex-1">
+                      <span className="font-game outline-text block text-[1.45rem] uppercase leading-[1.02] hyphens-auto break-words">{wt.world}</span>
+                      <span className="outline-text block text-sm font-bold">({wt.ages})</span>
+                    </span>
+                    <span className="squish font-game flex h-12 shrink-0 items-center rounded-2xl px-3 text-lg uppercase" style={{ '--c': '#22c55e' } as CSSProperties}>
+                      {t.home2.play}
                     </span>
                   </span>
-                  {/* SPIELEN */}
-                  <span className="squish relative flex h-11 shrink-0 items-center rounded-2xl px-2.5 text-sm font-black" style={{ '--c': '#22c55e' } as CSSProperties}>
-                    {t.home2.play}
+                  <span className="absolute end-3 top-3 inline-flex items-center gap-1 rounded-full border-2 border-[#1d1530] bg-white/90 px-2 py-0.5 text-xs font-black text-slate-800">
+                    <Star className="h-3.5 w-3.5 fill-yellow-300 text-amber-500" /> {prog.starsIn(id)} · Lv {prog.frontier(id)}
                   </span>
                 </button>
               );

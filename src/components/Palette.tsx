@@ -1,4 +1,5 @@
 // Block-Palette: Antippen fügt einen Block hinzu (runde, glänzende "Squishy"-Buttons)
+import { Sparky } from './Sparky';
 import type { CSSProperties } from 'react';
 import type { WorldConfig } from '../data/worlds';
 import type { Dict } from '../i18n';
@@ -30,9 +31,9 @@ export function Palette({ kinds, world, onAdd, disabled, isKindDisabled, t }: Pr
           disabled={disabled}
           onClick={() => onAdd(k)}
           style={{ gridArea: area, width: size, height: size, '--c': meta.color } as CSSProperties}
-          className="squish flex items-center justify-center rounded-[1.6rem]"
+          className="squish tile-btn flex items-center justify-center"
         >
-          <Icon className="h-11 w-11" strokeWidth={3.5} />
+          <Icon className="h-12 w-12 drop-shadow-[0_2px_0_#1d1530]" strokeWidth={3.5} />
         </button>
       );
     };
@@ -44,8 +45,8 @@ export function Palette({ kinds, world, onAdd, disabled, isKindDisabled, t }: Pr
       >
         {cell('up', 'u')}
         {cell('left', 'l')}
-        <div style={{ gridArea: 'c' }} className="flex items-center justify-center text-4xl">
-          🐉
+        <div style={{ gridArea: 'c' }} className="flex items-center justify-center p-1">
+          <Sparky mood="happy" />
         </div>
         {cell('right', 'r')}
         {cell('down', 'd')}
@@ -70,10 +71,10 @@ export function Palette({ kinds, world, onAdd, disabled, isKindDisabled, t }: Pr
             disabled={off}
             onClick={() => onAdd(k)}
             style={{ minHeight: twoRows ? Math.round(size * 0.82) : size, '--c': meta.color } as CSSProperties}
-            className="squish flex min-w-0 flex-col items-center justify-center gap-0.5 rounded-[1.2rem] px-1 py-1"
+            className="squish tile-btn flex min-w-0 flex-col items-center justify-center gap-0.5 px-1 py-1.5"
           >
-            <Icon className={twoRows ? 'h-6 w-6' : 'h-7 w-7'} strokeWidth={3} />
-            <span className="text-center text-[11px] font-bold leading-[1.1]">{t.blocks[k].short}</span>
+            <Icon className={`${twoRows ? 'h-7 w-7' : 'h-9 w-9'} drop-shadow-[0_2px_0_#1d1530]`} strokeWidth={3} />
+            <span className="text-center text-[13px] leading-[1.05]">{t.blocks[k].short}</span>
           </button>
         );
       })}

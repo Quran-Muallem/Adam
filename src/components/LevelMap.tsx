@@ -266,21 +266,21 @@ export function ChestBar(p: { fill: number; ready: boolean; label: string; ready
       type="button"
       disabled={!p.ready}
       onClick={p.onOpen}
-      className={`glass flex w-full items-center gap-3 rounded-full px-3 py-1.5 text-start ${p.ready ? 'animate-breathe ring-4 ring-yellow-300' : ''}`}
+      className={`panel-game flex w-full items-center gap-3 rounded-full px-3 py-1.5 text-start ${p.ready ? 'animate-breathe ring-4 ring-yellow-300' : ''}`}
     >
       <span className={`h-10 w-10 shrink-0 ${p.ready ? 'animate-wiggle' : ''}`}>
         <Sprite name={p.ready ? 'gift' : 'chest'} />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block text-xs font-bold text-slate-600">{p.ready ? p.readyLabel : p.label}</span>
-        <span className="mt-0.5 block h-3 overflow-hidden rounded-full bg-slate-200">
+        <span className="font-game block text-sm text-white">{p.ready ? p.readyLabel : p.label}</span>
+        <span className="mt-0.5 block h-3.5 overflow-hidden rounded-full border-2 border-[#1d1530] bg-slate-700">
           <span
             className="block h-full rounded-full bg-gradient-to-r from-amber-300 via-yellow-400 to-orange-400 transition-[width] duration-700"
             style={{ width: `${(p.fill / CHEST_EVERY) * 100}%` }}
           />
         </span>
       </span>
-      <span className="text-sm font-bold text-slate-700">
+      <span className="font-game text-sm text-yellow-300">
         {p.fill}/{CHEST_EVERY} ⭐
       </span>
     </button>

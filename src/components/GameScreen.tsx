@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────
 // GameScreen: Spielfeld + Sparky-Sprechblase + Programm + Palette
 // ─────────────────────────────────────────────────────────────
-import { ChevronLeft, Clapperboard, CornerLeftUp, Crosshair, Play, RotateCcw, Settings, Square, Star, Trash2, Undo2 } from 'lucide-react';
+import { ChevronLeft, Clapperboard, CornerLeftUp, Crosshair, Play, RotateCcw, Settings, Square, Trash2, Undo2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { useStoredState } from '../hooks/useStoredState';
 import { cardForLevel, unlockedCards } from '../data/cards';
@@ -28,6 +28,7 @@ import { Palette } from './Palette';
 import { Particles } from './Particles';
 import { ResultOverlay } from './ResultOverlay';
 import { Sparky, type SparkyMood } from './Sparky';
+import { Sprite } from './sprites';
 import { Workspace } from './Workspace';
 
 interface Props {
@@ -386,17 +387,19 @@ export function GameScreen(props: Props) {
         <RoundBtn label={t.ui.toMap} onClick={props.onBack} color="#ffffff" dark>
           <ChevronLeft className="h-7 w-7 rtl:rotate-180" strokeWidth={3} />
         </RoundBtn>
-        <div className={`flex min-w-0 flex-1 flex-col leading-tight ${world.text} drop-shadow`}>
-          <span className="line-clamp-2 text-base font-bold leading-tight sm:text-lg">{express
+        <div className="flex min-w-0 flex-1 flex-col items-center leading-tight">
+          <span className="font-game outline-text line-clamp-2 text-center text-[1.35rem] uppercase leading-[1.05] sm:text-2xl">{express
               ? `🚆 ${t.pro.expressTitle} · ${expressDate(level.id).toLocaleDateString(undefined, { day: 'numeric', month: 'short', timeZone: 'UTC' })}`
               : world.showText
                 ? levelNo > handcrafted(level.group)
                   ? levelTitle(level)
                   : `${levelNo}. ${levelTitle(level)}`
                 : `${world.emoji} ${levelNo}`}</span>
-          <span className="flex">
+          <span className="mt-0.5 flex gap-0.5">
             {[1, 2, 3].map((i) => (
-              <Star key={i} className={`h-4 w-4 ${i <= bestStars ? 'fill-yellow-300 text-amber-500' : 'text-white/70'}`} />
+              <span key={i} className={`h-6 w-6 ${i === 2 ? '-translate-y-0.5' : ''} ${i <= bestStars ? '' : 'opacity-50 grayscale'}`}>
+                <Sprite name="star" />
+              </span>
             ))}
           </span>
         </div>
@@ -429,7 +432,7 @@ export function GameScreen(props: Props) {
               <button
                 type="button"
                 onClick={() => setBubbleOpen(false)}
-                className="flex items-end gap-1 text-start"
+                className="flex items-end gap-1.5 text-start"
                 disabled={blockCount === 0}
               >
                 <div className="h-11 w-11 shrink-0">
@@ -438,7 +441,7 @@ export function GameScreen(props: Props) {
                 <div
                   key={bubble}
                   className={`relative flex-1 animate-bounce-in rounded-2xl rounded-bl-md px-3 py-1.5 text-xs font-semibold sm:text-sm ${
-                    editorMsg ? 'card3d bg-rose-50 text-rose-900' : 'glass text-slate-700'
+                    editorMsg ? 'card3d bg-rose-50 text-rose-900' : 'card3d bg-white text-slate-800'
                   }`}
                 >
                   {bubble}
@@ -481,7 +484,7 @@ export function GameScreen(props: Props) {
             <>
               {/* Code-Brücke: Umschalter Blöcke ↔ Echter Code
                   Handy: immer nur ein Bereich, dafür in voller Höhe · Tablet: beide sichtbar */}
-              <div className="flex shrink-0 items-center gap-1 rounded-full bg-black/25 p-1" role="tablist">
+              <div className="relative z-10 -mb-3 flex shrink-0 items-end gap-1.5 px-2" role="tablist">
                 {world.showText && bubble && blockCount > 0 && !bubbleOpen && (
                   <button
                     type="button"
@@ -490,14 +493,14 @@ export function GameScreen(props: Props) {
                       play('click');
                       setBubbleOpen(true);
                     }}
-                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/90 text-lg shadow"
+                    className="mb-2 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border-[3px] border-[#1d1530] bg-yellow-300 text-lg shadow-[0_3px_0_#1d1530]"
                   >
                     💡
                   </button>
                 )}
                 {[
-                  { on: false, label: `🧩 ${t.ui.myProgram}` },
-                  { on: true, label: pro ? t.pro.codeToggle : t.code.toggle },
+                  { on: false, label: t.ui.myProgram },
+                  { on: true, label: `${t.editor.tab} (${codeLang === 'py' ? 'Python' : codeLang === 'ts' ? 'TypeScript' : 'JS'})` },
                 ].map((tab) => (
                   <button
                     key={String(tab.on)}
@@ -508,8 +511,10 @@ export function GameScreen(props: Props) {
                       play('click');
                       setShowCode(tab.on);
                     }}
-                    className={`flex min-h-[40px] flex-1 items-center justify-center rounded-full px-2 text-center text-xs font-bold leading-tight transition sm:text-sm ${
-                      showCode === tab.on ? (tab.on ? 'bg-slate-900 text-yellow-300 shadow-lg' : 'bg-white text-slate-800 shadow-lg') : 'text-white/85'
+                    className={`font-game flex flex-1 items-center justify-center rounded-t-2xl border-[3px] border-b-0 border-[#1d1530] px-2 text-center leading-tight transition ${
+                      showCode === tab.on
+                        ? 'min-h-[48px] bg-[#221a5e] pb-3 text-[15px] text-white shadow-[inset_0_3px_0_rgba(125,211,252,.7)]'
+                        : 'min-h-[40px] bg-[#3a3175] pb-2 text-[14px] text-white/70'
                     }`}
                   >
                     {tab.label}
@@ -517,7 +522,7 @@ export function GameScreen(props: Props) {
                 ))}
               </div>
               <div
-                className={`thin-scroll min-h-[110px] flex-1 overflow-y-auto rounded-[1.8rem] bg-black/15 p-2 shadow-inner ${showCode ? 'hidden md:block' : ''}`}
+                className={`panel-game thin-scroll min-h-[110px] flex-1 overflow-y-auto rounded-[1.6rem] p-2 ${showCode ? 'hidden md:block' : ''}`}
               >
                 <Workspace
                   program={program}
@@ -580,8 +585,8 @@ export function GameScreen(props: Props) {
                   )}
                 </div>
               )}
-              <div className="shrink-0 rounded-[1.8rem] bg-white/25 p-2 shadow-lg backdrop-blur-md">
-                <div className={`mb-2 flex items-center justify-between px-1 text-sm font-bold ${world.text}`}>
+              <div className="panel-game shrink-0 rounded-[1.6rem] p-2">
+                <div className="mb-2 flex items-center justify-between px-1 text-sm font-bold text-white">
                   <span className={`rounded-full px-2 transition ${limitFlash ? 'animate-shake bg-red-500 text-white' : ''}`}>
                     🧱 {blockCount} / {level.maxBlocks}
                   </span>
@@ -602,10 +607,10 @@ export function GameScreen(props: Props) {
                 <RoundBtn label={t.ui.clearAll} onClick={clearAll} disabled={locked || blockCount === 0} color="#ffffff" dark big>
                   <Trash2 className="h-6 w-6" strokeWidth={2.5} />
                 </RoundBtn>
-                <RoundBtn label={t.ui.resetSparky} onClick={() => runner.reset()} disabled={locked || !frame} color="#ffffff" dark big>
+                <RoundBtn label={t.ui.resetSparky} onClick={() => runner.reset()} disabled={locked || !frame} color="#0ea5e9" big>
                   <RotateCcw className="h-6 w-6" strokeWidth={3} />
                 </RoundBtn>
-                <RoundBtn label={t.pro.undo} onClick={undo} disabled={locked || undoCount === 0} color="#ffffff" dark big>
+                <RoundBtn label={t.pro.undo} onClick={undo} disabled={locked || undoCount === 0} color="#a855f7" big>
                   <Undo2 className="h-6 w-6 rtl:-scale-x-100" strokeWidth={3} />
                 </RoundBtn>
                 <div className="flex-1">
@@ -678,7 +683,7 @@ export function RoundBtn(p: {
       onClick={p.onClick}
       disabled={p.disabled}
       style={{ '--c': p.color } as CSSProperties}
-      className={`squish flex items-center justify-center gap-1 rounded-[1.2rem] px-2 ${p.mini ? 'h-[68px] w-[68px] rounded-[1.4rem]' : p.big ? 'h-16 min-w-[64px]' : 'h-12 min-w-[48px]'} ${
+      className={`squish tile-btn flex items-center justify-center gap-1 px-2 ${p.mini ? 'h-[68px] w-[68px]' : p.big ? 'h-16 min-w-[60px]' : 'h-12 min-w-[48px]'} ${
         p.dark ? '!text-slate-700 dark-text' : ''
       }`}
     >
@@ -702,7 +707,7 @@ function RunButton(p: {
       onClick={p.onClick}
       disabled={p.disabled && !p.running}
       style={{ '--c': p.running ? '#ef4444' : '#22c55e' } as CSSProperties}
-      className={`squish flex items-center justify-center gap-2 rounded-[1.8rem] text-2xl font-bold ${p.wide ? 'h-16 w-full' : 'h-24 w-[88px] shrink-0'} ${
+      className={`squish font-game flex items-center justify-center gap-2 rounded-full text-[1.9rem] uppercase ${p.wide ? 'h-16 w-full' : 'h-24 w-[88px] shrink-0'} ${
         !p.running && !p.disabled ? 'animate-breathe' : ''
       }`}
     >

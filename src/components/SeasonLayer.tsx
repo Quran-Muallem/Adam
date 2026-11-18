@@ -33,7 +33,7 @@ const MOTION: Record<NonNullable<SeasonParticle>, 'fall' | 'rise' | 'fly' | 'pop
 
 /** Feste Plätze für die großen Deko-Sprites */
 const DECOR_SPOTS: CSSProperties[] = [
-  { left: '-4%', top: '16%', width: '30%' },
+  { left: '-4%', top: '16%', width: '24%' },
   { right: '-2%', top: '9%', width: '18%' },
   { right: '4%', top: '44%', width: '16%' },
 ];
@@ -60,7 +60,7 @@ export function SeasonLayer({ dense = false }: { dense?: boolean }) {
     <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden" aria-hidden>
       <div className="absolute inset-0" style={{ background: theme.tint }} />
       {/* Große Deko */}
-      {theme.decor.map((name, i) => (
+      {theme.fest && theme.decor.map((name, i) => (
         <div
           key={`${name}${i}`}
           className={`absolute ${name === 'lantern' ? 'season-swing origin-top' : 'animate-float'}`}

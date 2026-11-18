@@ -63,9 +63,10 @@ button:disabled {
   color: #fff;
   background: linear-gradient(
     180deg,
-    color-mix(in srgb, var(--c) 55%, white) 0%,
-    var(--c) 48%,
-    color-mix(in srgb, var(--c) 78%, black) 100%
+    color-mix(in srgb, var(--c) 62%, white) 0%,
+    color-mix(in srgb, var(--c) 92%, white) 30%,
+    var(--c) 58%,
+    color-mix(in srgb, var(--c) 82%, black) 100%
   );
   /* AAA-Casual-Look: dicke dunkle Outline + harter 3D-Sockel */
   box-shadow:
@@ -113,8 +114,8 @@ button:disabled {
     inset 0 3px 0 rgba(255, 255, 255, 0.55);
 }
 .squish:disabled {
-  filter: grayscale(0.6) brightness(0.95);
-  opacity: 0.55;
+  filter: saturate(0.45) brightness(0.92);
+  opacity: 0.85;
 }
 
 /* Weiße Glas-Karte */
@@ -286,3 +287,49 @@ html[lang='ar'] body {
   background: radial-gradient(circle at 40% 30%, #e7e5e4 0%, #a8a29e 50%, #57534e 100%);
   border-color: #78716c;
 }
+
+/* ═══════════ Casual-Game-Design (Brawl-Stars-/UNO-Stil) ═══════════ */
+.font-game {
+  font-family: 'Lilita One', 'Fredoka', ui-rounded, sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+/* Tablet-Rahmen ums Spielfeld */
+.board-frame {
+  --rim: #6b8cff;
+  border-radius: 1.8rem;
+  border: 4px solid #1d1530;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--rim) 45%, white) 0%, var(--rim) 45%, color-mix(in srgb, var(--rim) 60%, black) 100%);
+  box-shadow:
+    0 8px 0 #1d1530,
+    0 16px 26px -8px rgba(0, 0, 0, 0.55),
+    inset 0 3px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -4px 0 rgba(0, 0, 0, 0.25);
+}
+/* Glänzende Weg-Kacheln */
+.path-tile {
+  --t: #4338ca;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--t) 72%, white) 0%, var(--t) 60%, color-mix(in srgb, var(--t) 80%, black) 100%);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -3px 0 rgba(0, 0, 0, 0.25),
+    0 0 0 1.5px rgba(255, 255, 255, 0.18);
+}
+/* Dunkles Spiel-Panel mit leuchtendem Rand */
+.panel-game {
+  background: linear-gradient(180deg, #221a5e 0%, #15103d 100%);
+  border: 3px solid #1d1530;
+  box-shadow:
+    0 0 0 2px rgba(125, 211, 252, 0.55),
+    0 6px 0 #1d1530,
+    0 0 22px -4px rgba(56, 189, 248, 0.45),
+    inset 0 2px 0 rgba(255, 255, 255, 0.12);
+}
+/* Quadratische 3D-Spielknöpfe (Palette & Steuerung) */
+.tile-btn {
+  border-radius: 1.1rem;
+  font-family: 'Lilita One', 'Fredoka', ui-rounded, sans-serif;
+  font-weight: 400;
+}
+.animate-rainbow { animation: rainbow 4s linear infinite; }
+@keyframes rainbow { from { filter: hue-rotate(0deg); } to { filter: hue-rotate(360deg); } }

@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App';
 import { SeasonProvider } from './hooks/useSeasonalTheme';
 import { LanguageProvider, useI18n } from './i18n';
+import '@fontsource/lilita-one';
 import './index.css';
 
 // Verhindert Pinch-Zoom auf iOS-Safari (ignoriert user-scalable=no)

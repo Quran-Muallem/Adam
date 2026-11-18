@@ -20,14 +20,14 @@ interface Props {
 export function MiniWorkspace({ blocks, slots, frame, frameIndex, pulseMs, locked, remove, children, t }: Props) {
   const currentId = frame?.activeIds[frame.activeIds.length - 1];
   return (
-    <div className="glass flex flex-wrap items-center justify-center gap-2 rounded-[2rem] p-3">
+    <div className="panel-game flex flex-wrap items-center justify-center gap-2 rounded-[2rem] p-3">
       {Array.from({ length: slots }).map((_, i) => {
         const b = blocks[i];
         if (!b) {
           return (
             <div
               key={`empty-${i}`}
-              className="flex h-[68px] w-[68px] items-center justify-center rounded-[1.4rem] border-4 border-dashed border-slate-300 bg-slate-50 text-3xl font-bold text-slate-300"
+              className="flex h-[68px] w-[68px] items-center justify-center rounded-[1.4rem] border-4 border-dashed border-white/40 bg-white/10 text-3xl font-bold text-white/50"
             >
               {i + 1}
             </div>

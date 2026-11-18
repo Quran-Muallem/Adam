@@ -33,7 +33,7 @@ jobs:
         run: |
           npx cap add android
           # App-Symbol (inkl. Adaptive Icon) & Startbildschirm aus assets/ erzeugen
-          npx --yes @capacitor/assets@3 generate --android --splashBackgroundColor '#4c1d95' --splashBackgroundColorDark '#4c1d95'
+          npx --yes @capacitor/assets@3 generate --android --splashBackgroundColor '#6fc8f2' --splashBackgroundColorDark '#6fc8f2' --iconBackgroundColor '#6fc8f2'
           npx cap sync android
 
       # Immer derselbe Signatur-Schlüssel -> neue Versionen lassen sich über die alte installieren
