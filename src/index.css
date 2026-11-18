@@ -333,3 +333,7 @@ html[lang='ar'] body {
 }
 .animate-rainbow { animation: rainbow 4s linear infinite; }
 @keyframes rainbow { from { filter: hue-rotate(0deg); } to { filter: hue-rotate(360deg); } }
+
+/* Drück-Feedback ohne Verschiebung (Grafiken liegen exakt auf der Vorlage) */
+.press { transition: filter 0.1s ease, transform 0.1s ease; -webkit-tap-highlight-color: transparent; }
+.press:active { filter: brightness(1.12) saturate(1.1); transform: scale(0.97); }

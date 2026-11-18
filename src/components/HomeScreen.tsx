@@ -1,24 +1,89 @@
-// Startbildschirm: illustrierte Abenteuerkarte mit den fünf Themenwelten + Menü + S-Bahn-Express
-import { BookOpen, Check, Globe, RotateCcw, Settings, Shirt, Star } from 'lucide-react';
+// ─────────────────────────────────────────────────────────────
+// Startbildschirm – exakte Umsetzung der Master-Vorlage (1438 × 2445 px).
+// Alle Grafiken stammen aus der Vorlage selbst (public/home/*.webp).
+// Positionen sind in Vorlagen-Pixeln angegeben und werden proportional
+// zur Bildschirmbreite skaliert (Container-Query-Einheiten), damit das
+// Layout auf jedem Android-Gerät dieselben Proportionen behält.
+// Deutsch nutzt die Original-Schriftzüge; andere Sprachen bekommen
+// textfreie Varianten der Grafiken + nachgebauten Schriftzug.
+// ─────────────────────────────────────────────────────────────
+import { Check, Globe, RotateCcw } from 'lucide-react';
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
-import { bestTitle } from '../data/rewards';
 import { expressId } from '../data/levels';
-import { WORLD_ORDER } from '../data/worlds';
-import { SeasonBanner, SeasonLayer } from './SeasonLayer';
 import { THEMES } from '../data/seasons';
+import { WORLD_ORDER } from '../data/worlds';
 import { useSeasonalTheme } from '../hooks/useSeasonalTheme';
-import { Sprite, WORLD_SPRITES, type SpriteName } from './sprites';
-import { useStoredState } from '../hooks/useStoredState';
 import type { ProgressApi } from '../hooks/useProgress';
 import type { SoundApi } from '../hooks/useSoundEffects';
+import { useStoredState } from '../hooks/useStoredState';
 import { DICTS, LANGS, useI18n, type Lang } from '../i18n';
 import type { AgeGroupId } from '../types';
 import { DailyWheel } from './DailyWheel';
-import { RoundBtn } from './GameScreen';
-import { Particles } from './Particles';
-import { Sparky } from './Sparky';
+import { SeasonBanner, SeasonLayer } from './SeasonLayer';
+import { Sprite, type SpriteName } from './sprites';
 
 const DICT_NAMES = Object.fromEntries(Object.entries(DICTS).map(([k, d]) => [k, d.langName])) as Record<Lang, string>;
+
+/** Maße der Vorlage */
+const DW = 1438;
+const DH = 2445;
+const BOTTOM = '#154ca9';
+type Box = [number, number, number, number];
+/** Position jedes Elements in Vorlagen-Pixeln: [x0, y0, x1, y1] */
+const B: Record<string, Box> = {
+  bg: [0, 0, 1438, 2445],
+  sparky: [480, 270, 1040, 880],
+  flag: [30, 90, 235, 295],
+  settings: [1205, 85, 1405, 305],
+  title: [220, 850, 1220, 1135],
+  tile1: [115, 1140, 410, 1412],
+  tile2: [435, 1140, 725, 1412],
+  tile3: [750, 1140, 1040, 1412],
+  badge: [1277, 1136, 1365, 1224],
+  label1: [110, 1392, 420, 1478],
+  label2: [440, 1392, 730, 1478],
+  label3: [745, 1392, 1050, 1478],
+  label4: [1060, 1392, 1385, 1478],
+  banner: [30, 1495, 1410, 1722],
+  question: [270, 1708, 1170, 1810],
+  card1: [50, 1822, 1110, 2445],
+  star: [600, 60, 840, 290],
+  tile4: [1065, 1130, 1375, 1412],
+  banner_blank: [30, 1495, 1410, 1722],
+  card1_blank: [50, 1822, 1110, 2445],
+  play_blank: [680, 2250, 1072, 2428],
+};
+const IMG = (n: string) => `./home/${n}.webp`;
+/** Vorlagen-Pixel → CSS (relativ zur Container-Breite) */
+const u = (px: number) => `calc(${px} * 100cqw / ${DW})`;
+const at = (b: Box): CSSProperties => ({
+  position: 'absolute',
+  left: `${(b[0] / DW) * 100}%`,
+  top: `${(b[1] / DH) * 100}%`,
+  width: `${((b[2] - b[0]) / DW) * 100}%`,
+  height: `${((b[3] - b[1]) / DH) * 100}%`,
+});
+
+/** Comic-Schrift wie in der Vorlage: weiß mit dunkler Kontur */
+const OUTLINE: CSSProperties = {
+  fontFamily: 'Fredoka, "Baloo Bhaijaan 2", ui-rounded, sans-serif',
+  fontWeight: 700,
+  color: '#fff',
+  WebkitTextStroke: `${u(9)} #1b1433`,
+  paintOrder: 'stroke fill',
+  textShadow: `0 ${u(6)} 0 rgba(20,14,50,.55)`,
+};
+
+/** Karten-Reihenfolge wie in der Vorlage: Zauberwald, Neon-Metropole, danach die übrigen Welten */
+const CARD_ORDER: AgeGroupId[] = ['mini', 'teen', 'junior', 'hero', 'adult'];
+/** Platzhalter-Szenen für Welten, deren Karten-Illustration in der Vorlage fehlt */
+const PLACEHOLDER: Record<AgeGroupId, { bg: string; ring: string; scene: SpriteName[] }> = {
+  mini: { bg: '', ring: '#7bd04a', scene: [] },
+  teen: { bg: 'linear-gradient(160deg,#4c1d95 0%,#7e22ce 40%,#1e1b4b 100%)', ring: '#a855f7', scene: ['skyline', 'tower', 'robot'] },
+  junior: { bg: 'linear-gradient(160deg,#38bdf8 0%,#0284c7 50%,#0c4a6e 100%)', ring: '#38bdf8', scene: ['ship', 'palm', 'treasure'] },
+  hero: { bg: 'linear-gradient(160deg,#7c3aed 0%,#3b1d8f 50%,#160b40 100%)', ring: '#818cf8', scene: ['rocket', 'planet', 'meteor'] },
+  adult: { bg: 'linear-gradient(160deg,#0f766e 0%,#0b2f3a 55%,#020617 100%)', ring: '#2dd4bf', scene: ['atom', 'crystal', 'qcore'] },
+};
 
 interface Props {
   sound: SoundApi;
@@ -32,251 +97,167 @@ interface Props {
   onSettings: () => void;
 }
 
-/** Sammelkarten der fünf Welten: Farbverlauf, Emblem, Deko */
-const CARD: Record<AgeGroupId, { bg: string; ring: string; deco: SpriteName[] }> = {
-  mini: { bg: 'linear-gradient(135deg,#bef264 0%,#22c55e 45%,#15803d 100%)', ring: '#14532d', deco: ['tree', 'mushroom', 'berry'] },
-  junior: { bg: 'linear-gradient(135deg,#67e8f9 0%,#0ea5e9 45%,#1e40af 100%)', ring: '#0c4a6e', deco: ['palm', 'gem', 'treasure'] },
-  hero: { bg: 'linear-gradient(135deg,#c4b5fd 0%,#7c3aed 45%,#312e81 100%)', ring: '#2e1065', deco: ['planet', 'star', 'meteor'] },
-  teen: { bg: 'linear-gradient(135deg,#f0abfc 0%,#a21caf 40%,#0f172a 100%)', ring: '#3b0764', deco: ['tower', 'battery', 'disk'] },
-  adult: { bg: 'linear-gradient(135deg,#5eead4 0%,#0f766e 40%,#020617 100%)', ring: '#042f2e', deco: ['crystal', 'qcore', 'spark'] },
-};
-
-/** Illustrierte Szenen auf den Welten-Karten */
-const SCENE: Record<AgeGroupId, { s: SpriteName; x: string; y: string; w: string; r?: number }[]> = {
-  mini: [
-    { s: 'mushroom', x: '8%', y: '22%', w: '34%' },
-    { s: 'tree', x: '52%', y: '6%', w: '42%' },
-    { s: 'berry', x: '40%', y: '38%', w: '18%' },
-    { s: 'strawberry', x: '74%', y: '40%', w: '16%' },
-  ],
-  junior: [
-    { s: 'ship', x: '10%', y: '14%', w: '38%' },
-    { s: 'palm', x: '58%', y: '4%', w: '38%' },
-    { s: 'gem', x: '44%', y: '34%', w: '16%' },
-    { s: 'treasure', x: '74%', y: '40%', w: '20%' },
-  ],
-  hero: [
-    { s: 'rocket', x: '10%', y: '8%', w: '30%', r: 20 },
-    { s: 'planet', x: '56%', y: '6%', w: '36%' },
-    { s: 'star', x: '40%', y: '36%', w: '16%' },
-    { s: 'meteor', x: '70%', y: '38%', w: '20%' },
-  ],
-  teen: [
-    { s: 'skyline', x: '4%', y: '6%', w: '52%' },
-    { s: 'robot', x: '60%', y: '10%', w: '28%' },
-    { s: 'battery', x: '50%', y: '38%', w: '14%' },
-    { s: 'disk', x: '74%', y: '42%', w: '16%' },
-  ],
-  adult: [
-    { s: 'atom', x: '8%', y: '8%', w: '40%' },
-    { s: 'crystal', x: '58%', y: '8%', w: '32%' },
-    { s: 'qcore', x: '44%', y: '38%', w: '16%' },
-    { s: 'spark', x: '76%', y: '42%', w: '14%' },
-  ],
-};
-
 export function HomeScreen({ sound, prog, onPick, onExpress, onWardrobe, onAlbum, onTrophies, onSettings }: Props) {
   const [confirmReset, setConfirmReset] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
   const [wheelOpen, setWheelOpen] = useState(false);
   const { t, lang, setLang } = useI18n();
-  const current = LANGS.find((l) => l.id === lang)!;
-  const title = bestTitle(prog.badges);
+  const de = lang === 'de';
+  // Express-Rätsel in der zuletzt gewählten Welt
   const [expressGroup, setExpressGroup] = useStoredState<AgeGroupId>('sparky:expressGroup', 'hero');
   const todayId = expressId(WORLD_ORDER.includes(expressGroup) ? expressGroup : 'hero');
   const todayStars = prog.progress.express[todayId] ?? 0;
-  // Festtags-Abzeichen: einmal pro Fest und Jahr (nur echtes Kalender-Fest, keine Vorschau)
+  // Festtags-Abzeichen: einmal pro Fest und Jahr (nur echtes Kalender-Fest)
   const season = useSeasonalTheme();
   const { addFest } = prog;
   useEffect(() => {
     if (!season.preview && THEMES[season.live].fest) addFest(`${season.live}-${new Date().getFullYear()}`);
   }, [season.preview, season.live, addFest]);
 
+  const click = (fn: () => void) => () => {
+    sound.play('click');
+    fn();
+  };
+  const labels = [t.home2.costumes, t.home2.knowledge, t.home2.trophies, t.home2.gift];
+  const tileActions = [onWardrobe, onAlbum, onTrophies, () => setWheelOpen(true)];
+
   return (
-    <div
-      className="safe-area relative h-[100dvh] overflow-hidden"
-      style={{ background: 'linear-gradient(180deg,#1fa2ef 0%,#45bdf6 30%,#8fdcfb 62%,#ffe7a3 88%,#ffd36e 100%)' }}
-    >
-      {/* Sonnenlicht von unten */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2" style={{ background: 'radial-gradient(ellipse at 70% 100%, rgba(255,240,180,.85), transparent 65%)' }} />
-      <Particles kind="stars" count={22} />
-      {/* Wolken & schwebende Inseln */}
-      {[
-        { top: '7%', left: '-12%', w: '36%', s: 'cloud' },
-        { top: '10%', left: '74%', w: '34%', s: 'cloud' },
-        { top: '24%', left: '-6%', w: '24%', s: 'island' },
-        { top: '27%', left: '80%', w: '22%', s: 'island' },
-        { top: '50%', left: '-16%', w: '30%', s: 'cloud' },
-      ].map((c, i) => (
-        <div key={i} className="pointer-events-none absolute animate-float" style={{ top: c.top, left: c.left, width: c.w, animationDelay: `${i * 0.9}s` }}>
-          <Sprite name={c.s as SpriteName} className="h-auto w-full drop-shadow-[0_8px_8px_rgba(0,40,90,.25)]" />
-        </div>
-      ))}
-      <SeasonLayer />
+    <div className="safe-area relative h-[100dvh] overflow-hidden" style={{ background: BOTTOM }}>
+      <div className="thin-scroll h-full overflow-y-auto overflow-x-hidden">
+        {/* ═══ Leinwand im Format der Vorlage ═══ */}
+        <div
+          className="relative mx-auto w-full max-w-[520px] select-none [container-type:inline-size]"
+          style={{ aspectRatio: `${DW} / ${DH}`, backgroundImage: `url(${IMG('bg')})`, backgroundSize: '100% 100%' }}
+        >
+          {season.theme.fest && <SeasonLayer />}
 
-      <div className="thin-scroll relative h-full overflow-y-auto">
-        <div className="mx-auto flex max-w-xl flex-col items-center px-4 pb-10">
-          {/* Kopfzeile: Sprache · Sterne · Einstellungen */}
-          <div className="relative z-10 flex w-full items-center justify-between py-3">
-            <RoundBtn
-              label={t.home.language}
-              onClick={() => {
-                sound.play('click');
-                setLangOpen(true);
-              }}
-              color="#ffffff"
-              dark
-            >
-              <span className="text-2xl leading-none">{current.flag}</span>
-            </RoundBtn>
-            <div className="relative flex h-16 w-16 items-center justify-center" aria-label={`${prog.totalStars} ⭐`}>
-              <Sprite name="star" className="absolute inset-0 h-full w-full animate-breathe" />
-              <span className={`relative mt-1 font-black text-amber-900 ${prog.totalStars > 99 ? 'text-sm' : 'text-lg'}`}>{prog.totalStars}</span>
-            </div>
-            <RoundBtn label={t.settings.title} onClick={onSettings} color="#ffffff" dark>
-              <Settings className="h-6 w-6" />
-            </RoundBtn>
-          </div>
-
-          {/* Sparky in eigenem Container – mit Abstand, damit Mütze/Hörner nie in die Kopfzeile ragen */}
-          <div className="relative z-10 mt-4 flex h-52 w-52 items-end justify-center sm:h-64 sm:w-64">
-            <div className="absolute inset-[12%] rounded-full bg-white/50 blur-2xl" />
-            <div className="relative h-full w-full animate-float">
-              <Sparky large />
-            </div>
-          </div>
-          <h1 className="game-title font-game relative z-10 mt-1 text-center text-[2.9rem] uppercase leading-[0.95] sm:text-6xl">
-            {t.titleTop}
-            <br />
-            <span className="text-[1.9rem] sm:text-5xl">{t.titleBottom}</span>
-          </h1>
-          {title && (
-            <button
-              type="button"
-              onClick={onTrophies}
-              className="card3d relative z-10 mt-3 animate-pop rounded-full bg-slate-900 px-4 py-1 text-sm font-extrabold tracking-wide text-white"
-            >
-              {title.emoji} {t.rewards.badges[title.id].name}
-            </button>
-          )}
-
-          <div className="mt-4 w-full">
-            <SeasonBanner />
-          </div>
-
-          {/* Menü: 3D-Kacheln mit kurzen Labels */}
-          <div className="relative z-10 mt-4 grid w-full grid-cols-4 gap-3">
-            <MenuBtn color="#c026d3" label={t.home2.costumes} onClick={() => { sound.play('click'); onWardrobe(); }}>
-              <Shirt className="h-9 w-9 drop-shadow-[0_2px_0_#1d1530]" strokeWidth={2.5} />
-            </MenuBtn>
-            <MenuBtn color="#0ea5e9" label={t.home2.knowledge} onClick={() => { sound.play('click'); onAlbum(); }}>
-              <BookOpen className="h-9 w-9 drop-shadow-[0_2px_0_#1d1530]" strokeWidth={2.5} />
-            </MenuBtn>
-            <MenuBtn color="#f59e0b" label={t.home2.trophies} sprite="trophy" onClick={() => { sound.play('click'); onTrophies(); }} />
-            <MenuBtn
-              color="#ef4444"
-              label={t.home2.gift}
-              sprite="gift"
-              pulse={prog.canSpin}
-              badge={prog.canSpin ? '!' : prog.progress.streak > 1 ? `🔥${prog.progress.streak}` : undefined}
-              onClick={() => {
-                sound.play('click');
-                setWheelOpen(true);
-              }}
-            />
-          </div>
-
-          {/* 🚆 S-Bahn-Express: ein Tages-Rätsel, in 3 Minuten lösbar */}
-          <div className="relative z-10 mt-6 w-full">
-            <button
-              type="button"
-              onClick={() => {
-                sound.play('unlock');
-                onExpress(todayId);
-              }}
-              className="squish flex min-h-[70px] w-full items-center gap-3 rounded-full py-2 pe-5 ps-3 text-start"
-              style={{ '--c': '#f97316' } as CSSProperties}
-            >
-              <span className="h-14 w-14 shrink-0 -rotate-6">
-                <Sprite name="train" />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block text-lg font-black uppercase leading-tight text-yellow-200">{t.pro.expressButton.replace(/^🚆\s*/, '')}</span>
-                <span className="block text-xs font-bold leading-tight">
-                  {todayStars > 0 ? `${'⭐'.repeat(todayStars)} ${t.pro.expressDone}` : t.pro.expressSub}
+          {/* Sprache */}
+          <button type="button" aria-label={t.home.language} onClick={click(() => setLangOpen(true))} style={at(B.flag)} className="press">
+            {de ? (
+              <img src={IMG('flag')} alt="" className="h-full w-full" draggable={false} />
+            ) : (
+              <span className="flex h-full w-full items-center justify-center p-[12%]">
+                <span className="flex aspect-square w-full items-center justify-center overflow-hidden rounded-full border-[3px] border-white bg-white/90 shadow-[0_6px_10px_rgba(0,0,0,.35)]" style={{ fontSize: u(120) }}>
+                  {LANGS.find((l) => l.id === lang)?.flag}
                 </span>
               </span>
-              {todayStars > 0 && <Check className="h-7 w-7 shrink-0" strokeWidth={3.5} />}
+            )}
+          </button>
+
+          {/* Sterne */}
+          <div style={at(B.star)} aria-label={`${prog.totalStars} ⭐`}>
+            <img src={IMG('star')} alt="" className="h-full w-full" draggable={false} />
+            <span
+              className="absolute inset-x-0 text-center leading-none"
+              style={{ top: '38%', fontFamily: 'Fredoka, ui-rounded, sans-serif', fontWeight: 700, color: '#4a3410', fontSize: u(prog.totalStars > 99 ? 58 : 82) }}
+            >
+              {prog.totalStars}
+            </span>
+          </div>
+
+          {/* Einstellungen */}
+          <button type="button" aria-label={t.settings.title} onClick={onSettings} style={at(B.settings)} className="press">
+            <img src={IMG('settings')} alt="" className="h-full w-full" draggable={false} />
+          </button>
+
+          {/* Sparky */}
+          <img src={IMG('sparky')} alt="Sparky" style={at(B.sparky)} draggable={false} />
+
+          {/* Titel */}
+          {de ? (
+            <img src={IMG('title')} alt={`${t.titleTop} ${t.titleBottom}`} style={at(B.title)} draggable={false} />
+          ) : (
+            <h1 style={at(B.title)} className="game-title flex flex-col items-center justify-center text-center uppercase leading-[0.95]">
+              <span style={{ fontSize: u(165), fontFamily: 'Fredoka, ui-rounded, sans-serif', fontWeight: 700 }}>{t.titleTop}</span>
+              <span style={{ fontSize: u(104), fontFamily: 'Fredoka, ui-rounded, sans-serif', fontWeight: 700 }}>{t.titleBottom}</span>
+            </h1>
+          )}
+
+          {/* Menü-Kacheln */}
+          {[1, 2, 3, 4].map((i) => (
+            <button key={i} type="button" aria-label={labels[i - 1]} onClick={click(tileActions[i - 1])} style={at(B[`tile${i}`])} className="press">
+              <img src={IMG(`tile${i}`)} alt="" className="h-full w-full" draggable={false} />
             </button>
-            <div className="mt-3 flex items-center gap-2" role="radiogroup" aria-label={t.pro.expressLevel}>
-              {WORLD_ORDER.map((g) => (
-                <button
-                  key={g}
-                  type="button"
-                  role="radio"
-                  aria-checked={expressGroup === g}
-                  aria-label={t.worlds[g].name}
-                  onClick={() => {
-                    sound.play('click');
-                    setExpressGroup(g);
-                  }}
-                  className={`card3d flex h-12 flex-1 items-center justify-center rounded-2xl p-1.5 transition active:translate-y-1 ${
-                    expressGroup === g ? 'bg-yellow-300' : 'bg-white/70'
-                  }`}
-                >
-                  <Sprite name={WORLD_SPRITES[g].emblem} />
-                </button>
-              ))}
-            </div>
-            <div className="outline-text mt-1.5 text-center text-xs font-bold">
-              {t.home2.level}: {t.worlds[expressGroup]?.name} · {t.worlds[expressGroup]?.ages}
-            </div>
+          ))}
+          {prog.canSpin && <img src={IMG('badge')} alt="!" style={at(B.badge)} className="pointer-events-none" draggable={false} />}
+          {[1, 2, 3, 4].map((i) =>
+            de ? (
+              <img key={i} src={IMG(`label${i}`)} alt="" style={at(B[`label${i}`])} className="pointer-events-none" draggable={false} />
+            ) : (
+              <span key={i} style={{ ...at(B[`label${i}`]), ...OUTLINE, fontSize: u(60) }} className="pointer-events-none flex items-center justify-center whitespace-nowrap leading-none">
+                {labels[i - 1]}
+              </span>
+            ),
+          )}
+
+          {/* S-Bahn-Express */}
+          <button
+            type="button"
+            aria-label={t.pro.expressButton}
+            onClick={() => {
+              sound.play('unlock');
+              onExpress(todayId);
+            }}
+            style={at(B.banner)}
+            className="press"
+          >
+            <img src={IMG(de ? 'banner' : 'banner_blank')} alt="" className="h-full w-full" draggable={false} />
+            {!de && (
+              <span className="absolute flex items-center whitespace-nowrap leading-none" style={{ left: '20%', right: '7%', top: '28%', bottom: '28%', ...OUTLINE, color: '#ffd84d', fontSize: u(62) }}>
+                <span className="truncate">{t.pro.expressButton.replace(/^🚆\s*/, '')}</span>
+              </span>
+            )}
+            {todayStars > 0 && (
+              <span className="absolute right-[3%] top-[18%] flex aspect-square h-[42%] items-center justify-center rounded-full border-2 border-[#1b1433] bg-emerald-400 text-white">
+                <Check className="h-[70%] w-[70%]" strokeWidth={4} />
+              </span>
+            )}
+          </button>
+
+          {/* Frage */}
+          {de ? (
+            <img src={IMG('question')} alt={t.home.whereTo} style={at(B.question)} className="pointer-events-none" draggable={false} />
+          ) : (
+            <p style={{ ...at(B.question), ...OUTLINE, fontSize: u(80), WebkitTextStroke: `${u(6)} #1b4f9c` }} className="flex items-center justify-center whitespace-nowrap leading-none">
+              {t.home.whereTo}
+            </p>
+          )}
+
+          {/* Welten-Karten (seitlich wischen) */}
+          <div
+            className="thin-scroll absolute flex snap-x snap-mandatory overflow-x-auto overflow-y-hidden"
+            style={{
+              left: 0,
+              right: 0,
+              top: `${(B.card1[1] / DH) * 100}%`,
+              height: `${((B.card1[3] - B.card1[1]) / DH) * 100}%`,
+              paddingLeft: u(B.card1[0]),
+              gap: u(18),
+              scrollPaddingLeft: u(B.card1[0]),
+            }}
+          >
+            {CARD_ORDER.map((id) => (
+              <WorldCard
+                key={id}
+                id={id}
+                de={de}
+                name={t.worlds[id].world}
+                ages={t.worlds[id].ages}
+                play={t.home2.play}
+                onClick={() => {
+                  sound.play('unlock');
+                  setExpressGroup(id);
+                  onPick(id);
+                }}
+              />
+            ))}
+            <span className="shrink-0" style={{ width: u(32) }} />
           </div>
+        </div>
 
-          <p className="outline-text relative z-10 mt-6 text-center text-2xl font-black">{t.home.whereTo}</p>
-
-          {/* Welten als illustrierte 3D-Sammelkarten (wischen) */}
-          <div className="thin-scroll relative z-10 -mx-4 mt-3 flex w-[calc(100%+2rem)] snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 pt-1">
-            {WORLD_ORDER.map((id, i) => {
-              const wt = t.worlds[id];
-              const card = CARD[id];
-              return (
-                <button
-                  key={id}
-                  type="button"
-                  onClick={() => {
-                    sound.play('unlock');
-                    onPick(id);
-                  }}
-                  className="card3d relative h-[250px] w-[82%] shrink-0 snap-center overflow-hidden rounded-[1.8rem] text-start transition active:translate-y-1"
-                  style={{ background: card.bg, animationDelay: `${i * 0.1}s` }}
-                >
-                  {/* Szene */}
-                  <span className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/60 to-transparent" />
-                  {SCENE[id].map((d, k) => (
-                    <span key={k} className={`pointer-events-none absolute ${k === 0 ? 'animate-float' : ''}`} style={{ left: d.x, top: d.y, width: d.w, transform: `rotate(${d.r ?? 0}deg)` }}>
-                      <Sprite name={d.s} className="h-auto w-full drop-shadow-[0_6px_6px_rgba(0,0,0,.35)]" />
-                    </span>
-                  ))}
-                  <span className="absolute inset-x-5 top-2 h-6 rounded-full bg-white/25" />
-                  {/* Titel + Spielen */}
-                  <span className="absolute inset-x-3 bottom-3 flex items-end gap-2">
-                    <span className="min-w-0 flex-1">
-                      <span className="font-game outline-text block text-[1.45rem] uppercase leading-[1.02] hyphens-auto break-words">{wt.world}</span>
-                      <span className="outline-text block text-sm font-bold">({wt.ages})</span>
-                    </span>
-                    <span className="squish font-game flex h-12 shrink-0 items-center rounded-2xl px-3 text-lg uppercase" style={{ '--c': '#22c55e' } as CSSProperties}>
-                      {t.home2.play}
-                    </span>
-                  </span>
-                  <span className="absolute end-3 top-3 inline-flex items-center gap-1 rounded-full border-2 border-[#1d1530] bg-white/90 px-2 py-0.5 text-xs font-black text-slate-800">
-                    <Star className="h-3.5 w-3.5 fill-yellow-300 text-amber-500" /> {prog.starsIn(id)} · Lv {prog.frontier(id)}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
+        {/* Unterhalb der Vorlage: Fest-Banner (nur an Festtagen) & Fortschritt zurücksetzen */}
+        <div className="mx-auto flex w-full max-w-[520px] flex-col items-center gap-3 px-4 pb-8 pt-4">
+          {season.theme.fest && <SeasonBanner />}
           <button
             type="button"
             onClick={() => {
@@ -289,7 +270,7 @@ export function HomeScreen({ sound, prog, onPick, onExpress, onWardrobe, onAlbum
                 setTimeout(() => setConfirmReset(false), 3000);
               }
             }}
-            className="relative z-10 mt-8 flex items-center gap-2 text-sm font-bold text-white/85"
+            className="flex items-center gap-2 text-sm font-bold text-white/80"
           >
             <RotateCcw className="h-4 w-4" />
             {confirmReset ? t.home.resetConfirm : t.home.reset}
@@ -331,21 +312,55 @@ export function HomeScreen({ sound, prog, onPick, onExpress, onWardrobe, onAlbum
   );
 }
 
-function MenuBtn(p: { color: string; label: string; onClick: () => void; pulse?: boolean; badge?: string; sprite?: SpriteName; children?: ReactNode }) {
-  return (
-    <button type="button" aria-label={p.label} onClick={p.onClick} className="flex flex-col items-center gap-1.5">
-      <span
-        className={`squish relative flex aspect-square w-full items-center justify-center rounded-[1.3rem] p-2.5 ${p.pulse ? 'animate-breathe' : ''}`}
-        style={{ '--c': p.color } as CSSProperties}
-      >
-        {p.sprite ? <Sprite name={p.sprite} className="h-full w-full" /> : p.children}
-        {p.badge && (
-          <span className="card3d absolute -right-2 -top-2 flex min-w-[26px] animate-pop items-center justify-center rounded-full bg-yellow-300 px-1.5 py-0.5 text-xs font-black text-rose-700 [text-shadow:none]">
-            {p.badge}
-          </span>
-        )}
+
+/** Welten-Karte: Zauberwald mit Original-Illustration, übrige Welten als Platzhalter (Illustration fehlt in der Vorlage) */
+function WorldCard(p: { id: AgeGroupId; de: boolean; name: string; ages: string; play: string; onClick: () => void }) {
+  const w = B.card1[2] - B.card1[0];
+  const original = p.id === 'mini';
+  const ph = PLACEHOLDER[p.id];
+  const text: ReactNode = (
+    <>
+      <span className="absolute flex flex-col justify-end text-start leading-[1.05]" style={{ left: u(55), bottom: u(38), right: u(420) }}>
+        <span className="line-clamp-2 uppercase" style={{ ...OUTLINE, fontSize: u(p.name.length > 12 ? 74 : 98) }}>
+          {p.name}
+        </span>
+        <span style={{ ...OUTLINE, fontSize: u(60) }}>({p.ages})</span>
       </span>
-      <span className="outline-text text-center text-[13px] font-black leading-tight">{p.label}</span>
+      <span
+        className="absolute flex items-center justify-center"
+        style={{ left: u(B.play_blank[0] - B.card1[0]), top: u(B.play_blank[1] - B.card1[1]), width: u(B.play_blank[2] - B.play_blank[0]), height: u(B.play_blank[3] - B.play_blank[1]) }}
+      >
+        <img src={IMG('play_blank')} alt="" className="absolute inset-0 h-full w-full" draggable={false} />
+        <span className="relative uppercase" style={{ ...OUTLINE, fontSize: u(68), WebkitTextStroke: `${u(7)} #145a1c` }}>
+          {p.play}
+        </span>
+      </span>
+    </>
+  );
+  return (
+    <button type="button" onClick={p.onClick} aria-label={p.name} className="press relative h-full shrink-0 snap-start" style={{ width: u(w) }}>
+      {original ? (
+        <>
+          <img src={IMG(p.de ? 'card1' : 'card1_blank')} alt="" className="absolute inset-0 h-full w-full" draggable={false} />
+          {!p.de && text}
+        </>
+      ) : (
+        <>
+          {/* Platzhalter: gleiche Kartenform – die Illustration dieser Welt fehlt in der Vorlage */}
+          <span
+            className="absolute overflow-hidden"
+            style={{ inset: u(14), borderRadius: u(62), border: `${u(9)} solid ${ph.ring}`, background: ph.bg, boxShadow: `0 ${u(10)} ${u(18)} rgba(0,0,0,.35)` }}
+          >
+            {ph.scene.map((s, k) => (
+              <span key={s} className="absolute" style={{ left: `${8 + k * 30}%`, top: `${8 + (k % 2) * 10}%`, width: `${30 - k * 3}%` }}>
+                <Sprite name={s} className="h-auto w-full" />
+              </span>
+            ))}
+            <span className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/60 to-transparent" />
+          </span>
+          {text}
+        </>
+      )}
     </button>
   );
 }
