@@ -7,6 +7,7 @@
  * ============================================================================
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { App as CapApp } from '@capacitor/app';
 import {
   ArrowUp, ArrowLeft, ArrowRight, RotateCcw, RotateCw, Repeat, Play, Pause, Settings, Star, Gem, ChevronLeft,
   Lock, Trophy, BookOpen, Shirt, Gift, Music, Volume2, VolumeX, Smartphone, Globe, MapPin, Sparkles, LifeBuoy,
@@ -1704,9 +1705,9 @@ function TopBar({ save, onBack, onSettings, onLang }: { save: Save; onBack?: () 
 }
 function ScreenShell({ children, save, theme, onBack, onSettings, onLang, title, sub, night }: { children: React.ReactNode; save: Save; theme: SeasonTheme; onBack?: () => void; onSettings: () => void; onLang: () => void; title?: string; sub?: string; night?: boolean }) {
   return (
-    <div className="relative min-h-[100dvh] w-full overflow-x-hidden">
+    <div className="relative min-h-[100dvh] w-full">
       <div className="fixed inset-0"><SkyBackground sky={theme.sky} particle={theme.particle} night={night} /></div>
-      <TopBar save={save} onBack={onBack} onSettings={onSettings} onLang={onLang} />
+      <div className="sticky top-0 z-30 pb-2 bg-gradient-to-b from-slate-900/40 to-transparent"><TopBar save={save} onBack={onBack} onSettings={onSettings} onLang={onLang} /></div>
       {title && <div className="relative z-10 mt-2 px-4"><Ribbon text={title} sub={sub} /></div>}
       <div className="relative z-10">{children}</div>
     </div>
@@ -1788,7 +1789,7 @@ function MapScreen({ save, world, theme, go, play }: { save: Save; world: WorldD
   const pts = Array.from({ length: count }, (_, i) => [xs(i), H - 280 - i * STEP]); // Level 1 unten, nach oben weiter
   const pathD = pts.map((p, i) => (i === 0 ? `M${p[0]} ${p[1]}` : `Q${(pts[i - 1][0] + p[0]) / 2 + (i % 2 ? 60 : -60)} ${p[1] + STEP / 2} ${p[0]} ${p[1]}`)).join(' ');
   return (
-    <div className="relative min-h-[100dvh] w-full overflow-x-hidden">
+    <div className="relative min-h-[100dvh] w-full">
       <div className="fixed inset-0"><SkyBackground sky={world.sky} particle={theme.particle} night={world.id >= 2} /></div>
       <div className="sticky top-0 z-30 pb-2 bg-gradient-to-b from-slate-900/40 to-transparent">
         <TopBar save={save} onBack={() => go('home')} onSettings={() => go('settings')} onLang={() => go('language')} />
@@ -2147,7 +2148,28 @@ export default function App() {
   const autoSeason = useMemo(() => detectSeason(new Date(), save.region), [save.region]);
   const season: SeasonId = save.season === 'auto' ? autoSeason : save.season;
   const theme = SEASONS[season];
-  const go = (s: Screen) => { setPrev(screen); setScreen(s); window.scrollTo(0, 0); };
+  const hist = useRef<Screen[]>([]);
+  const go = (s: Screen) => {
+    if (s === screen) return;
+    // Zurück zu einer schon besuchten Seite kürzt den Verlauf (keine Schleifen Karte ↔ Spiel)
+    const i = hist.current.lastIndexOf(s);
+    if (i >= 0) hist.current = hist.current.slice(0, i); else hist.current.push(screen);
+    if (s === 'home') hist.current = [];
+    setPrev(screen); setScreen(s); window.scrollTo(0, 0);
+  };
+  const goBack = useRef<() => boolean>(() => false);
+  goBack.current = () => {
+    const last = hist.current.pop();
+    if (!last) return false;
+    setPrev(screen); setScreen(last); window.scrollTo(0, 0); return true;
+  };
+  // Android-Zurück-Taste: eine Seite zurück, auf dem Hauptmenü die App schließen
+  useEffect(() => {
+    let remove: (() => void) | undefined;
+    CapApp.addListener('backButton', () => { if (!goBack.current()) CapApp.exitApp(); })
+      .then(h => { remove = () => h.remove(); }).catch(() => { /* Web: kein Plugin */ });
+    return () => remove?.();
+  }, []);
 
   // Audio-Einstellungen synchronisieren
   useEffect(() => { audio.sfxOn = save.sound; audio.musicOn = save.music; vibeOn = save.vibe; if (!save.music) audio.stopMusic(); }, [save.sound, save.music, save.vibe]);

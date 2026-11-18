@@ -2,12 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Seiten sind scrollbar (Unterseiten, Karte); kein Gummiband-Effekt, kein Zoom */
-html,
-body {
-  min-height: 100%;
+/* Nur das Dokument selbst scrollt (body darf KEIN eigener Scroll-Bereich sein,
+   sonst blockiert overscroll-behavior das Wischen auf dem Handy). */
+html {
   overflow-x: hidden;
-  overscroll-behavior: none;
+  overscroll-behavior-y: none;
 }
 body {
   margin: 0;
