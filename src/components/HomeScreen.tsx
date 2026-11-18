@@ -1,14 +1,16 @@
 // Startbildschirm: illustrierte Abenteuerkarte mit den drei Themenwelten
-import { RotateCcw, Shirt, Star, Volume2, VolumeX } from 'lucide-react';
+import { Globe, RotateCcw, Shirt, Star, Volume2, VolumeX } from 'lucide-react';
 import { useState, type CSSProperties } from 'react';
 import type { CostumeId } from '../data/costumes';
 import { levelsFor } from '../data/levels';
-import { WORLD_ORDER, WORLDS } from '../data/worlds';
+import { WORLD_ORDER } from '../data/worlds';
 import type { SoundApi } from '../hooks/useSoundEffects';
+import { DICTS, LANGS, useI18n, type Lang } from '../i18n';
 import type { AgeGroupId } from '../types';
 import { RoundBtn } from './GameScreen';
 import { Particles } from './Particles';
 import { Sparky } from './Sparky';
+const DICT_NAMES = Object.fromEntries(Object.entries(DICTS).map(([k, d]) => [k, d.langName])) as Record<Lang, string>;
 
 interface Props {
   sound: SoundApi;
@@ -53,6 +55,9 @@ const SCENE_POS = [
 
 export function HomeScreen({ sound, costume, totalStars, starsIn, onPick, onWardrobe, onResetProgress }: Props) {
   const [confirmReset, setConfirmReset] = useState(false);
+  const [langOpen, setLangOpen] = useState(false);
+  const { t, lang, setLang } = useI18n();
+  const current = LANGS.find((l) => l.id === lang)!;
 
   return (
     <div className="safe-area relative h-[100dvh] overflow-hidden bg-gradient-to-b from-sky-400 via-indigo-400 to-fuchsia-400">
@@ -81,14 +86,27 @@ export function HomeScreen({ sound, costume, totalStars, starsIn, onPick, onWard
               className="squish flex h-12 items-center gap-2 rounded-[1.2rem] px-3 font-bold"
               style={{ '--c': '#d946ef' } as CSSProperties}
             >
-              <Shirt className="h-6 w-6" /> Kostüme
+              <Shirt className="h-6 w-6" /> {t.home.costumes}
             </button>
             <div className="glass flex items-center gap-1 rounded-full px-3 py-1.5 text-lg font-bold text-slate-700">
               <Star className="h-5 w-5 fill-yellow-300 text-amber-500" /> {totalStars}
             </div>
-            <RoundBtn label={sound.muted ? 'Ton an' : 'Ton aus'} onClick={sound.toggleMute} color="#ffffff" dark>
-              {sound.muted ? <VolumeX className="h-6 w-6" /> : <Volume2 className="h-6 w-6" />}
-            </RoundBtn>
+            <div className="flex gap-2">
+              <RoundBtn
+                label={t.home.language}
+                onClick={() => {
+                  sound.play('click');
+                  setLangOpen(true);
+                }}
+                color="#ffffff"
+                dark
+              >
+                <span className="text-2xl leading-none">{current.flag}</span>
+              </RoundBtn>
+              <RoundBtn label={sound.muted ? t.ui.soundOn : t.ui.soundOff} onClick={sound.toggleMute} color="#ffffff" dark>
+                {sound.muted ? <VolumeX className="h-6 w-6" /> : <Volume2 className="h-6 w-6" />}
+              </RoundBtn>
+            </div>
           </div>
 
           {/* Titel mit Sparky */}
@@ -99,11 +117,11 @@ export function HomeScreen({ sound, costume, totalStars, starsIn, onPick, onWard
             className="mt-1 text-center text-4xl font-bold leading-none text-white sm:text-5xl"
             style={{ textShadow: '0 4px 0 #7c3aed, 0 8px 18px rgba(76,29,149,.55)' }}
           >
-            Sparkys
+            {t.titleTop}
             <br />
-            Code-Abenteuer
+            {t.titleBottom}
           </h1>
-          <p className="mt-2 text-center text-lg font-bold text-white drop-shadow">Wohin fliegen wir heute?</p>
+          <p className="mt-2 text-center text-lg font-bold text-white drop-shadow">{t.home.whereTo}</p>
 
           {/* Abenteuer-Pfad mit drei Inseln */}
           <div className="relative mt-4 w-full">
@@ -121,7 +139,7 @@ export function HomeScreen({ sound, costume, totalStars, starsIn, onPick, onWard
             </svg>
 
             {WORLD_ORDER.map((id, i) => {
-              const w = WORLDS[id];
+              const wt = t.worlds[id];
               const isl = ISLAND[id];
               const max = levelsFor(id).length * 3;
               return (
@@ -155,11 +173,11 @@ export function HomeScreen({ sound, costume, totalStars, starsIn, onPick, onWard
                   </div>
                   <div className="glass flex-1 rounded-[1.6rem] px-4 py-3">
                     <div className="text-xs font-bold uppercase tracking-wide" style={{ color: isl.color }}>
-                      {w.world}
+                      {wt.world}
                     </div>
-                    <div className="text-2xl font-bold leading-tight text-slate-800">{w.name}</div>
+                    <div className="text-2xl font-bold leading-tight text-slate-800">{wt.name}</div>
                     <div className="text-sm font-semibold text-slate-500">
-                      {w.ages} · {w.tagline}
+                      {wt.ages} · {wt.tagline}
                     </div>
                     <div className={`mt-1 flex items-center gap-1 text-sm font-bold text-slate-700 ${isl.side === 'right' ? 'justify-end' : ''}`}>
                       <Star className="h-4 w-4 fill-yellow-300 text-amber-500" /> {starsIn(id)} / {max}
@@ -185,10 +203,39 @@ export function HomeScreen({ sound, costume, totalStars, starsIn, onPick, onWard
             className="mt-6 flex items-center gap-2 text-sm font-bold text-white/80"
           >
             <RotateCcw className="h-4 w-4" />
-            {confirmReset ? 'Nochmal tippen zum Löschen' : 'Fortschritt zurücksetzen'}
+            {confirmReset ? t.home.resetConfirm : t.home.reset}
           </button>
         </div>
       </div>
+
+      {/* Sprachauswahl */}
+      {langOpen && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-indigo-950/55 p-4 backdrop-blur-sm sm:items-center" onClick={() => setLangOpen(false)}>
+          <div className="glass w-full max-w-sm animate-bounce-in rounded-[2rem] p-4" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-3 flex items-center justify-center gap-2 text-xl font-bold text-slate-700">
+              <Globe className="h-6 w-6" /> {t.home.language}
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {LANGS.map((l) => (
+                <button
+                  key={l.id}
+                  type="button"
+                  onClick={() => {
+                    sound.play('unlock');
+                    setLang(l.id);
+                    setLangOpen(false);
+                  }}
+                  className={`squish flex h-16 items-center justify-center gap-2 rounded-[1.4rem] px-3 text-lg font-bold ${l.id === lang ? 'ring-4 ring-yellow-300' : ''}`}
+                  style={{ '--c': l.id === lang ? '#f59e0b' : '#8b5cf6' } as CSSProperties}
+                >
+                  <span className="text-2xl">{l.flag}</span>
+                  <span>{DICT_NAMES[l.id]}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

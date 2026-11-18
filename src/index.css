@@ -137,3 +137,8 @@ button:disabled {
     animation-iteration-count: 1 !important;
   }
 }
+
+/* Arabisch: runde arabische Schrift (Fallback: Systemschrift) */
+html[lang='ar'] body {
+  font-family: 'Baloo Bhaijaan 2', 'Fredoka', 'Noto Sans Arabic', system-ui, sans-serif;
+}

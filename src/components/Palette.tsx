@@ -1,6 +1,7 @@
 // Block-Palette: Antippen fügt einen Block hinzu (runde, glänzende "Squishy"-Buttons)
 import type { CSSProperties } from 'react';
 import type { WorldConfig } from '../data/worlds';
+import type { Dict } from '../i18n';
 import type { PaletteKind } from '../types';
 import { BLOCK_META } from './blockMeta';
 
@@ -10,9 +11,10 @@ interface Props {
   onAdd: (k: PaletteKind) => void;
   disabled: boolean;
   isKindDisabled?: (k: PaletteKind) => boolean;
+  t: Dict;
 }
 
-export function Palette({ kinds, world, onAdd, disabled, isKindDisabled }: Props) {
+export function Palette({ kinds, world, onAdd, disabled, isKindDisabled, t }: Props) {
   const size = world.buttonSize;
 
   // Für die Kleinsten: Steuerkreuz wie bei einem Gamepad – ganz ohne Text
@@ -24,7 +26,7 @@ export function Palette({ kinds, world, onAdd, disabled, isKindDisabled }: Props
         <button
           key={k}
           type="button"
-          aria-label={meta.label}
+          aria-label={t.blocks[k].label}
           disabled={disabled}
           onClick={() => onAdd(k)}
           style={{ gridArea: area, width: size, height: size, '--c': meta.color } as CSSProperties}
@@ -36,6 +38,7 @@ export function Palette({ kinds, world, onAdd, disabled, isKindDisabled }: Props
     };
     return (
       <div
+        dir="ltr"
         className="mx-auto grid gap-2"
         style={{ gridTemplateAreas: '". u ." "l c r" ". d ."', gridTemplateColumns: `repeat(3, ${size}px)`, gridTemplateRows: `repeat(3, ${size}px)` }}
       >
@@ -60,14 +63,14 @@ export function Palette({ kinds, world, onAdd, disabled, isKindDisabled }: Props
           <button
             key={k}
             type="button"
-            aria-label={meta.label}
+            aria-label={t.blocks[k].label}
             disabled={off}
             onClick={() => onAdd(k)}
             style={{ minHeight: size, '--c': meta.color } as CSSProperties}
             className="squish flex min-w-0 flex-col items-center justify-center gap-0.5 rounded-[1.2rem] px-1 py-1"
           >
             <Icon className="h-7 w-7" strokeWidth={3} />
-            <span className="text-center text-[11px] font-bold leading-[1.1]">{meta.short}</span>
+            <span className="text-center text-[11px] font-bold leading-[1.1]">{t.blocks[k].short}</span>
           </button>
         );
       })}

@@ -1,5 +1,6 @@
 // Workspace für die Kleinsten: große Slots, nur Symbole, Antippen = entfernen
 import type { CSSProperties, ReactNode } from 'react';
+import type { Dict } from '../i18n';
 import type { Block, Frame } from '../types';
 import { BLOCK_META, kindOf } from './blockMeta';
 
@@ -13,9 +14,10 @@ interface Props {
   remove: (id: string) => void;
   /** Zusätzliche Knöpfe (Zurücksetzen, Löschen) */
   children?: ReactNode;
+  t: Dict;
 }
 
-export function MiniWorkspace({ blocks, slots, frame, frameIndex, pulseMs, locked, remove, children }: Props) {
+export function MiniWorkspace({ blocks, slots, frame, frameIndex, pulseMs, locked, remove, children, t }: Props) {
   const currentId = frame?.activeIds[frame.activeIds.length - 1];
   return (
     <div className="glass flex flex-wrap items-center justify-center gap-2 rounded-[2rem] p-3">
@@ -38,7 +40,7 @@ export function MiniWorkspace({ blocks, slots, frame, frameIndex, pulseMs, locke
           <button
             key={b.id}
             type="button"
-            aria-label={`${meta.label} entfernen`}
+            aria-label={`${t.blocks[kindOf(b)].label} – ${t.ui.removeBlock}`}
             onClick={() => !locked && remove(b.id)}
             className={`squish relative flex h-[68px] w-[68px] animate-pop items-center justify-center rounded-[1.4rem] ${
               current ? 'gold-glow scale-110' : ''
@@ -56,7 +58,7 @@ export function MiniWorkspace({ blocks, slots, frame, frameIndex, pulseMs, locke
           </button>
         );
       })}
-      {children && <div className="ml-1 flex gap-2 border-l-2 border-slate-200 pl-3">{children}</div>}
+      {children && <div className="ms-1 flex gap-2 border-s-2 border-slate-200 ps-3">{children}</div>}
     </div>
   );
 }

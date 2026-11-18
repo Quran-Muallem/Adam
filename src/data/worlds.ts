@@ -1,23 +1,17 @@
 // ─────────────────────────────────────────────────────────────
 // Die drei Themenwelten (eine pro Altersstufe):
 // Design, Spielfeld-Grafik, Partikel und UI-Komplexität
+// (Namen & Texte der Welten stehen in den Sprachpaketen unter src/i18n)
 // ─────────────────────────────────────────────────────────────
 import type { AgeGroupId } from '../types';
 
 export interface WorldConfig {
   id: AgeGroupId;
-  /** Name der Altersstufe */
-  name: string;
-  ages: string;
-  /** Name der Themenwelt */
-  world: string;
   emoji: string;
-  tagline: string;
   showText: boolean;
   /** Spielfeld-Emojis */
   goal: string;
   bonus: string;
-  bonusName: string;
   wall: string;
   low: string;
   key: string;
@@ -47,15 +41,10 @@ export interface WorldConfig {
 export const WORLDS: Record<AgeGroupId, WorldConfig> = {
   mini: {
     id: 'mini',
-    name: 'Mini-Entdecker',
-    ages: '4–5 Jahre',
-    world: 'Zauberwald der Glühwürmchen',
     emoji: '🌳',
-    tagline: 'Führe Sparky zu den Erdbeeren!',
     showText: false,
     goal: '🍓',
     bonus: '🫐',
-    bonusName: 'Zauberbeere',
     wall: '🌳',
     low: '🪨',
     key: '🗝️',
@@ -74,15 +63,10 @@ export const WORLDS: Record<AgeGroupId, WorldConfig> = {
   },
   junior: {
     id: 'junior',
-    name: 'Junior-Coder',
-    ages: '6–8 Jahre',
-    world: 'Kristall-Lagune der Piraten',
     emoji: '🏴‍☠️',
-    tagline: 'Schleifen, Sprünge & Schätze',
     showText: true,
     goal: '💰',
     bonus: '💎',
-    bonusName: 'Kristall',
     wall: '🌴',
     low: '🛢️',
     key: '🗝️',
@@ -101,15 +85,10 @@ export const WORLDS: Record<AgeGroupId, WorldConfig> = {
   },
   hero: {
     id: 'hero',
-    name: 'Code-Helden',
-    ages: '9–12 Jahre',
-    world: 'Sternen-Akademie der Roboter',
     emoji: '🚀',
-    tagline: 'Schleifen, Bedingungen, Makros & Portale',
     showText: true,
     goal: '🏆',
     bonus: '⭐',
-    bonusName: 'Stern',
     wall: '☄️',
     low: '📦',
     key: '🗝️',

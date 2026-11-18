@@ -4,6 +4,7 @@ import { useEffect, useRef, type CSSProperties } from 'react';
 import type { CostumeId } from '../data/costumes';
 import { levelsFor } from '../data/levels';
 import { WORLDS } from '../data/worlds';
+import { useI18n } from '../i18n';
 import type { SoundApi } from '../hooks/useSoundEffects';
 import type { AgeGroupId } from '../types';
 import { RoundBtn } from './GameScreen';
@@ -29,6 +30,8 @@ const xAt = (i: number) => 0.5 + Math.sin(i * 0.95) * 0.3;
 
 export function LevelMap({ group, sound, stars, costume, isUnlocked, onBack, onOpen }: Props) {
   const w = WORLDS[group];
+  const { t, levelTitle } = useI18n();
+  const wt = t.worlds[group];
   const levels = levelsFor(group);
   const total = levels.reduce((n, l) => n + (stars[l.id] ?? 0), 0);
   const current = Math.max(
@@ -59,7 +62,7 @@ export function LevelMap({ group, sound, stars, costume, isUnlocked, onBack, onO
 
       <header className="relative z-10 flex items-center gap-3 p-3">
         <RoundBtn
-          label="Zurück"
+          label={t.ui.back}
           onClick={() => {
             sound.play('click');
             onBack();
@@ -67,14 +70,14 @@ export function LevelMap({ group, sound, stars, costume, isUnlocked, onBack, onO
           color="#ffffff"
           dark
         >
-          <ChevronLeft className="h-8 w-8" strokeWidth={3} />
+          <ChevronLeft className="h-8 w-8 rtl:rotate-180" strokeWidth={3} />
         </RoundBtn>
         <div className={`min-w-0 flex-1 ${w.text} drop-shadow`}>
           <h2 className="truncate text-xl font-bold leading-tight">
-            {w.emoji} {w.world}
+            {w.emoji} {wt.world}
           </h2>
           <p className="text-sm font-semibold opacity-90">
-            {w.name} · {w.ages}
+            {wt.name} · {wt.ages}
           </p>
         </div>
         <div className="glass flex items-center gap-1 rounded-full px-3 py-1.5 text-lg font-bold text-slate-700">
@@ -114,7 +117,7 @@ export function LevelMap({ group, sound, stars, costume, isUnlocked, onBack, onO
                 ref={isCurrent ? currentRef : undefined}
                 type="button"
                 disabled={!open}
-                aria-label={open ? `Level ${i + 1}` : `Level ${i + 1} gesperrt`}
+                aria-label={open ? t.ui.level(i + 1) : t.ui.levelLocked(i + 1)}
                 onClick={() => {
                   sound.play('unlock');
                   onOpen(l.id);
@@ -141,7 +144,7 @@ export function LevelMap({ group, sound, stars, costume, isUnlocked, onBack, onO
                   </span>
                 )}
                 {open && w.showText && (
-                  <span className={`mt-0.5 max-w-[120px] text-center text-xs font-bold leading-tight ${w.text} drop-shadow`}>{l.title}</span>
+                  <span className={`mt-0.5 max-w-[120px] text-center text-xs font-bold leading-tight ${w.text} drop-shadow`}>{levelTitle(l)}</span>
                 )}
               </button>
             );

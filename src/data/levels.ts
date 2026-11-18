@@ -128,7 +128,7 @@ const HERO: LevelDef[] = [
   L('hero', 8, 'Die Spirale', ['S#.....', '.#.###.', '.#.#G#.', '.#.#.#.', '.#...#.', '.#####.', '.......'], 'down', H_IF, 16, 4,
     'Die Spirale dreht immer nach links. Wie viele Runden brauchst du?'),
   L('hero', 9, 'Links oder rechts?', ['S...##', '###.##', '###.##', '#...##', '#.####', '#....G'], 'right', H_IF, 20, 7,
-    'Versperrt? Probier Links. Immer noch versperrt? Dann zweimal Rechts!'),
+    'Versperrt? Probier „Links drehen“. Immer noch versperrt? Dann zweimal „Rechts drehen“!'),
   L('hero', 10, 'Hindernis voraus!', ['########', 'S.o.o..G', '########'], 'right', H_JUMP_IF, 16, 5,
     '„Wenn Hindernis voraus → Springen“. Und wenn der Weg frei ist → Vorwärts.'),
   L('hero', 11, 'Kisten-Parcours', ['#S.o..', '#####.', '#####o', '#####.', 'G.o...'], 'right', H_JUMP_IF, 20, 7,
@@ -139,7 +139,7 @@ const HERO: LevelDef[] = [
     'Die Meisterprüfung der Bedingungen: springen, links, rechts und vorwärts!'),
   // 14–20: Zauber-Makro F1 & Teleporter
   L('hero', 14, 'Das Zauber-Makro F1', ['S.##', '#..#', '##..', '###.', '##..', '#G.#'], 'right', H_ALL, 20, 9,
-    'Speichere „Vorwärts, Rechts, Vorwärts, Links“ im Zauber-Makro F1 und rufe es auf!'),
+    'Speichere „Vorwärts, Rechts drehen, Vorwärts, Links drehen“ im Zauber-Makro F1 und rufe es auf!'),
   L('hero', 15, 'Der erste Teleporter', ['S..#', '##.#', '##.1', '####', '1..#', '##.#', '##G#'], 'right', H_ALL, 20, 8,
     'Betritt das Portal 🌀 und du landest beim anderen Portal derselben Farbe!'),
   L('hero', 16, 'Zauber-Treppe', ['##..####', '#....###', 'S.##..#G', '#####...'], 'right', H_ALL, 24, 12,

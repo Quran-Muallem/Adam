@@ -22,6 +22,7 @@ Eine extrem bunte, verspielte Lern-App im Animationsfilm-Stil, die Kindern von *
 - 🐢/⚡ Normal- und Turbo-Modus · 🔇 Mute
 - 🎵 Marimba-/Harfen-Klänge, „Boing“ und Sieges-Fanfare – alles live synthetisiert
 - 📱 Mobile-First & Tablet-Layout, kein Zoomen/ungewolltes Scrollen
+- 🌍 6 Sprachen: العربية (von rechts nach links), English, Deutsch, Français, Español, Italiano – Auswahl über die Flagge auf der Startseite, beim ersten Start gilt die Gerätesprache
 
 ## Starten
 
@@ -42,6 +43,7 @@ src/
 │   ├── worlds.ts            # die 3 Themenwelten (Farben, Emojis, Partikel)
 │   ├── costumes.ts          # freischaltbare Kostüme
 │   └── messages.ts          # Sparkys Sprüche & Fehlermeldungen
+├── i18n/                    # 🌍 Sprachpakete (ar, en, de, fr, es, it) + LanguageProvider
 ├── engine/                  # Interpreter (Frames vorab berechnet), Karte, Bewertung
 ├── hooks/
 │   ├── useSoundEffects.ts   # Web-Audio-Synthesizer + Mute
@@ -60,7 +62,7 @@ L('junior', 21, 'Sternenregen', ['S.*..', '.#o#.', '..*.G'], 'right', J_JUMP, 10
 ```
 
 **Legende:** `S` Start · `G` Ziel · `.` frei · `#` hohes Hindernis (nicht überspringbar) · `o` niedriges Hindernis (überspringbar) · `B` schlafender Bär · `P` Pfütze · `*` Bonus · `K` Schlüssel · `D` Tor · `1`/`2`/`3` Teleporter-Paare.
-Danach in `tests/levels.test.ts` eine Lösung eintragen und `npm test` laufen lassen.
+Danach in `tests/levels.test.ts` eine Lösung eintragen, in jedem Sprachpaket unter `src/i18n/` Titel und Tipp ergänzen und `npm test` laufen lassen (der Test meldet fehlende Übersetzungen).
 
 ## Als iOS-/Android-App (Capacitor)
 

@@ -3,6 +3,7 @@ import { ArrowRight, Map as MapIcon, RotateCcw, Star } from 'lucide-react';
 import type { CSSProperties, ReactNode } from 'react';
 import type { Costume, CostumeId } from '../data/costumes';
 import type { WorldConfig } from '../data/worlds';
+import type { Dict } from '../i18n';
 import { Sparky } from './Sparky';
 
 interface Props {
@@ -10,6 +11,7 @@ interface Props {
   stars: number;
   message: string;
   world: WorldConfig;
+  t: Dict;
   costume: CostumeId;
   newCostume: Costume | null;
   hasNext: boolean;
@@ -57,20 +59,20 @@ export function ResultOverlay(p: Props) {
             onClick={() => p.onWear(p.newCostume!.id)}
             className="mb-4 w-full animate-pop rounded-2xl bg-gradient-to-r from-fuchsia-500 to-amber-400 px-3 py-2 font-bold text-white shadow-lg"
           >
-            🎁 {showText ? `Neues Kostüm: ${p.newCostume.emoji} ${p.newCostume.name}! Anziehen?` : `${p.newCostume.emoji} ✨`}
+            🎁 {showText ? p.t.result.newCostume(p.newCostume.emoji, p.t.costumes[p.newCostume.id]) : `${p.newCostume.emoji} ✨`}
           </button>
         )}
 
         <div className="flex items-center justify-center gap-3">
-          <Btn onClick={p.onMap} color="#64748b" label="Karte">
+          <Btn onClick={p.onMap} color="#64748b" label={p.t.result.map}>
             <MapIcon className="h-8 w-8" />
           </Btn>
-          <Btn onClick={p.onRetry} color={success ? '#0ea5e9' : '#f97316'} label="Nochmal" big={!success} showText={showText && !success}>
+          <Btn onClick={p.onRetry} color={success ? '#0ea5e9' : '#f97316'} label={p.t.result.retry} big={!success} showText={showText && !success}>
             <RotateCcw className="h-8 w-8" strokeWidth={3} />
           </Btn>
           {success && p.hasNext && (
-            <Btn onClick={p.onNext} color="#22c55e" label="Weiter" big showText={showText}>
-              <ArrowRight className="h-9 w-9" strokeWidth={3.5} />
+            <Btn onClick={p.onNext} color="#22c55e" label={p.t.result.next} big showText={showText}>
+              <ArrowRight className="h-9 w-9 rtl:rotate-180" strokeWidth={3.5} />
             </Btn>
           )}
         </div>

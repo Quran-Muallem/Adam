@@ -5,7 +5,8 @@ import { ChevronLeft, Play, RotateCcw, Square, Star, Trash2, Turtle, Volume2, Vo
 import { useCallback, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { COSTUMES, type Costume, type CostumeId } from '../data/costumes';
 import { levelsFor } from '../data/levels';
-import { failMessages, pick, START_LINES, WIN_MESSAGES } from '../data/messages';
+import { pick } from '../data/messages';
+import { useI18n } from '../i18n';
 import { WORLDS } from '../data/worlds';
 import { countProgram, createBlock, emptyProgram, insertBlock, isContainer, removeBlock, targetExists, updateBlock } from '../engine/program';
 import { hasBonus, rate } from '../engine/rating';
@@ -40,6 +41,9 @@ const MAIN_TARGET: InsertTarget = { root: 'main', parentId: null };
 export function GameScreen(props: Props) {
   const { level, sound, speed, bestStars, totalStars, costume } = props;
   const world = WORLDS[level.group];
+  const { t, levelTitle, levelHint, failLines } = useI18n();
+  const tRef = useRef({ t, failLines });
+  tRef.current = { t, failLines };
   const { play } = sound;
   const isMini = level.group === 'mini';
   const hasMacro = level.palette.includes('call');
@@ -48,7 +52,7 @@ export function GameScreen(props: Props) {
   const [target, setTarget] = useState<InsertTarget>(MAIN_TARGET);
   const [result, setResult] = useState<{ kind: 'success' | 'fail'; stars: number; message: string; newCostume: Costume | null } | null>(null);
   const [limitFlash, setLimitFlash] = useState(false);
-  const [startLine, setStartLine] = useState(START_LINES[0]);
+  const [startLine, setStartLine] = useState(t.start[0]);
   const programRef = useRef(program);
   programRef.current = program;
   const statsRef = useRef({ bestStars, totalStars });
@@ -69,10 +73,10 @@ export function GameScreen(props: Props) {
         const unlocked = COSTUMES.filter((c) => c.stars > prevTotal && c.stars <= newTotal);
         play('win');
         props.onSaveStars(level.id, stars);
-        setResult({ kind: 'success', stars, message: pick(WIN_MESSAGES), newCostume: unlocked[unlocked.length - 1] ?? null });
+        setResult({ kind: 'success', stars, message: pick(tRef.current.t.win), newCostume: unlocked[unlocked.length - 1] ?? null });
       } else {
         play('fail');
-        setResult({ kind: 'fail', stars: 0, message: pick(failMessages(res.reason ?? 'notReached', level.group)), newCostume: null });
+        setResult({ kind: 'fail', stars: 0, message: pick(tRef.current.failLines(res.reason ?? 'notReached', level.group)), newCostume: null });
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -128,7 +132,7 @@ export function GameScreen(props: Props) {
     if (result) return;
     play('click');
     if (isRunning) return runner.stop();
-    setStartLine(pick(START_LINES));
+    setStartLine(pick(t.start));
     runner.start(program);
   };
 
@@ -147,7 +151,7 @@ export function GameScreen(props: Props) {
   else if (isRunning && frame?.motion === 'think') mood = 'think';
 
   const isKindDisabled = useMemo(() => (k: PaletteKind) => k === 'call' && target.root === 'macro', [target.root]);
-  const bubble = isRunning ? startLine : level.hint;
+  const bubble = isRunning ? startLine : levelHint(level);
 
   return (
     <div className={`safe-area relative flex h-[100dvh] flex-col overflow-hidden bg-gradient-to-br ${world.bg}`}>
@@ -155,22 +159,22 @@ export function GameScreen(props: Props) {
 
       {/* ── Kopfzeile ── */}
       <header className="relative z-10 flex items-center gap-2 px-3 pt-2">
-        <RoundBtn label="Zur Karte" onClick={props.onBack} color="#ffffff" dark>
-          <ChevronLeft className="h-7 w-7" strokeWidth={3} />
+        <RoundBtn label={t.ui.toMap} onClick={props.onBack} color="#ffffff" dark>
+          <ChevronLeft className="h-7 w-7 rtl:rotate-180" strokeWidth={3} />
         </RoundBtn>
         <div className={`flex min-w-0 flex-1 flex-col leading-tight ${world.text} drop-shadow`}>
-          <span className="truncate text-lg font-bold">{world.showText ? `${index + 1}. ${level.title}` : `${world.emoji} ${index + 1}`}</span>
+          <span className="truncate text-lg font-bold">{world.showText ? `${index + 1}. ${levelTitle(level)}` : `${world.emoji} ${index + 1}`}</span>
           <span className="flex">
             {[1, 2, 3].map((i) => (
               <Star key={i} className={`h-4 w-4 ${i <= bestStars ? 'fill-yellow-300 text-amber-500' : 'text-white/70'}`} />
             ))}
           </span>
         </div>
-        <RoundBtn label={speed === 'turbo' ? 'Turbo' : 'Normal'} onClick={props.onToggleSpeed} color={speed === 'turbo' ? '#facc15' : '#ffffff'} dark>
+        <RoundBtn label={speed === 'turbo' ? t.ui.turbo : t.ui.normal} onClick={props.onToggleSpeed} color={speed === 'turbo' ? '#facc15' : '#ffffff'} dark>
           {speed === 'turbo' ? <Zap className="h-6 w-6 fill-amber-500 text-amber-700" /> : <Turtle className="h-6 w-6" />}
-          {world.showText && <span className="hidden text-sm font-bold sm:inline">{speed === 'turbo' ? 'Turbo' : 'Normal'}</span>}
+          {world.showText && <span className="hidden text-sm font-bold sm:inline">{speed === 'turbo' ? t.ui.turbo : t.ui.normal}</span>}
         </RoundBtn>
-        <RoundBtn label={sound.muted ? 'Ton an' : 'Ton aus'} onClick={sound.toggleMute} color="#ffffff" dark>
+        <RoundBtn label={sound.muted ? t.ui.soundOn : t.ui.soundOff} onClick={sound.toggleMute} color="#ffffff" dark>
           {sound.muted ? <VolumeX className="h-6 w-6" /> : <Volume2 className="h-6 w-6" />}
         </RoundBtn>
       </header>
@@ -178,7 +182,9 @@ export function GameScreen(props: Props) {
       <main className="relative z-10 flex min-h-0 flex-1 flex-col gap-3 p-3 md:flex-row md:gap-5">
         {/* ── Spielfeld ── */}
         <div className={`flex shrink-0 flex-col gap-2 md:w-1/2 md:shrink md:justify-center ${isMini ? '[--board-h:34dvh]' : '[--board-h:27dvh]'} md:[--board-h:62dvh]`}>
-          <Board level={level} world={world} frame={frame} frameIndex={frameIndex} stepMs={stepMs} mood={mood} costume={costume} />
+          <div dir="ltr">
+            <Board level={level} world={world} frame={frame} frameIndex={frameIndex} stepMs={stepMs} mood={mood} costume={costume} />
+          </div>
           {world.showText && bubble && (
             <div className="flex items-end gap-1">
               <div className="h-11 w-11 shrink-0">
@@ -203,17 +209,18 @@ export function GameScreen(props: Props) {
                 pulseMs={stepMs}
                 locked={locked}
                 remove={remove}
+                t={t}
               >
-                <RoundBtn label="Zurücksetzen" onClick={() => runner.reset()} disabled={locked || !frame} color="#ffffff" dark mini>
+                <RoundBtn label={t.ui.resetSparky} onClick={() => runner.reset()} disabled={locked || !frame} color="#ffffff" dark mini>
                   <RotateCcw className="h-7 w-7" strokeWidth={3} />
                 </RoundBtn>
-                <RoundBtn label="Alles löschen" onClick={clearAll} disabled={locked || program.main.length === 0} color="#ffffff" dark mini>
+                <RoundBtn label={t.ui.clearAll} onClick={clearAll} disabled={locked || program.main.length === 0} color="#ffffff" dark mini>
                   <Trash2 className="h-7 w-7" strokeWidth={2.5} />
                 </RoundBtn>
               </MiniWorkspace>
               <div className="flex flex-1 items-center justify-center gap-3">
-                <Palette kinds={level.palette} world={world} onAdd={addBlock} disabled={locked} />
-                <RunButton running={isRunning} onClick={runOrStop} disabled={!!result || program.main.length === 0} />
+                <Palette kinds={level.palette} world={world} onAdd={addBlock} disabled={locked} t={t} />
+                <RunButton running={isRunning} onClick={runOrStop} disabled={!!result || program.main.length === 0} labels={t.ui} />
               </div>
             </>
           ) : (
@@ -234,6 +241,7 @@ export function GameScreen(props: Props) {
                   update={update}
                   locked={locked}
                   showMacro={hasMacro}
+                  t={t}
                 />
               </div>
 
@@ -244,26 +252,26 @@ export function GameScreen(props: Props) {
                   </span>
                   {bonus ? (
                     <span>
-                      {world.bonus} sammeln = ⭐⭐⭐
+                      {world.bonus} {t.ui.collectFor3}
                     </span>
                   ) : (
                     <span className={blockCount > 0 && blockCount <= level.parBlocks ? 'text-yellow-300 drop-shadow' : ''}>
-                      ⭐⭐⭐ mit ≤ {level.parBlocks} Blöcken
+                      {t.ui.starsWith(level.parBlocks)}
                     </span>
                   )}
                 </div>
-                <Palette kinds={level.palette} world={world} onAdd={addBlock} disabled={locked} isKindDisabled={isKindDisabled} />
+                <Palette kinds={level.palette} world={world} onAdd={addBlock} disabled={locked} isKindDisabled={isKindDisabled} t={t} />
               </div>
 
               <div className="flex items-center gap-2">
-                <RoundBtn label="Alles löschen" onClick={clearAll} disabled={locked || blockCount === 0} color="#ffffff" dark big>
+                <RoundBtn label={t.ui.clearAll} onClick={clearAll} disabled={locked || blockCount === 0} color="#ffffff" dark big>
                   <Trash2 className="h-6 w-6" strokeWidth={2.5} />
                 </RoundBtn>
-                <RoundBtn label="Sparky zurücksetzen" onClick={() => runner.reset()} disabled={locked || !frame} color="#ffffff" dark big>
+                <RoundBtn label={t.ui.resetSparky} onClick={() => runner.reset()} disabled={locked || !frame} color="#ffffff" dark big>
                   <RotateCcw className="h-6 w-6" strokeWidth={3} />
                 </RoundBtn>
                 <div className="flex-1">
-                  <RunButton running={isRunning} onClick={runOrStop} disabled={!!result || blockCount === 0} showText wide />
+                  <RunButton running={isRunning} onClick={runOrStop} disabled={!!result || blockCount === 0} showText wide labels={t.ui} />
                 </div>
               </div>
             </>
@@ -278,6 +286,7 @@ export function GameScreen(props: Props) {
           stars={result.stars}
           message={result.message}
           world={world}
+          t={t}
           costume={costume}
           newCostume={result.newCostume}
           hasNext={!!nextLevel}
@@ -321,11 +330,18 @@ export function RoundBtn(p: {
   );
 }
 
-function RunButton(p: { running: boolean; onClick: () => void; disabled: boolean; showText?: boolean; wide?: boolean }) {
+function RunButton(p: {
+  running: boolean;
+  onClick: () => void;
+  disabled: boolean;
+  showText?: boolean;
+  wide?: boolean;
+  labels: { go: string; stop: string; start: string };
+}) {
   return (
     <button
       type="button"
-      aria-label={p.running ? 'Stopp' : 'Start'}
+      aria-label={p.running ? p.labels.stop : p.labels.start}
       onClick={p.onClick}
       disabled={p.disabled && !p.running}
       style={{ '--c': p.running ? '#ef4444' : '#22c55e' } as CSSProperties}
@@ -334,7 +350,7 @@ function RunButton(p: { running: boolean; onClick: () => void; disabled: boolean
       }`}
     >
       {p.running ? <Square className="h-9 w-9 fill-white" /> : <Play className="h-10 w-10 fill-white" />}
-      {p.showText && <span>{p.running ? 'Stopp' : 'Los!'}</span>}
+      {p.showText && <span>{p.running ? p.labels.stop : p.labels.go}</span>}
     </button>
   );
 }
