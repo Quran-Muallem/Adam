@@ -16,6 +16,7 @@ export interface Chip {
   kind: PaletteKind;
   count?: number;
   cond?: Condition;
+  not?: boolean;
   children?: Chip[];
 }
 
@@ -38,6 +39,10 @@ export interface Scene {
   showCode: boolean;
   stars: number;
   confetti: boolean;
+  /** Laser-Schranken an? (Neon-Metropole) */
+  lasersOn: boolean;
+  /** Rekursionstiefe für die Stack-Anzeige (Quantum-Lab) */
+  stack: number;
 }
 
 export interface Step {
@@ -50,8 +55,9 @@ export interface Movie {
   grid: string[];
   palette: (PaletteKind | 'play')[];
   steps: Step[];
-  /** Programm für die Code-Ansicht (nur Helden) */
+  /** Programm für die Code-Ansicht (Helden, Teenager, Erwachsene) */
   codeProgram?: Program;
+  codeLang?: 'js' | 'ts' | 'py';
 }
 
 /** Position eines Palette-Knopfs (in % der Bühne) */
@@ -73,6 +79,8 @@ export const INITIAL_SCENE: Scene = {
   showCode: false,
   stars: 0,
   confetti: false,
+  lasersOn: true,
+  stack: 0,
 };
 
 /** Kleine Helfer, damit die Drehbücher lesbar bleiben */
@@ -193,12 +201,90 @@ function heroMovie(): Movie {
   };
 }
 
+// ═════════ Cyber-Pioniere: Solange-Schleife & Laser-State-Machine ═════════
+function teenMovie(): Movie {
+  const pal: Movie['palette'] = ['forward', 'turnLeft', 'turnRight', 'while', 'if', 'setVar', 'play'];
+  const n = pal.length;
+  const [FWD, WH, PLAY] = [paletteXY(0, n), paletteXY(3, n), paletteXY(6, n)];
+  const fw: Chip = { id: 'fw', kind: 'forward' };
+  const loop = (kids: Chip[]): Chip => ({ id: 'wh', kind: 'while', cond: 'atGoal', not: true, children: kids });
+
+  const steps: Step[] = [
+    { t: 0, set: { sparky: sparkyAt(0, 1, 'idle'), caption: 0 } },
+    { t: 1.8, set: { caption: 1 } },
+    ...tapAt(2.8, WH.x, WH.y, { program: [loop([])], highlight: 'while' }),
+    ...tapAt(3.9, FWD.x, FWD.y, { program: [loop([fw])], highlight: 'forward' }),
+    { t: 4.6, set: { caption: 2, highlight: null } },
+    { t: 7.0, set: { caption: 5, highlight: 'code' } },
+    ...tapAt(8.0, 50, 68, { showCode: true, highlight: null }, 'gate'),
+    ...tapAt(9.6, PLAY.x, PLAY.y, { highlight: 'play', active: 'wh', caption: 3 }),
+  ];
+  for (let k = 1; k <= 6; k++) {
+    const t0 = 10.0 + (k - 1) * 1.15;
+    steps.push({ t: t0, set: { active: 'wh', pointer: { x: PLAY.x, y: PLAY.y, show: false } }, sound: 'tick' });
+    steps.push({ t: t0 + 0.5, set: { active: 'fw', sparky: sparkyAt(k, 1), ...(k === 2 ? { lasersOn: false, caption: 4 } : {}) }, sound: k === 2 ? 'zap' : 'step' });
+  }
+  steps.push({ t: 17.4, set: { sparky: sparkyAt(6, 1, 'happy'), caption: 6, stars: 3, confetti: true, active: null, highlight: null }, sound: 'win' });
+  return {
+    grid: ['#######', 'S.X.L.G'],
+    palette: pal,
+    steps,
+    codeLang: 'py',
+    codeProgram: { main: [{ id: 'wh', type: 'while', cond: 'atGoal', not: true, body: [{ id: 'fw', type: 'forward' }] }], macro: [] },
+  };
+}
+
+// ═════════ Code-Architekten: Rekursion & Stack ═════════
+function adultMovie(): Movie {
+  const pal: Movie['palette'] = ['forward', 'turnLeft', 'turnRight', 'if', 'call', 'play'];
+  const n = pal.length;
+  const [FWD, IF, F1, PLAY] = [paletteXY(0, n), paletteXY(3, n), paletteXY(4, n), paletteXY(5, n)];
+  const fw: Chip = { id: 'fw', kind: 'forward' };
+  const rec: Chip = { id: 'rec', kind: 'call' };
+  const iff = (kids: Chip[]): Chip => ({ id: 'if', kind: 'if', cond: 'pathClear', children: kids });
+  const main: Chip[] = [{ id: 'call', kind: 'call' }];
+
+  const steps: Step[] = [
+    { t: 0, set: { sparky: sparkyAt(0, 1, 'idle'), caption: 0 } },
+    ...tapAt(1.8, F1.x, F1.y, { program: main, macro: [], highlight: 'call' }),
+    { t: 2.2, set: { caption: 1 } },
+    ...tapAt(3.0, IF.x, IF.y, { macro: [iff([])], highlight: 'if' }),
+    ...tapAt(3.9, FWD.x, FWD.y, { macro: [iff([fw])], highlight: 'forward' }),
+    ...tapAt(4.8, F1.x, F1.y, { macro: [iff([fw, rec])], highlight: 'call' }, 'unlock'),
+    { t: 5.4, set: { caption: 2, highlight: null } },
+    { t: 7.4, set: { caption: 3 } },
+    { t: 9.4, set: { caption: 4, highlight: 'code' } },
+    ...tapAt(10.2, 50, 68, { showCode: true, highlight: null }, 'gate'),
+    { t: 10.8, set: { caption: 5 } },
+    ...tapAt(11.6, PLAY.x, PLAY.y, { highlight: 'play', active: 'call', stack: 1 }),
+  ];
+  for (let k = 1; k <= 7; k++) {
+    const t0 = 12.0 + (k - 1) * 0.8;
+    steps.push({ t: t0, set: { active: 'if', pointer: { x: PLAY.x, y: PLAY.y, show: false } }, sound: 'tick' });
+    steps.push({ t: t0 + 0.3, set: { active: 'fw', sparky: sparkyAt(k, 1) }, sound: 'step' });
+    if (k < 7) steps.push({ t: t0 + 0.6, set: { active: 'rec', stack: k + 1 } });
+  }
+  steps.push({ t: 17.8, set: { sparky: sparkyAt(7, 1, 'happy'), caption: 6, stars: 3, confetti: true, active: null, highlight: null, stack: 0 }, sound: 'win' });
+  return {
+    grid: ['########', 'S......G'],
+    palette: pal,
+    steps,
+    codeLang: 'ts',
+    codeProgram: {
+      main: [{ id: 'call', type: 'call' }],
+      macro: [{ id: 'if', type: 'if', cond: 'pathClear', body: [{ id: 'fw', type: 'forward' }, { id: 'rec', type: 'call' }] }],
+    },
+  };
+}
+
 const sorted = (m: Movie): Movie => ({ ...m, steps: [...m.steps].sort((a, b) => a.t - b.t) });
 
 export const MOVIES: Record<AgeGroupId, Movie> = {
   mini: sorted(miniMovie()),
   junior: sorted(juniorMovie()),
   hero: sorted(heroMovie()),
+  teen: sorted(teenMovie()),
+  adult: sorted(adultMovie()),
 };
 
 /** Szene zum Zeitpunkt t: alle Schritte bis t zusammenfassen */

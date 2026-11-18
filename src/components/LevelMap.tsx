@@ -4,7 +4,7 @@
 // ─────────────────────────────────────────────────────────────
 import { ChevronLeft, Lock, Settings, Star } from 'lucide-react';
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
-import { HANDCRAFTED, levelAt } from '../data/levels';
+import { handcrafted, levelAt } from '../data/levels';
 import { CHEST_EVERY, isMilestone } from '../data/rewards';
 import { WORLDS } from '../data/worlds';
 import type { ProgressApi, Reward } from '../hooks/useProgress';
@@ -98,7 +98,7 @@ export function LevelMap({ group, sound, prog, onBack, onOpen, onSettings }: Pro
   const total = prog.starsIn(group);
 
   return (
-    <div className={`safe-area relative flex h-[100dvh] flex-col overflow-hidden bg-gradient-to-b ${w.bg}`}>
+    <div className={`world-${group} safe-area relative flex h-[100dvh] flex-col overflow-hidden bg-gradient-to-b ${w.bg}`}>
       <Particles kind={w.particles} />
 
       {/* ── Kopf: 2 Zeilen, Titel nie abgeschnitten ── */}
@@ -181,7 +181,7 @@ export function LevelMap({ group, sound, prog, onBack, onOpen, onSettings }: Pro
             const color = !open ? '#94a3b8' : milestone ? '#f59e0b' : s === 3 ? '#eab308' : w.accent;
             const size = milestone ? 96 : 76;
             // Namensschild: handgefertigte Level und Meilensteine
-            const label = !w.showText ? null : milestone ? `🎁 ${t.map.milestone(n)}` : n <= HANDCRAFTED && open ? levelTitle(levelAt(group, n)) : null;
+            const label = !w.showText ? null : milestone ? `🎁 ${t.map.milestone(n)}` : n <= handcrafted(group) && open ? levelTitle(levelAt(group, n)) : null;
             return (
               <div key={id}>
                 {/* Deko neben dem Pfad */}

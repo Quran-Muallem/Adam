@@ -23,6 +23,8 @@ export const bridgeFr: BridgeTexts = {
       'Go ! Chaque ligne s’allume quand je l’exécute.',
       'C’est exactement comme ça que codent les pros ! 🌟',
     ],
+    teen: ["Métropole Néon. Petit tour, puis à toi. 🌆", "Au lieu de 6× « Avancer » : TANT QUE pas au but → avancer.", "La condition est vérifiée avant chaque tour.", "Les lasers 🟥 bloquent. L’interrupteur bascule leur état.", "État allumé → éteint : c’est une machine à états.", "Voici la même chose en Python :", "Deux blocs au lieu de six. Propre. 😎"],
+    adult: ["Labo Quantique. Bref et précis :", "F1 s’appelle elle-même → récursion.", "Cas de base : si le chemin n’est pas libre, l’appel se termine.", "Chaque appel va sur la pile. Sans cas de base : débordement.", "La même chose en TypeScript :", "Exécution – appel après appel.", "4 blocs pour 7 pas. Code constant, chemins de toute longueur. ✓"],
   },
   code: { toggle: '👀 Vrai code (Python / JS)', comment: 'Le programme de Sparky', empty: 'Pose des blocs – ton code apparaît ici !' },
   cards: {
@@ -46,6 +48,14 @@ export const bridgeFr: BridgeTexts = {
       sensor: { name: 'Capteurs', what: 'Le programme « regarde » devant lui et décide.', real: ['C’est ainsi que les ingénieurs guident de vrais rovers sur Mars autour des rochers !', 'Les robots aspirateurs repèrent ainsi les escaliers.'] },
       function: { name: 'Fonctions', what: 'Enregistrer des ordres une fois et les rappeler encore et encore.', real: ['Le bouton « Sauter » de chaque jeu appelle une fonction.', 'Les applis photo utilisent le même filtre pour des milliers d’images.'] },
       teleport: { name: 'Sauts & réseaux', what: 'Sauter directement à un autre endroit.', real: ['Un lien sur Internet t’emmène tout de suite sur une autre page.', 'Dans les jeux, les portails emmènent les personnages dans de nouveaux mondes.'] },
+      whileLoop: { name: "Boucle « tant que »", what: "Répéter tant qu’une condition est vraie – sans savoir à l’avance combien de fois.", real: ["Chaque jeu vidéo tourne dans une boucle : entrée, mise à jour, affichage – 60 fois par seconde.", "Les serveurs attendent les requêtes dans une boucle."] },
+      variables: { name: "Variables & compteurs", what: "Un emplacement nommé dont la valeur change.", real: ["Vies, score, munitions : des variables dans le code du jeu.", "Le niveau de ta batterie est une variable du système."] },
+      logic: { name: "Portes logiques", what: "ET, OU, NON combinent des conditions en décisions.", real: ["Droits d’accès : connecté ET (admin OU propriétaire).", "Les processeurs contiennent des milliards de portes logiques."] },
+      stateMachine: { name: "Machine à états", what: "Un système dont les états changent selon les événements.", real: ["Feux, ascenseurs et distributeurs sont des machines à états.", "Les personnages de jeu passent ainsi de courir à sauter à tomber."] },
+      recursion: { name: "Récursion", what: "Une fonction s’appelle elle-même – jusqu’à un cas de base.", real: ["Parcourir des dossiers dans des dossiers dans des dossiers.", "SQL sur des hiérarchies (WITH RECURSIVE), p. ex. des organigrammes."] },
+      parallel: { name: "Exécution parallèle", what: "Piloter plusieurs déroulements en même temps et les synchroniser.", real: ["Promise.all charge plusieurs données en même temps.", "Les cartes graphiques calculent des milliers de pixels en parallèle."] },
+      registers: { name: "Registres & mémoire", what: "Quelques emplacements rapides pour les valeurs intermédiaires.", real: ["Les CPU calculent dans des registres – plus vite que la RAM.", "Fibonacci avec deux variables : O(n) au lieu de O(2ⁿ)."] },
+      bigO: { name: "Big-O & efficacité", what: "Comment l’effort grandit-il quand l’entrée grandit ?", real: ["Une boucle de 4 blocs passe à l’échelle – 12 commandes isolées, non.", "Les moteurs de recherche visent O(log n), sinon tu attendrais toujours."] },
     },
   },
 };

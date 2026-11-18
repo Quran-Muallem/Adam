@@ -21,9 +21,14 @@ interface Props {
   setLang: (l: CodeLang) => void;
   frame: Frame | null;
   t: Dict;
+  /** Teenager & Erwachsene: zusätzlich TypeScript + Live-Analyse */
+  pro?: boolean;
+  insight?: string | null;
 }
 
-export function CodeView({ program, lang, setLang, frame, t }: Props) {
+export function CodeView({ program, lang: langProp, setLang, frame, t, pro, insight }: Props) {
+  const langs: CodeLang[] = pro ? ['py', 'ts', 'js'] : ['js', 'py'];
+  const lang = langs.includes(langProp) ? langProp : langs[0];
   const lines = useMemo(() => generateCode(program, lang, t.code.comment), [program, lang, t.code.comment]);
   const currentId = frame?.activeIds[frame.activeIds.length - 1];
   const empty = program.main.length === 0 && program.macro.length === 0;
@@ -44,21 +49,21 @@ export function CodeView({ program, lang, setLang, frame, t }: Props) {
         <span className="h-3 w-3 rounded-full bg-amber-300" />
         <span className="h-3 w-3 rounded-full bg-emerald-400" />
         <div className="ml-auto flex rounded-full bg-white/10 p-0.5">
-          {(['js', 'py'] as const).map((l) => (
+          {langs.map((l) => (
             <button
               key={l}
               type="button"
               onClick={() => setLang(l)}
               className={`rounded-full px-3 py-1 text-xs font-bold transition ${lang === l ? 'bg-yellow-300 text-slate-900' : 'text-white/80'}`}
             >
-              {l === 'js' ? 'JavaScript' : 'Python'}
+              {l === 'js' ? (pro ? 'JS' : 'JavaScript') : l === 'ts' ? 'TypeScript' : 'Python'}
             </button>
           ))}
         </div>
       </div>
       <pre className="thin-scroll min-h-0 flex-1 overflow-auto px-3 py-2 text-[14px] leading-[1.6] md:max-h-[40dvh] md:flex-none md:text-[13px]" style={{ fontFamily: 'ui-monospace, "SF Mono", Menlo, Consolas, monospace' }}>
         {empty ? (
-          <span style={{ color: COLORS.cm }}>{(lang === 'js' ? '// ' : '# ') + t.code.empty}</span>
+          <span style={{ color: COLORS.cm }}>{(lang === 'py' ? '# ' : '// ') + t.code.empty}</span>
         ) : (
           lines.map((line, i) => {
             const active = !!line.blockId && line.blockId === currentId;
@@ -83,6 +88,9 @@ export function CodeView({ program, lang, setLang, frame, t }: Props) {
           })
         )}
       </pre>
+      {insight && (
+        <div className="border-t border-white/10 px-3 py-1.5 font-mono text-[12px] leading-snug text-teal-200">📈 {insight}</div>
+      )}
     </div>
   );
 }

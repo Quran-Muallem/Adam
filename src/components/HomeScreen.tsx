@@ -1,8 +1,10 @@
-// Startbildschirm: illustrierte Abenteuerkarte mit den drei Themenwelten + Menü
-import { BookOpen, Gift, Globe, RotateCcw, Settings, Shirt, Star, Trophy } from 'lucide-react';
+// Startbildschirm: illustrierte Abenteuerkarte mit den fünf Themenwelten + Menü + S-Bahn-Express
+import { BookOpen, Check, Gift, Globe, RotateCcw, Settings, Shirt, Star, Trophy } from 'lucide-react';
 import { useState, type CSSProperties, type ReactNode } from 'react';
 import { bestTitle } from '../data/rewards';
-import { WORLD_ORDER } from '../data/worlds';
+import { expressId } from '../data/levels';
+import { WORLD_ORDER, WORLDS } from '../data/worlds';
+import { useStoredState } from '../hooks/useStoredState';
 import type { ProgressApi } from '../hooks/useProgress';
 import type { SoundApi } from '../hooks/useSoundEffects';
 import { DICTS, LANGS, useI18n, type Lang } from '../i18n';
@@ -18,6 +20,8 @@ interface Props {
   sound: SoundApi;
   prog: ProgressApi;
   onPick: (g: AgeGroupId) => void;
+  /** S-Bahn-Express: Tages-Rätsel sofort starten */
+  onExpress: (levelId: string) => void;
   onWardrobe: () => void;
   onAlbum: () => void;
   onTrophies: () => void;
@@ -44,6 +48,18 @@ const ISLAND: Record<AgeGroupId, { bg: string; scene: string[]; side: 'left' | '
     side: 'left',
     color: '#c026d3',
   },
+  teen: {
+    bg: 'radial-gradient(circle at 35% 30%, #f0abfc 0%, #7e22ce 45%, #0c0a2a 100%)',
+    scene: ['🌆', '🛸', '📡', '⚡', '🕹️', '💾'],
+    side: 'right',
+    color: '#a21caf',
+  },
+  adult: {
+    bg: 'radial-gradient(circle at 35% 30%, #99f6e4 0%, #0f766e 45%, #020617 100%)',
+    scene: ['⚛️', '🧬', '🔬', '🧠', '♾️', '💠'],
+    side: 'left',
+    color: '#0f766e',
+  },
 };
 
 const SCENE_POS = [
@@ -55,13 +71,16 @@ const SCENE_POS = [
   { l: '50%', t: '12%', s: 1 },
 ];
 
-export function HomeScreen({ sound, prog, onPick, onWardrobe, onAlbum, onTrophies, onSettings }: Props) {
+export function HomeScreen({ sound, prog, onPick, onExpress, onWardrobe, onAlbum, onTrophies, onSettings }: Props) {
   const [confirmReset, setConfirmReset] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
   const [wheelOpen, setWheelOpen] = useState(false);
   const { t, lang, setLang } = useI18n();
   const current = LANGS.find((l) => l.id === lang)!;
   const title = bestTitle(prog.badges);
+  const [expressGroup, setExpressGroup] = useStoredState<AgeGroupId>('sparky:expressGroup', 'hero');
+  const todayId = expressId(WORLD_ORDER.includes(expressGroup) ? expressGroup : 'hero');
+  const todayStars = prog.progress.express[todayId] ?? 0;
 
   return (
     <div className="safe-area relative h-[100dvh] overflow-hidden bg-gradient-to-b from-sky-400 via-indigo-400 to-fuchsia-400">
@@ -139,12 +158,56 @@ export function HomeScreen({ sound, prog, onPick, onWardrobe, onAlbum, onTrophie
             </MenuBtn>
           </div>
 
+          {/* 🚆 S-Bahn-Express: ein Tages-Rätsel, in 3 Minuten lösbar */}
+          <div className="mt-4 w-full rounded-[1.8rem] bg-slate-900/80 p-2 shadow-xl ring-1 ring-white/20 backdrop-blur-md">
+            <button
+              type="button"
+              onClick={() => {
+                sound.play('unlock');
+                onExpress(todayId);
+              }}
+              className="squish flex min-h-[64px] w-full items-center gap-3 rounded-[1.4rem] px-4 text-start"
+              style={{ '--c': '#e11d48' } as CSSProperties}
+            >
+              <span className="min-w-0 flex-1">
+                <span className="block text-lg font-bold leading-tight">{t.pro.expressButton}</span>
+                <span className="block text-xs font-semibold leading-tight opacity-90">
+                  {todayStars > 0 ? `${'⭐'.repeat(todayStars)} ${t.pro.expressDone}` : t.pro.expressSub}
+                </span>
+              </span>
+              {todayStars > 0 && <Check className="h-7 w-7 shrink-0" strokeWidth={3.5} />}
+            </button>
+            <div className="mt-2 flex items-center gap-1.5" role="radiogroup" aria-label={t.pro.expressLevel}>
+              {WORLD_ORDER.map((g) => (
+                <button
+                  key={g}
+                  type="button"
+                  role="radio"
+                  aria-checked={expressGroup === g}
+                  aria-label={t.worlds[g].name}
+                  onClick={() => {
+                    sound.play('click');
+                    setExpressGroup(g);
+                  }}
+                  className={`flex h-10 flex-1 items-center justify-center rounded-full text-xl transition ${
+                    expressGroup === g ? 'bg-white shadow-lg ring-2 ring-yellow-300' : 'bg-white/10'
+                  }`}
+                >
+                  {WORLDS[g].emoji}
+                </button>
+              ))}
+            </div>
+            <div className="mt-1 text-center text-[11px] font-bold text-white/70">
+              {t.worlds[expressGroup]?.name} · {t.worlds[expressGroup]?.ages}
+            </div>
+          </div>
+
           <p className="mt-5 text-center text-lg font-bold text-white drop-shadow">{t.home.whereTo}</p>
 
           {/* Abenteuer-Pfad mit drei Inseln */}
           <div className="relative mt-3 w-full">
-            <svg className="pointer-events-none absolute inset-0 h-full w-full" viewBox="0 0 100 300" preserveAspectRatio="none" aria-hidden>
-              <path d="M30 40 C 90 70, 90 100, 70 140 S 10 200, 30 250" fill="none" stroke="#fff" strokeWidth="5" strokeDasharray="2 10" strokeLinecap="round" vectorEffect="non-scaling-stroke" opacity="0.85" />
+            <svg className="pointer-events-none absolute inset-0 h-full w-full" viewBox="0 0 100 500" preserveAspectRatio="none" aria-hidden>
+              <path d="M30 40 C 90 70, 90 100, 70 140 S 10 200, 30 250 S 90 300, 70 340 S 10 400, 30 450" fill="none" stroke="#fff" strokeWidth="5" strokeDasharray="2 10" strokeLinecap="round" vectorEffect="non-scaling-stroke" opacity="0.85" />
             </svg>
             {WORLD_ORDER.map((id, i) => {
               const wt = t.worlds[id];

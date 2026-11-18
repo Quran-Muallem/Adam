@@ -25,6 +25,8 @@ export const moreDe: MoreTexts = {
         'Tipp: „Wenn Weg versperrt → drehen“ in einer Schleife löst viele Labyrinthe.',
         'Kisten im Weg? „Wenn Hindernis voraus → Springen“!',
       ],
+      teen: ["Neuer Sektor. Erst analysieren, dann bauen.", "Laser im Weg? Der Schalter liegt immer davor.", "SOLANGE + Sensor ersetzt viele Einzelbefehle."],
+      adult: ["Knappes Limit. Nur die elegante Lösung passt.", "Zwei Bots? Wände sind deine Synchronisationspunkte.", "Denk rekursiv: Was ist der Basisfall?"],
     },
   },
   map: {
@@ -66,5 +68,5 @@ export const moreDe: MoreTexts = {
     streakBonus: '+1 Serien-Bonus',
     sticker: 'Zufalls-Sticker',
   },
-  skins: { violet: 'Lila (Klassik)', mint: 'Minze', sunset: 'Sonnenuntergang', ocean: 'Ozean', gold: 'Gold', rainbow: 'Regenbogen-Drache' },
+  skins: { violet: 'Lila (Klassik)', mint: 'Minze', sunset: 'Sonnenuntergang', ocean: 'Ozean', gold: 'Gold', rainbow: 'Regenbogen-Drache', neon: "Neon", holo: "Hologramm" },
 };

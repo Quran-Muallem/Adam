@@ -142,3 +142,45 @@ button:disabled {
 html[lang='ar'] body {
   font-family: 'Baloo Bhaijaan 2', 'Fredoka', 'Noto Sans Arabic', system-ui, sans-serif;
 }
+
+/* ── Stumm-Visualisierung (FxLayer) ── */
+@keyframes fx-shake {
+  0%, 100% { transform: translate(0, 0); }
+  20% { transform: translate(-6px, 2px); }
+  40% { transform: translate(6px, -2px); }
+  60% { transform: translate(-4px, 1px); }
+  80% { transform: translate(3px, 0); }
+}
+.fx-shake { animation: fx-shake 0.35s ease-out; }
+@keyframes fx-flash { from { opacity: 0.9; } to { opacity: 0; } }
+.fx-flash { animation: fx-flash 0.6s ease-out forwards; }
+@keyframes fx-spark {
+  from { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  to { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0.2); opacity: 0; }
+}
+.fx-spark { animation: fx-spark 0.8s cubic-bezier(.2,.7,.3,1) forwards; }
+@media (prefers-reduced-motion: reduce) {
+  .fx-shake, .fx-spark { animation: none; }
+}
+
+/* ── Neon-Metropole & Quantum-Lab: dunkles Glas (Glassmorphism) ── */
+.world-teen .glass,
+.world-adult .glass {
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  backdrop-filter: blur(16px) saturate(140%);
+}
+.world-teen .glass {
+  background: linear-gradient(180deg, rgba(30, 27, 75, 0.78), rgba(15, 23, 42, 0.7));
+  border: 1px solid rgba(34, 211, 238, 0.35);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6), 0 0 18px -6px rgba(240, 171, 252, 0.6), inset 0 1px 0 rgba(240, 171, 252, 0.35);
+}
+.world-adult .glass {
+  background: linear-gradient(180deg, rgba(30, 41, 59, 0.62), rgba(2, 6, 23, 0.55));
+  border: 1px solid rgba(94, 234, 212, 0.25);
+  box-shadow: 0 12px 34px -12px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+.world-teen .glass.text-slate-700, .world-teen .glass .text-slate-700,
+.world-adult .glass.text-slate-700, .world-adult .glass .text-slate-700,
+.world-teen .glass .text-slate-600, .world-adult .glass .text-slate-600 { color: #e2e8f0; }
+.world-teen .glass .text-slate-500, .world-adult .glass .text-slate-500,
+.world-teen .glass .text-slate-400, .world-adult .glass .text-slate-400 { color: #94a3b8; }

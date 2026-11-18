@@ -53,8 +53,11 @@ export function Palette({ kinds, world, onAdd, disabled, isKindDisabled, t }: Pr
     );
   }
 
+  // Viele Befehle (Teenager/Erwachsene): zwei Reihen, damit alles mit dem Daumen erreichbar bleibt
+  const twoRows = kinds.length > 6;
+  const perRow = twoRows ? Math.ceil(kinds.length / 2) : kinds.length;
   return (
-    <div className="grid auto-cols-fr grid-flow-col gap-2">
+    <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${perRow}, minmax(0, 1fr))` }}>
       {kinds.map((k) => {
         const meta = BLOCK_META[k];
         const Icon = meta.Icon;
@@ -66,10 +69,10 @@ export function Palette({ kinds, world, onAdd, disabled, isKindDisabled, t }: Pr
             aria-label={t.blocks[k].label}
             disabled={off}
             onClick={() => onAdd(k)}
-            style={{ minHeight: size, '--c': meta.color } as CSSProperties}
+            style={{ minHeight: twoRows ? Math.round(size * 0.82) : size, '--c': meta.color } as CSSProperties}
             className="squish flex min-w-0 flex-col items-center justify-center gap-0.5 rounded-[1.2rem] px-1 py-1"
           >
-            <Icon className="h-7 w-7" strokeWidth={3} />
+            <Icon className={twoRows ? 'h-6 w-6' : 'h-7 w-7'} strokeWidth={3} />
             <span className="text-center text-[11px] font-bold leading-[1.1]">{t.blocks[k].short}</span>
           </button>
         );

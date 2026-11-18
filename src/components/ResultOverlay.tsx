@@ -54,7 +54,7 @@ export function ResultOverlay(p: Props) {
         )}
 
         {showText ? (
-          <p className="mb-4 text-xl font-bold text-slate-700">{p.message}</p>
+          <p className="mb-4 whitespace-pre-line text-xl font-bold text-slate-700">{p.message}</p>
         ) : (
           <p className="mb-4 text-5xl">{success ? '😋' : '🙈'}</p>
         )}

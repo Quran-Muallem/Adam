@@ -21,6 +21,8 @@ export const moreFr: MoreTexts = {
         'Astuce : « Si chemin bloqué → tourner » dans une boucle résout beaucoup de labyrinthes.',
         'Des caisses sur le chemin ? « Si obstacle devant → Sauter » !',
       ],
+      teen: ["Nouveau secteur. Analyse d’abord, construis ensuite.", "Un laser ? L’interrupteur est toujours avant.", "TANT QUE + capteur remplace beaucoup de commandes."],
+      adult: ["Limite serrée. Seule la solution élégante passe.", "Deux robots ? Les murs sont tes points de synchro.", "Pense récursif : quel est le cas de base ?"],
     },
   },
   map: {
@@ -62,5 +64,5 @@ export const moreFr: MoreTexts = {
     streakBonus: '+1 bonus de série',
     sticker: 'Autocollant surprise',
   },
-  skins: { violet: 'Violet (classique)', mint: 'Menthe', sunset: 'Coucher de soleil', ocean: 'Océan', gold: 'Or', rainbow: 'Dragon arc-en-ciel' },
+  skins: { violet: 'Violet (classique)', mint: 'Menthe', sunset: 'Coucher de soleil', ocean: 'Océan', gold: 'Or', rainbow: 'Dragon arc-en-ciel', neon: "Néon", holo: "Hologramme" },
 };

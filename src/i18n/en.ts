@@ -1,10 +1,12 @@
 import { bridgeEn } from './bridge/en';
 import { moreEn } from './more/en';
+import { proEn } from './pro/en';
 import type { Dict } from './types';
 
 export const en: Dict = {
   ...bridgeEn,
   ...moreEn,
+  ...proEn,
   langName: 'English',
   titleTop: "Sparky's",
   titleBottom: 'Code Adventure',
@@ -40,6 +42,8 @@ export const en: Dict = {
       wallName: 'the asteroid',
       lowName: 'the crate',
     },
+    teen: { name: "Cyber Pioneers", ages: "Ages 13–17", world: "Neon Metropolis", tagline: "Variables, while loops, logic gates & lasers", wallName: "the skyscraper", lowName: "the barrier" },
+    adult: { name: "Code Architects", ages: "18+ / Adults", world: "Quantum Lab", tagline: "Recursion, parallel bots, registers & tight limits", wallName: "the quantum block", lowName: "the crystal" },
   },
   ui: {
     back: 'Back',
@@ -85,8 +89,11 @@ export const en: Dict = {
     repeat: { label: 'Repeat', short: 'Loop' },
     if: { label: 'If', short: 'If' },
     call: { label: 'Spell F1', short: 'F1' },
+    while: { label: "While", short: "While" },
+    setVar: { label: "Variable n =", short: "n =" },
+    decVar: { label: "n − 1", short: "n − 1" },
   },
-  conds: { pathClear: 'path clear', pathBlocked: 'path blocked', obstacleAhead: 'obstacle ahead' },
+  conds: { pathClear: 'path clear', pathBlocked: 'path blocked', obstacleAhead: 'obstacle ahead', laserAhead: "laser ahead", atGoal: "at goal", varPositive: "n > 0" },
   result: {
     map: 'Map',
     retry: 'Try again',
@@ -110,6 +117,9 @@ export const en: Dict = {
     cape: 'Superhero cape',
     ninja: 'Ninja Sparky',
     cyber: 'Cyber armor',
+    drone: "Cyber Drone",
+    holofox: "Hologram Fox",
+    quantum: "Quantum AI",
   },
   fail: {
     wall: ['Boing! I hugged {wall}! Try again!', "Ouch, my nose! Can't go that way. One more try?"],
@@ -122,6 +132,8 @@ export const en: Dict = {
     notReached: ["Almost! I'm not at the goal yet. Add a few more blocks.", "Good start! But the path isn't finished yet."],
     tooLong: ["Phew, I'm so dizzy! Your program runs far too long."],
     empty: ["I'm waiting for commands! Add some blocks first."],
+    laser: ["Zzzt! A laser 🟥 is blocking the way. Step on the switch ⏻ first!"],
+    overflow: ["Stack overflow! F1 keeps calling itself forever – a base case is missing."],
   },
   win: ["Hooray! You're a coding star! 🌟", 'Wow, that was brilliant coding!', 'Sparky is dancing with joy!', 'Amazing! Keep it up!', "Bullseye! You're awesome!"],
   start: ["Let's go!", 'Off on an adventure!', "I'm ready!", 'Whoosh!'],
@@ -186,5 +198,25 @@ export const en: Dict = {
     'hero-18': { t: 'Portal Round the Corner', h: 'Combine a condition and a portal!' },
     'hero-19': { t: 'Portal Chain', h: 'Three identical sections, two portals. Macro or loop?' },
     'hero-20': { t: 'The Star Diploma', h: 'The finale! Jump, portal, turn – one clever program does it all.' },
+    "teen-1": { t: "while (!atGoal)", h: "New block: WHILE. Runs until the condition is false. Two blocks are enough here." },
+    "teen-2": { t: "Sensor on", h: "Loop + sensor = autopilot. Only turn when the path is blocked." },
+    "teen-3": { t: "Laser switch", h: "The switch ⏻ flips ALL lasers. Power off first, then go through." },
+    "teen-4": { t: "Counter crossing", h: "A counter knows when to stop: n = 6, then WHILE n > 0 { forward; n−1 }." },
+    "teen-5": { t: "NOT gate", h: "“Blocked” ignores lasers. But NOT “clear” catches both. Logic!" },
+    "teen-6": { t: "Loop in a loop", h: "Nested loops: one stair step is a loop itself." },
+    "teen-7": { t: "Jump sensor", h: "IF obstacle → jump. Otherwise forward. The loop does the rest." },
+    "teen-8": { t: "OR gate", h: "Blocked OR laser → turn. One gate, two dangers." },
+    "teen-9": { t: "Double switch", h: "Every switch FLIPS the state. Flip twice = on again. Jump over it!" },
+    "teen-10": { t: "Neon finale", h: "Counters, sensors, switches: everything you’ve learned in one program." },
+    "adult-1": { t: "Recursion", h: "F1 may call itself: IF clear { forward; F1 }. Base case included." },
+    "adult-2": { t: "Two bots, one program", h: "Both bots run every command at the same time. A blocked bot simply waits." },
+    "adult-3": { t: "Recursive spiral", h: "Wall follower as recursion. No loop in sight – and still endless." },
+    "adult-4": { t: "Recursive stairs", h: "One step, then the same plan again. Tail recursion in its purest form." },
+    "adult-5": { t: "Sync maze", h: "Walls are your sync points. Use them to make one bot wait." },
+    "adult-6": { t: "Memory register", h: "No WHILE, just recursion + register n. Tight limit – every block counts." },
+    "adult-7": { t: "Recursion with jumps", h: "Two cases, one recursive call. That’s what a clean parser looks like." },
+    "adult-8": { t: "Phase shift", h: "Spot repeating patterns and compress them. Big-O says hi." },
+    "adult-9": { t: "Parallel execution", h: "Not one block to spare: the limit is exactly the optimal solution." },
+    "adult-10": { t: "Quantum finale", h: "Jump, turn, walk – recursively, until the base case (the goal) is reached." },
   },
 };

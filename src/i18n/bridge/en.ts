@@ -23,6 +23,8 @@ export const bridgeEn: BridgeTexts = {
       'Go! Every line lights up when I run it.',
       'That’s exactly how real pros code! 🌟',
     ],
+    teen: ["Neon Metropolis. Quick tour, then it’s your turn. 🌆", "Instead of 6× “Forward”: WHILE not at goal → forward.", "The condition is re-checked before every round.", "Lasers 🟥 block. The switch flips their state.", "State on → off. That’s a state machine.", "Here’s the same thing in Python:", "Two blocks instead of six. Clean. 😎"],
+    adult: ["Quantum Lab. Short and precise:", "F1 calls itself → recursion.", "Base case: if the path isn’t clear, the call ends.", "Every call lands on the stack. No base case: stack overflow.", "The same in TypeScript:", "Execution – call by call.", "4 blocks for 7 steps. Constant code, paths of any length. ✓"],
   },
   code: { toggle: '👀 Real code (Python / JS)', comment: "Sparky's program", empty: 'Add blocks – your code appears here!' },
   cards: {
@@ -46,6 +48,14 @@ export const bridgeEn: BridgeTexts = {
       sensor: { name: 'Sensors', what: 'The program “looks” ahead and decides.', real: ['That’s how engineers steer real Mars rovers around rocks!', 'Robot vacuums notice where the stairs are.'] },
       function: { name: 'Functions', what: 'Save commands once and call them again and again.', real: ['The “Jump” button in every game calls a function.', 'Photo apps use the same filter for thousands of pictures.'] },
       teleport: { name: 'Jumps & Networks', what: 'Jump straight to another place.', real: ['A link on the internet takes you to another page instantly.', 'In games, portals carry characters into new worlds.'] },
+      whileLoop: { name: "While loop", what: "Repeat as long as a condition holds – without knowing in advance how often.", real: ["Every video game runs a game loop: input, update, draw – 60 times a second.", "Servers wait in a loop for new requests."] },
+      variables: { name: "Variables & counters", what: "A named storage slot whose value changes.", real: ["Lives, score, ammo: all variables in the game code.", "Your battery level is a variable in the operating system."] },
+      logic: { name: "Logic gates", what: "AND, OR, NOT combine conditions into decisions.", real: ["Permissions: logged in AND (admin OR owner).", "Processors are made of billions of tiny logic gates."] },
+      stateMachine: { name: "State machine", what: "A system with states that switch on events.", real: ["Traffic lights, elevators and vending machines are state machines.", "Game characters switch between running, jumping and falling this way."] },
+      recursion: { name: "Recursion", what: "A function calls itself – until a base case is reached.", real: ["Searching file systems: folders in folders in folders.", "SQL over hierarchies (WITH RECURSIVE), e.g. org charts."] },
+      parallel: { name: "Parallel execution", what: "Run several flows at once and keep them in sync.", real: ["Promise.all loads several resources at once instead of one by one.", "Graphics cards compute thousands of pixels in parallel."] },
+      registers: { name: "Registers & memory", what: "A few fast slots for intermediate values.", real: ["CPUs compute in registers – faster than any RAM.", "Fibonacci with two variables: O(n) instead of O(2ⁿ) naive recursion."] },
+      bigO: { name: "Big-O & efficiency", what: "How does the effort grow when the input grows?", real: ["A 4-block loop scales – 12 single commands don’t.", "Search engines need O(log n), otherwise you’d wait forever."] },
     },
   },
 };

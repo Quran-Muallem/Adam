@@ -4,7 +4,7 @@
 // ─────────────────────────────────────────────────────────────
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { COSTUMES, SKINS, type CostumeId, type SkinId } from '../data/costumes';
-import { levelGroup, levelNumber } from '../data/levels';
+import { isExpress, levelGroup, levelNumber } from '../data/levels';
 import { CHEST_EVERY, dayKey, earnedBadges, isMilestone, randomNewSticker, yesterdayKey, type WheelPrize } from '../data/rewards';
 import type { AgeGroupId } from '../types';
 
@@ -23,6 +23,8 @@ export interface Progress {
   bestStreak: number;
   /** Bereits belohnte Meilenstein-Level */
   milestones: string[];
+  /** S-Bahn-Express: Sterne je Tages-Rätsel (zählen nicht für die Karte) */
+  express: Record<string, number>;
 }
 
 const EMPTY: Progress = {
@@ -36,6 +38,7 @@ const EMPTY: Progress = {
   streak: 0,
   bestStreak: 0,
   milestones: [],
+  express: {},
 };
 
 function load(): Progress {
@@ -82,6 +85,15 @@ export function useProgress() {
   const saveStars = useCallback(
     (levelId: string, stars: number): Reward | null => {
       let reward: Reward | null = null;
+      // Tages-Rätsel: eigene Wertung, Bonus-Sterne beim ersten Lösen
+      if (isExpress(levelId)) {
+        update((p) => {
+          const prev = p.express[levelId] ?? 0;
+          if (stars <= prev) return p;
+          return { ...p, express: { ...p.express, [levelId]: stars }, bonusStars: p.bonusStars + (stars - prev) };
+        });
+        return null;
+      }
       update((p) => {
         const next = { ...p, stars: { ...p.stars, [levelId]: Math.max(p.stars[levelId] ?? 0, stars) } };
         if (stars > 0 && isMilestone(levelNumber(levelId)) && !p.milestones.includes(levelId)) {

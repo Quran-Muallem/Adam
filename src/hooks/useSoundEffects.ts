@@ -10,7 +10,7 @@ const MUTE_KEY = 'sparky:muted';
 const SFX_KEY = 'sparky:sfx';
 const MUSIC_KEY = 'sparky:music';
 
-type Timbre = 'marimba' | 'harp' | 'bell' | 'boing' | 'whoosh' | 'soft' | 'chip' | 'bass';
+type Timbre = 'marimba' | 'harp' | 'bell' | 'boing' | 'whoosh' | 'soft' | 'chip' | 'bass' | 'synth' | 'keys' | 'pad';
 
 interface Note {
   /** Frequenz in Hz */
@@ -59,7 +59,26 @@ const RECIPES: Record<SoundName, Note[]> = {
   ],
   fail: [m(N.G4, 0, 0.3, 0.2), m(N.E4, 0.18, 0.3, 0.2), m(N.C4, 0.36, 0.5, 0.2)],
   unlock: [h(N.G5, 0, 0.5), h(N.C6, 0.08, 0.5), h(N.E6, 0.16, 0.7)],
+  // Laser-Schalter: elektrisches Zischen
+  zap: [{ f: 1800, to: 300, at: 0, dur: 0.25, timbre: 'chip', vol: 0.07 }, { f: 2400, to: 900, at: 0.08, dur: 0.2, timbre: 'chip', vol: 0.05 }],
 };
+
+/** Vibrationsmuster (ms) für die Stumm-Visualisierung */
+const VIBES: Partial<Record<SoundName, number | number[]>> = {
+  boing: [40, 30, 40],
+  fail: [120],
+  win: [30, 50, 30, 50, 80],
+  collect: 15,
+  key: 25,
+  gate: 30,
+  teleport: [15, 20, 15],
+  zap: [10, 15, 10],
+  unlock: [20, 40, 20],
+};
+
+export const VIBE_KEY = 'sparky:vibe';
+/** Visuelles Echo jedes Sounds – die FxLayer zeigt Blitze/Shakes, auch im Stumm-Modus */
+export const FX_EVENT = 'sparky:fx';
 
 function readBool(key: string, fallback: boolean) {
   try {
@@ -81,7 +100,7 @@ function writeBool(key: string, v: boolean) {
 // ARCADE-MUSIK: kleine fröhliche Loops (4 Takte, Achtelnoten),
 // eine Melodie pro Welt. Zahlen = Stufen der Tonleiter, null = Pause.
 // ─────────────────────────────────────────────────────────────
-export type MusicTheme = 'home' | 'mini' | 'junior' | 'hero';
+export type MusicTheme = 'home' | 'mini' | 'junior' | 'hero' | 'teen' | 'adult';
 
 interface Song {
   bpm: number;
@@ -91,6 +110,9 @@ interface Song {
   bass: (number | null)[];
   leadTimbre: Timbre;
   leadVol: number;
+  bassTimbre?: Timbre;
+  /** Optionaler Flächen-Akkord pro Takt (Stufen) – für Synthwave/Lo-Fi */
+  pads?: number[][];
 }
 
 const PENTA = [0, 2, 4, 7, 9];
@@ -123,6 +145,20 @@ const SONGS: Record<MusicTheme, Song> = {
     lead: [0, 2, 4, 5, 4, 2, 0, _, 1, 3, 5, 6, 5, 3, 1, _, 2, 4, 6, 7, 6, 4, 2, _, 3, 2, 1, 0, 1, _, 0, _],
     bass: [0, _, 0, _, 0, _, 0, _, 3, _, 3, _, 3, _, 3, _, 1, _, 1, _, 1, _, 1, _, 4, _, 4, _, 2, _, 2, _],
   },
+  // Neon-Metropole: treibender Synthwave (Moll, pulsierender Achtel-Bass)
+  teen: {
+    bpm: 112, root: N.E4, scale: [0, 2, 3, 5, 7, 8, 10], leadTimbre: 'synth', leadVol: 0.05, bassTimbre: 'synth',
+    lead: [7, _, _, 6, 7, _, 9, _, 8, _, 7, _, 5, _, _, _, 5, _, _, 4, 5, _, 7, _, 6, _, 5, _, 4, _, 2, _],
+    bass: [0, 0, 0, 0, 0, 0, 0, 0, 5, 5, 5, 5, 5, 5, 5, 5, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 6, 6, 6, 6],
+    pads: [[0, 2, 4], [5, 7, 9], [3, 5, 7], [4, 6, 8]],
+  },
+  // Quantum-Lab: entspannter Lo-Fi (langsame E-Piano-Akkorde, Jazz-Septimen)
+  adult: {
+    bpm: 76, root: N.F4, scale: [0, 2, 4, 5, 7, 9, 11], leadTimbre: 'keys', leadVol: 0.07, bassTimbre: 'bass',
+    lead: [_, _, 4, _, 6, _, _, 7, _, _, 6, _, 4, _, _, _, _, _, 3, _, 5, _, _, 4, _, _, 2, _, 1, _, _, _],
+    bass: [0, _, _, _, _, _, 0, _, 3, _, _, _, _, _, 4, _, 5, _, _, _, _, _, 5, _, 1, _, _, _, 4, _, _, _],
+    pads: [[0, 2, 4, 6], [3, 5, 7, 9], [5, 7, 9, 11], [1, 3, 5, 7]],
+  },
 };
 
 const degreeFreq = (song: Song, deg: number, octave = 0) => {
@@ -153,11 +189,18 @@ function voice(ctx: AudioContext, out: AudioNode, n: Note, now: number) {
                 ? [[1, 0.6, 'square'], [2, 0.12, 'square']]
                 : n.timbre === 'bass'
                   ? [[1, 1, 'triangle'], [2, 0.2, 'sine']]
-                  : [[1, 1, 'triangle']];
+                  : n.timbre === 'synth'
+                    ? [[1, 0.7, 'sawtooth'], [1.006, 0.5, 'sawtooth']]
+                    : n.timbre === 'keys'
+                      ? [[1, 1, 'sine'], [2, 0.18, 'sine'], [3, 0.05, 'triangle']]
+                      : n.timbre === 'pad'
+                        ? [[1, 0.6, 'triangle'], [1.004, 0.5, 'sawtooth']]
+                        : [[1, 1, 'triangle']];
 
   const gain = ctx.createGain();
   gain.gain.setValueAtTime(0.0001, t0);
-  gain.gain.exponentialRampToValueAtTime(vol, t0 + (n.timbre === 'whoosh' ? 0.08 : 0.006));
+  const attack = n.timbre === 'whoosh' ? 0.08 : n.timbre === 'pad' ? n.dur * 0.35 : n.timbre === 'keys' ? 0.02 : 0.006;
+  gain.gain.exponentialRampToValueAtTime(vol, t0 + attack);
   gain.gain.exponentialRampToValueAtTime(0.0001, t1);
 
   let dest: AudioNode = out;
@@ -166,6 +209,15 @@ function voice(ctx: AudioContext, out: AudioNode, n: Note, now: number) {
     lp.type = 'lowpass';
     lp.frequency.setValueAtTime(800, t0);
     lp.frequency.exponentialRampToValueAtTime(4000, t1);
+    lp.connect(out);
+    dest = lp;
+  } else if (n.timbre === 'synth' || n.timbre === 'pad') {
+    // warmer Tiefpass – typisch Synthwave
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.Q.value = n.timbre === 'synth' ? 6 : 1;
+    lp.frequency.setValueAtTime(n.timbre === 'synth' ? 2400 : 900, t0);
+    lp.frequency.exponentialRampToValueAtTime(n.timbre === 'synth' ? 600 : 700, t1);
     lp.connect(out);
     dest = lp;
   }
@@ -237,8 +289,29 @@ export function useSoundEffects() {
     return ctxRef.current;
   }, []);
 
+  const [vibeOn, setVibeOnState] = useState<boolean>(() => readBool(VIBE_KEY, true));
+  const vibeRef = useRef(vibeOn);
+  vibeRef.current = vibeOn;
+  const setVibeOn = useCallback((v: boolean) => {
+    setVibeOnState(v);
+    vibeRef.current = v;
+    writeBool(VIBE_KEY, v);
+  }, []);
+
   const play = useCallback(
     (name: SoundName) => {
+      // Stumm-Visualisierung: Vibration + visuelles Echo – unabhängig vom Ton
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent(FX_EVENT, { detail: name }));
+        const v = VIBES[name];
+        if (v && vibeRef.current && typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+          try {
+            navigator.vibrate(v);
+          } catch {
+            /* nicht unterstützt */
+          }
+        }
+      }
       if (!sfxRef.current) return;
       const ctx = ensureCtx();
       if (!ctx || !masterRef.current) return;
@@ -283,7 +356,15 @@ export function useSoundEffects() {
         const l = song.lead[i];
         const b = song.bass[i];
         if (l !== null) voice(ctx, g, { f: degreeFreq(song, l), at: 0, dur: eighth * 1.8, timbre: song.leadTimbre, vol: song.leadVol }, s.next);
-        if (b !== null) voice(ctx, g, { f: degreeFreq(song, b, -2), at: 0, dur: eighth * 3.5, timbre: 'bass', vol: 0.09 }, s.next);
+        if (b !== null) {
+          const synthBass = song.bassTimbre === 'synth';
+          voice(ctx, g, { f: degreeFreq(song, b, -2), at: 0, dur: synthBass ? eighth * 0.9 : eighth * 3.5, timbre: song.bassTimbre ?? 'bass', vol: synthBass ? 0.05 : 0.09 }, s.next);
+        }
+        // Flächen-Akkord zu jedem Takt (8 Achtel)
+        if (song.pads && i % 8 === 0) {
+          const chord = song.pads[(i / 8) % song.pads.length];
+          for (const d of chord) voice(ctx, g, { f: degreeFreq(song, d, -1), at: 0, dur: eighth * 8.5, timbre: 'pad', vol: 0.018 }, s.next);
+        }
         // leiser Glitzer-Akzent alle 2 Takte
         if (i === 0 && s.step % 64 === 0) voice(ctx, g, { f: degreeFreq(song, 4, 1), at: 0, dur: 1.2, timbre: 'bell', vol: 0.025 }, s.next);
         s.next += eighth;
@@ -347,7 +428,7 @@ export function useSoundEffects() {
     [stopMusic],
   );
 
-  return { play, sfxOn, setSfxOn, musicOn, setMusicOn, setTheme };
+  return { play, sfxOn, setSfxOn, musicOn, setMusicOn, setTheme, vibeOn, setVibeOn };
 }
 
 export type SoundApi = ReturnType<typeof useSoundEffects>;

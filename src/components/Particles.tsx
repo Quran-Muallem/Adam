@@ -2,7 +2,7 @@
 import { useMemo, type CSSProperties } from 'react';
 
 interface Props {
-  kind: 'fireflies' | 'bubbles' | 'stars';
+  kind: 'fireflies' | 'bubbles' | 'stars' | 'neon' | 'quantum';
   count?: number;
 }
 
@@ -27,10 +27,24 @@ export function Particles({ kind, count = 22 }: Props) {
       {/* Sanfte Lichtkegel für Tiefe */}
       <div className="absolute -left-1/4 -top-1/4 h-3/4 w-3/4 rounded-full bg-white/10 blur-3xl" />
       <div className="absolute -bottom-1/4 -right-1/4 h-2/3 w-2/3 rounded-full bg-yellow-200/10 blur-3xl" />
+      {kind === 'neon' && (
+        <div
+          className="absolute inset-x-0 bottom-0 h-1/2 opacity-40"
+          style={{
+            backgroundImage:
+              'linear-gradient(rgba(34,211,238,.55) 1px, transparent 1px), linear-gradient(90deg, rgba(232,121,249,.45) 1px, transparent 1px)',
+            backgroundSize: '36px 36px',
+            transform: 'perspective(300px) rotateX(55deg)',
+            transformOrigin: 'bottom',
+            maskImage: 'linear-gradient(to top, black, transparent)',
+            WebkitMaskImage: 'linear-gradient(to top, black, transparent)',
+          }}
+        />
+      )}
       {items.map((p) => {
         const style = {
           left: `${p.left}%`,
-          top: kind === 'bubbles' ? '100%' : `${p.top}%`,
+          top: kind === 'bubbles' || kind === 'neon' ? '100%' : `${p.top}%`,
           width: p.size,
           height: p.size,
           '--dur': `${p.dur}s`,
@@ -39,6 +53,34 @@ export function Particles({ kind, count = 22 }: Props) {
           '--fy': `${p.fy}px`,
           animationDelay: `${p.delay}s`,
         } as CSSProperties;
+        if (kind === 'neon')
+          return (
+            <span
+              key={p.id}
+              className="absolute animate-rise rounded-full"
+              style={{
+                ...style,
+                width: 2,
+                height: 14 + (p.id % 4) * 8,
+                background: p.id % 2 ? 'linear-gradient(#22d3ee,transparent)' : 'linear-gradient(#f0abfc,transparent)',
+                opacity: 0.7,
+              }}
+            />
+          );
+        if (kind === 'quantum')
+          return (
+            <span
+              key={p.id}
+              className="absolute animate-firefly rounded-full"
+              style={{
+                ...style,
+                width: p.size * 2,
+                height: p.size * 2,
+                background: p.id % 3 ? 'radial-gradient(circle,rgba(94,234,212,.7),transparent 70%)' : 'radial-gradient(circle,rgba(167,139,250,.7),transparent 70%)',
+                filter: 'blur(1px)',
+              }}
+            />
+          );
         if (kind === 'fireflies')
           return (
             <span

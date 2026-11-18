@@ -1,10 +1,12 @@
 import { bridgeFr } from './bridge/fr';
 import { moreFr } from './more/fr';
+import { proFr } from './pro/fr';
 import type { Dict } from './types';
 
 export const fr: Dict = {
   ...bridgeFr,
   ...moreFr,
+  ...proFr,
   langName: 'Français',
   titleTop: "L'aventure code",
   titleBottom: 'de Sparky',
@@ -40,6 +42,8 @@ export const fr: Dict = {
       wallName: 'l’astéroïde',
       lowName: 'la caisse',
     },
+    teen: { name: "Cyber-Pionniers", ages: "13–17 ans", world: "Métropole Néon", tagline: "Variables, boucles « tant que », portes logiques & lasers", wallName: "le gratte-ciel", lowName: "la barrière" },
+    adult: { name: "Architectes du code", ages: "18+ / Adultes", world: "Labo Quantique", tagline: "Récursion, robots parallèles, registres & limites serrées", wallName: "le bloc quantique", lowName: "le cristal" },
   },
   ui: {
     back: 'Retour',
@@ -85,8 +89,11 @@ export const fr: Dict = {
     repeat: { label: 'Répéter', short: 'Boucle' },
     if: { label: 'Si', short: 'Si' },
     call: { label: 'Sort F1', short: 'F1' },
+    while: { label: "Tant que", short: "Tant que" },
+    setVar: { label: "Variable n =", short: "n =" },
+    decVar: { label: "n − 1", short: "n − 1" },
   },
-  conds: { pathClear: 'chemin libre', pathBlocked: 'chemin bloqué', obstacleAhead: 'obstacle devant' },
+  conds: { pathClear: 'chemin libre', pathBlocked: 'chemin bloqué', obstacleAhead: 'obstacle devant', laserAhead: "laser devant", atGoal: "au but", varPositive: "n > 0" },
   result: {
     map: 'Carte',
     retry: 'Réessayer',
@@ -110,6 +117,9 @@ export const fr: Dict = {
     cape: 'Cape de super-héros',
     ninja: 'Sparky ninja',
     cyber: 'Armure cyber',
+    drone: "Cyber-drone",
+    holofox: "Renard hologramme",
+    quantum: "IA quantique",
   },
   fail: {
     wall: ['Boing ! J’ai fait un câlin à {wall} ! Réessaie !', 'Aïe, mon nez ! On ne passe pas par là. Encore un essai ?'],
@@ -122,6 +132,8 @@ export const fr: Dict = {
     notReached: ['Presque ! Je ne suis pas encore arrivé. Ajoute quelques blocs.', 'Bon début ! Mais le chemin n’est pas fini.'],
     tooLong: ['Pfiou, j’ai le tournis ! Ton programme dure bien trop longtemps.'],
     empty: ['J’attends tes ordres ! Pose d’abord quelques blocs.'],
+    laser: ["Bzzzt ! Un laser 🟥 bloque le passage. Marche d’abord sur l’interrupteur ⏻ !"],
+    overflow: ["Débordement de pile ! F1 s’appelle sans fin – il manque un cas de base."],
   },
   win: ['Youpi ! Tu es une star du code ! 🌟', 'Waouh, quel super programme !', 'Sparky danse de joie !', 'Génial ! Continue comme ça !', 'En plein dans le mille ! Tu es formidable !'],
   start: ['C’est parti !', 'En route pour l’aventure !', 'Je suis prêt !', 'Wouuush !'],
@@ -186,5 +198,25 @@ export const fr: Dict = {
     'hero-18': { t: 'Le portail au coin', h: 'Combine une condition et un portail !' },
     'hero-19': { t: 'La chaîne de portails', h: 'Trois sections identiques, deux portails. Macro ou boucle ?' },
     'hero-20': { t: 'Le diplôme des étoiles', h: 'La finale ! Sauter, portail, tourner – un programme malin fait tout.' },
+    "teen-1": { t: "while (!auBut)", h: "Nouveau bloc : TANT QUE. Il tourne jusqu’à ce que la condition soit fausse. Deux blocs suffisent." },
+    "teen-2": { t: "Capteur activé", h: "Boucle + capteur = pilote automatique. Tourne seulement si le chemin est bloqué." },
+    "teen-3": { t: "Interrupteur laser", h: "L’interrupteur ⏻ bascule TOUS les lasers. D’abord couper, ensuite passer." },
+    "teen-4": { t: "Carrefour du compteur", h: "Un compteur sait quand s’arrêter : n = 6, puis TANT QUE n > 0 { avancer ; n−1 }." },
+    "teen-5": { t: "Porte NON", h: "« Bloqué » ignore les lasers. Mais NON « libre » attrape les deux. Logique !" },
+    "teen-6": { t: "Boucle dans une boucle", h: "Boucles imbriquées : une marche d’escalier est elle-même une boucle." },
+    "teen-7": { t: "Capteur de saut", h: "SI obstacle → sauter. Sinon avancer. La boucle fait le reste." },
+    "teen-8": { t: "Porte OU", h: "Bloqué OU laser → tourner. Une porte, deux dangers." },
+    "teen-9": { t: "Double interrupteur", h: "Chaque interrupteur BASCULE l’état. Deux fois = rallumé. Saute par-dessus !" },
+    "teen-10": { t: "Finale néon", h: "Compteurs, capteurs, interrupteurs : tout ce que tu as appris dans un programme." },
+    "adult-1": { t: "Récursion", h: "F1 peut s’appeler : SI libre { avancer ; F1 }. Cas de base compris." },
+    "adult-2": { t: "Deux robots, un programme", h: "Les deux robots exécutent chaque commande en même temps. Un robot bloqué attend." },
+    "adult-3": { t: "Spirale récursive", h: "Suivi de mur en récursion. Aucune boucle en vue – et pourtant sans fin." },
+    "adult-4": { t: "Escalier récursif", h: "Un pas, puis le même plan. De la récursion terminale pure." },
+    "adult-5": { t: "Labyrinthe synchrone", h: "Les murs sont tes points de synchro. Utilise-les pour faire attendre un robot." },
+    "adult-6": { t: "Registre mémoire", h: "Pas de TANT QUE, juste récursion + registre n. Limite serrée – chaque bloc compte." },
+    "adult-7": { t: "Récursion avec sauts", h: "Deux cas, un appel récursif. Voilà à quoi ressemble un parseur propre." },
+    "adult-8": { t: "Déphasage", h: "Repère les motifs qui se répètent et compresse-les. Big-O te salue." },
+    "adult-9": { t: "Exécution parallèle", h: "Pas un bloc de trop : la limite est exactement la solution optimale." },
+    "adult-10": { t: "Finale quantique", h: "Sauter, tourner, avancer – récursivement, jusqu’au cas de base (le but)." },
   },
 };

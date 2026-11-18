@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────
-// PROZEDURALER LEVEL-GENERATOR (Level 21 bis ∞)
+// PROZEDURALER LEVEL-GENERATOR (nach den handgefertigten Leveln bis ∞)
 //
 // Jedes Level entsteht deterministisch aus (Altersstufe, Nummer) als
 // Seed – Level 37 sieht also auf jedem Gerät gleich aus. Jede Karte
@@ -7,11 +7,11 @@
 // nur garantiert lösbare Level verlassen den Generator. parBlocks
 // (3 Sterne) = kürzestes gefundenes Programm.
 // ─────────────────────────────────────────────────────────────
-import type { AgeGroupId, Block, Dir, LevelDef, PaletteKind, Program } from '../types';
+import type { AgeGroupId, Block, CondExpr, Dir, LevelDef, PaletteKind, Program } from '../types';
 import { runProgram } from './interpreter';
 import { countProgram } from './program';
 import { rate } from './rating';
-import { add, DIR_VEC, isBlocked, initialState, parseMap, posKey, TURN_LEFT, TURN_RIGHT } from './world';
+import { add, DIR_VEC, isBlocked, initialState, parseMap, posKey, TURN_LEFT, TURN_RIGHT, twinMove } from './world';
 
 // ── Zufall mit Seed ──
 function mulberry32(seed: number) {
@@ -42,7 +42,11 @@ const ARROWS: PaletteKind[] = ['up', 'down', 'left', 'right'];
 const DIRS: Dir[] = ['up', 'down', 'left', 'right'];
 
 /** Schwierigkeit 0…1 wächst langsam mit der Levelnummer */
-const difficulty = (n: number) => Math.min(1, (n - 20) / 60);
+const difficulty = (n: number, base = 20) => {
+  // Tages-Rätsel (S-Bahn-Express): mittlere Schwierigkeit – in 3 Minuten lösbar
+  const eff = n >= 100000 ? base + 15 + (n % 25) : n;
+  return Math.min(1, Math.max(0, (eff - base) / 60));
+};
 
 // ═════════ Korridor-Pfad (Junior & Helden) ═════════
 interface PathStep {
@@ -136,7 +140,7 @@ function carveCorridor(r: Rng, o: { maxW: number; maxH: number; segments: number
   return { steps, startDir, cells: order.map((c) => ({ x: c.x - minX, y: c.y - minY, t: c.t })) };
 }
 
-function corridorGrid(c: Corridor, extras: { stars?: number; keyGate?: boolean }, r: Rng): string[] {
+function corridorGrid(c: Corridor, extras: { stars?: number; keyGate?: boolean; laser?: boolean }, r: Rng): string[] {
   const w = Math.max(...c.cells.map((p) => p.x)) + 1;
   const h = Math.max(...c.cells.map((p) => p.y)) + 1;
   const g = Array.from({ length: h }, () => Array.from({ length: w }, () => '#'));
@@ -152,6 +156,13 @@ function corridorGrid(c: Corridor, extras: { stars?: number; keyGate?: boolean }
     const gi = int(r, ki + 2, inner.length - 1);
     g[inner[ki].y][inner[ki].x] = 'K';
     g[inner[gi].y][inner[gi].x] = 'D';
+  }
+  if (extras.laser && inner.length >= 4) {
+    // Schalter VOR der Laser-Schranke → der Weg ist garantiert frei
+    const xi = int(r, 0, Math.floor(inner.length / 2) - 1);
+    const li = int(r, xi + 2, inner.length - 1);
+    g[inner[xi].y][inner[xi].x] = 'X';
+    g[inner[li].y][inner[li].x] = 'L';
   }
   if (extras.stars) {
     const freeCells = inner.filter((p) => g[p.y][p.x] === '.');
@@ -357,7 +368,227 @@ function genHero(n: number, r: Rng): LevelDef | null {
   return { ...level, parBlocks: par, maxBlocks: Math.min(30, countProgram(explicit) + 4) };
 }
 
-const GENERATORS: Record<AgeGroupId, (n: number, r: Rng) => LevelDef | null> = { mini: genMini, junior: genJunior, hero: genHero };
+
+// ═════════ Stufe 4: Teenager (Neon-Metropole) ═════════
+const F_ = (): Block => ({ id: bid(), type: 'forward' });
+const L_ = (): Block => ({ id: bid(), type: 'turnLeft' });
+const R_ = (): Block => ({ id: bid(), type: 'turnRight' });
+const J_ = (): Block => ({ id: bid(), type: 'jump' });
+const ifx = (e: CondExpr, ...body: Block[]): Block => ({ id: bid(), type: 'if', ...e, body });
+const whx = (e: CondExpr, ...body: Block[]): Block => ({ id: bid(), type: 'while', ...e, body });
+const NOT_GOAL: CondExpr = { cond: 'atGoal', not: true };
+const BLOCKED: CondExpr = { cond: 'pathClear', not: true };
+
+/** Solange-nicht-am-Ziel-Wandfolger (Teenager) */
+function whileFollowers(withJump: boolean): Program[] {
+  const jump = withJump ? [ifx({ cond: 'obstacleAhead' }, J_())] : [];
+  const step = withJump ? ifx({ cond: 'pathClear' }, F_()) : F_();
+  const turnCond: CondExpr = withJump ? { cond: 'pathBlocked', op: 'or', cond2: 'laserAhead' } : BLOCKED;
+  const w = (body: Block[]): Program => ({ main: [whx(NOT_GOAL, ...body)], macro: [] });
+  return [
+    w([...jump, ifx(turnCond, R_()), step]),
+    w([...jump, ifx(turnCond, L_()), step]),
+    w([...jump, ifx(turnCond, L_()), ifx(turnCond, R_(), R_()), step]),
+  ];
+}
+
+/** Rekursive Wandfolger: F1 ruft sich selbst auf (Erwachsene) */
+function recursiveFollowers(withJump: boolean): Program[] {
+  const call = (): Block => ({ id: bid(), type: 'call' });
+  const jump = withJump ? [ifx({ cond: 'obstacleAhead' }, J_())] : [];
+  const step = withJump ? ifx({ cond: 'pathClear' }, F_()) : F_();
+  const turn: CondExpr = { cond: 'pathBlocked' };
+  const m = (body: Block[]): Program => ({ main: [call()], macro: [...body, call()] });
+  return [
+    m([...jump, ifx(turn, R_()), step]),
+    m([...jump, ifx(turn, L_()), step]),
+    m([...jump, ifx(turn, L_()), ifx(turn, R_(), R_()), step]),
+  ];
+}
+
+function bestOf(level: LevelDef, programs: Program[]): number {
+  let best = Infinity;
+  for (const p of programs) if (runProgram(level, p).outcome === 'success') best = Math.min(best, countProgram(p));
+  return best;
+}
+
+/** Zähler-Level: ein Korridor mit Sackgasse – nur wer zählt, biegt richtig ab */
+function counterGrid(r: Rng, diff: number) {
+  // passt aufs Handy: max. 7 × 6 Felder
+  const a = int(r, 3, 4);
+  const decoy = int(r, 1, 2);
+  const b = int(r, 2, 3 + Math.round(diff * 2));
+  const c = r() < 0.5 ? int(r, 1, 6 - a) : 0;
+  const width = Math.max(a + decoy + 1, a + c + 1);
+  const h = b + 1;
+  const g = Array.from({ length: h }, () => Array.from({ length: width }, () => '#'));
+  for (let x = 0; x < a + decoy + 1; x++) g[0][x] = '.';
+  for (let y = 1; y <= b; y++) g[y][a] = '.';
+  let goal = { x: a, y: b };
+  if (c) {
+    for (let x = a + 1; x <= a + c; x++) g[b][x] = '.';
+    goal = { x: a + c, y: b };
+    // Sackgasse unten nach links verhindert pures Wandfolgen
+  }
+  g[0][0] = 'S';
+  g[goal.y][goal.x] = 'G';
+  return { grid: g.map((row) => row.join('')), a, b, c };
+}
+
+function genTeen(n: number, r: Rng): LevelDef | null {
+  const diff = difficulty(n, 10);
+  const kind = n % 4;
+  const base = { id: `teen-${n}`, group: 'teen' as const, title: '' };
+
+  if (kind === 2) {
+    // Zähler + Kreuzung (ohne Wiederhole-Block!)
+    const { grid, a, b, c } = counterGrid(r, diff);
+    const palette: PaletteKind[] = ['forward', 'turnLeft', 'turnRight', 'while', 'if', 'setVar', 'decVar'];
+    const level: LevelDef = { ...base, grid, startDir: 'right', palette, maxBlocks: 0, parBlocks: 0 };
+    const counter: Program = {
+      main: [
+        { id: bid(), type: 'setVar', value: a },
+        whx({ cond: 'varPositive' }, F_(), { id: bid(), type: 'decVar' }),
+        R_(),
+        ...(c ? [whx(NOT_GOAL, ifx(BLOCKED, L_()), F_())] : [whx(NOT_GOAL, F_())]),
+      ],
+      macro: [],
+    };
+    const explicit: Program = { main: [...Array.from({ length: a }, F_), R_(), ...Array.from({ length: b }, F_), ...(c ? [L_(), ...Array.from({ length: c }, F_)] : [])], macro: [] };
+    if (runProgram(level, counter).outcome !== 'success' || runProgram(level, explicit).outcome !== 'success') return null;
+    const par = Math.min(countProgram(counter), countProgram(explicit), bestOf(level, whileFollowers(false)));
+    return { ...level, parBlocks: par, maxBlocks: Math.min(countProgram(explicit), par + 3) };
+  }
+
+  const withJump = kind === 1 || (kind === 3 && n % 8 === 3);
+  const c = carveCorridor(r, {
+    maxW: 7,
+    maxH: 7,
+    segments: int(r, 3, 4 + Math.round(diff * 3)),
+    segMin: 2,
+    segMax: 3 + Math.round(diff * 2),
+    jumpChance: withJump ? 0.3 : 0,
+  });
+  if (!c) return null;
+  const grid = corridorGrid(c, { laser: kind === 0 || (withJump && n % 3 === 0), keyGate: kind === 3 && n % 5 === 0 }, r);
+  if (kind === 0 && !grid.join('').includes('L')) return null;
+  const palette: PaletteKind[] = ['forward', 'turnLeft', 'turnRight', ...(withJump ? (['jump'] as PaletteKind[]) : []), 'repeat', 'while', 'if'];
+  const level: LevelDef = { ...base, grid, startDir: c.startDir, palette, maxBlocks: 0, parBlocks: 0 };
+  const explicit = heroExplicit(c.steps, c.startDir);
+  if (runProgram(level, explicit).outcome !== 'success') return null;
+  const par = Math.min(countProgram(explicit), bestOf(level, whileFollowers(withJump)));
+  return { ...level, parBlocks: par, maxBlocks: Math.min(24, countProgram(explicit) + 2) };
+}
+
+// ═════════ Stufe 5: Erwachsene (Quantum-Lab) ═════════
+
+/** Zwei-Bot-Rätsel: zwei Mini-Labore, ein Programm. Breitensuche findet die Bestlösung. */
+function genTwin(n: number, r: Rng, diff: number): LevelDef | null {
+  const w = int(r, 4, 5);
+  const h = 3;
+  const half = () => {
+    const g = Array.from({ length: h }, () => Array.from({ length: w }, () => (r() < 0.22 + diff * 0.1 ? '#' : '.')));
+    return g;
+  };
+  const top = half();
+  const bot = half();
+  const place = (g: string[][], a: string, b: string) => {
+    const cells: { x: number; y: number }[] = [];
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) cells.push({ x, y });
+    const p = cells.splice(int(r, 0, cells.length - 1), 1)[0];
+    const q = cells[int(r, 0, cells.length - 1)];
+    if (Math.abs(p.x - q.x) + Math.abs(p.y - q.y) < 3) return false;
+    g[p.y][p.x] = a;
+    g[q.y][q.x] = b;
+    return true;
+  };
+  if (!place(top, 'S', 'G') || !place(bot, 'T', 'H')) return null;
+  const grid = [...top.map((row) => row.join('')), '#'.repeat(w), ...bot.map((row) => row.join(''))];
+  const level: LevelDef = { id: `adult-${n}`, group: 'adult', title: '', grid, startDir: 'right', palette: [...ARROWS, 'repeat', 'call'], maxBlocks: 0, parBlocks: 0 };
+  // Breitensuche über beide Bot-Positionen
+  const map = parseMap(level);
+  const s0 = initialState(level, map);
+  const k = (a: { x: number; y: number }, b: { x: number; y: number }) => `${a.x},${a.y}|${b.x},${b.y}`;
+  let frontier = [{ a: s0.pos, b: s0.pos2!, path: [] as Dir[] }];
+  const seen = new Set([k(s0.pos, s0.pos2!)]);
+  let path: Dir[] | null = null;
+  for (let d = 0; d < 16 && !path && frontier.length; d++) {
+    const next: typeof frontier = [];
+    for (const st of frontier) {
+      for (const dir of DIRS) {
+        const m = twinMove(map, s0, st.a, st.b, dir);
+        if (!m.moved) continue;
+        const p2 = [...st.path, dir];
+        if (m.a.x === map.goal.x && m.a.y === map.goal.y && m.b.x === map.goal2!.x && m.b.y === map.goal2!.y) {
+          path = p2;
+          break;
+        }
+        const key = k(m.a, m.b);
+        if (!seen.has(key)) {
+          seen.add(key);
+          next.push({ a: m.a, b: m.b, path: p2 });
+        }
+      }
+      if (path) break;
+    }
+    frontier = next;
+  }
+  if (!path || path.length < 5 + Math.round(diff * 3) || path.length > 14) return null;
+  // gleiche Richtungen hintereinander → Schleife
+  const main: Block[] = [];
+  for (let i = 0; i < path.length; ) {
+    let j = i;
+    while (j < path.length && path[j] === path[i]) j++;
+    main.push(j - i >= 2 ? rep(j - i, [mv(path[i])]) : mv(path[i]));
+    i = j;
+  }
+  const sol: Program = { main, macro: [] };
+  if (runProgram(level, sol).outcome !== 'success') return null;
+  const par = countProgram(sol);
+  return { ...level, parBlocks: par, maxBlocks: par + 1 };
+}
+
+function genAdult(n: number, r: Rng): LevelDef | null {
+  const diff = difficulty(n, 10);
+  const kind = n % 3;
+  if (kind === 0) return genTwin(n, r, diff);
+
+  if (kind === 2) {
+    // Register + Rekursion: F1 = WENN n > 0 { vor; n−1; F1 }
+    const { grid, a, b, c } = counterGrid(r, diff);
+    const call = (): Block => ({ id: bid(), type: 'call' });
+    const set = (v: number): Block => ({ id: bid(), type: 'setVar', value: v });
+    const level: LevelDef = { id: `adult-${n}`, group: 'adult', title: '', grid, startDir: 'right', palette: ['forward', 'turnLeft', 'turnRight', 'if', 'call', 'setVar', 'decVar'], maxBlocks: 0, parBlocks: 0 };
+    const sol: Program = {
+      main: [set(a), call(), R_(), set(b), call(), ...(c ? [L_(), set(c), call()] : [])],
+      macro: [ifx({ cond: 'varPositive' }, F_(), { id: bid(), type: 'decVar' }, call())],
+    };
+    if (runProgram(level, sol).outcome !== 'success') return null;
+    const par = Math.min(countProgram(sol), bestOf(level, recursiveFollowers(false)));
+    return { ...level, parBlocks: par, maxBlocks: par + 1 };
+  }
+
+  // Rekursiver Wandfolger durch einen Korridor (mit Sprüngen)
+  const withJump = n % 2 === 1;
+  const c = carveCorridor(r, {
+    maxW: 7,
+    maxH: 7,
+    segments: int(r, 3, 4 + Math.round(diff * 3)),
+    segMin: 2,
+    segMax: 3 + Math.round(diff * 2),
+    jumpChance: withJump ? 0.25 : 0,
+  });
+  if (!c) return null;
+  const grid = corridorGrid(c, { laser: n % 4 === 1 }, r);
+  const palette: PaletteKind[] = ['forward', 'turnLeft', 'turnRight', ...(withJump ? (['jump'] as PaletteKind[]) : []), 'if', 'call'];
+  const level: LevelDef = { id: `adult-${n}`, group: 'adult', title: '', grid, startDir: c.startDir, palette, maxBlocks: 0, parBlocks: 0 };
+  const par = bestOf(level, recursiveFollowers(withJump));
+  if (!Number.isFinite(par)) return null;
+  // Knappes Limit: nur die rekursive Lösung passt
+  return { ...level, parBlocks: par, maxBlocks: par + 1 };
+}
+
+const GENERATORS: Record<AgeGroupId, (n: number, r: Rng) => LevelDef | null> = { mini: genMini, junior: genJunior, hero: genHero, teen: genTeen, adult: genAdult };
 
 const cache = new Map<string, LevelDef>();
 

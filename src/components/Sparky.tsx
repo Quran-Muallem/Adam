@@ -273,6 +273,49 @@ function Hat({ costume, uid }: { costume: CostumeId; uid: string }) {
           <circle cx="70" cy="15" r="4" fill="#22d3ee" />
         </g>
       );
+    case 'drone':
+      return (
+        <g>
+          {/* schwebende Mini-Drohne + Neon-Visier */}
+          <g className="animate-float">
+            <rect x="58" y="2" width="28" height="10" rx="5" fill="#334155" stroke="#0f172a" strokeWidth="2" />
+            <circle cx="72" cy="7" r="3" fill="#f0abfc" />
+            <path d="M58 6 L46 2 M86 6 L98 2" stroke="#0f172a" strokeWidth="2.5" strokeLinecap="round" />
+            <ellipse cx="44" cy="1" rx="9" ry="2.2" fill="#22d3ee" fillOpacity="0.7" />
+            <ellipse cx="100" cy="1" rx="9" ry="2.2" fill="#22d3ee" fillOpacity="0.7" />
+            <path d="M72 12 L72 22" stroke="#f0abfc" strokeWidth="2" strokeDasharray="2 2" />
+          </g>
+          <path d="M56 52 L100 52 L98 62 L58 62 Z" fill="#c026d3" fillOpacity="0.55" stroke="#f0abfc" strokeWidth="2" strokeLinejoin="round" />
+          <path d="M62 56 L94 56" stroke="#22d3ee" strokeWidth="2" strokeLinecap="round" />
+        </g>
+      );
+    case 'holofox':
+      return (
+        <g opacity="0.95">
+          {/* holografische Fuchsohren + Scanlinien */}
+          <path d="M48 42 L44 10 L66 34 Z" fill="#22d3ee" fillOpacity="0.35" stroke="#67e8f9" strokeWidth="2" strokeLinejoin="round" />
+          <path d="M78 34 L96 8 L94 42 Z" fill="#22d3ee" fillOpacity="0.35" stroke="#67e8f9" strokeWidth="2" strokeLinejoin="round" />
+          <path d="M50 34 L48 18 L58 30 Z M84 32 L93 18 L92 34 Z" fill="#f0abfc" fillOpacity="0.6" />
+          {[52, 60, 68, 76, 84].map((y) => (
+            <line key={y} x1="30" y1={y} x2="98" y2={y} stroke="#a5f3fc" strokeWidth="1" opacity="0.35" />
+          ))}
+          <path d="M18 70 Q4 58 10 44" fill="none" stroke="#67e8f9" strokeWidth="6" strokeLinecap="round" opacity="0.5" />
+        </g>
+      );
+    case 'quantum':
+      return (
+        <g>
+          {/* Atom-Orbits um den Kopf + KI-Kern */}
+          <ellipse cx="66" cy="30" rx="34" ry="9" fill="none" stroke="#5eead4" strokeWidth="2" opacity="0.85" />
+          <ellipse cx="66" cy="30" rx="34" ry="9" fill="none" stroke="#a78bfa" strokeWidth="2" opacity="0.85" transform="rotate(60 66 30)" />
+          <ellipse cx="66" cy="30" rx="34" ry="9" fill="none" stroke="#f0abfc" strokeWidth="2" opacity="0.85" transform="rotate(-60 66 30)" />
+          <circle cx="66" cy="30" r="6" fill="#ecfeff" stroke="#14b8a6" strokeWidth="2" />
+          <circle cx="100" cy="30" r="3" fill="#5eead4" className="animate-twinkle" />
+          <circle cx="49" cy="0" r="2.5" fill="#a78bfa" className="animate-twinkle" />
+          <rect x="56" y="78" width="24" height="12" rx="3" fill="#0f172a" fillOpacity="0.7" stroke="#5eead4" strokeWidth="1.5" />
+          <text x="68" y="87.5" textAnchor="middle" fontSize="8" fontFamily="monospace" fill="#5eead4">AI</text>
+        </g>
+      );
     default:
       return null;
   }

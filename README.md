@@ -1,16 +1,29 @@
 # 🐉 Sparkys Code-Abenteuer
 
-Eine extrem bunte, verspielte Lern-App im Animationsfilm-Stil, die Kindern von **4 bis 12 Jahren** Programmieren beibringt. Begleiter ist **Sparky**, ein kleiner runder Weltraum-Drache mit großen Kulleraugen, der hüpft, staunt, wackelt und bei Hindernissen ein lustiges „Boing“-Gesicht macht.
+Eine extrem bunte, verspielte Lern-App im Animationsfilm-Stil, die der **ganzen Familie** Programmieren beibringt – von **4 Jahren bis zu Erwachsenen**, optimiert für die kurze S-Bahn-Fahrt. Begleiter ist **Sparky**, ein kleiner runder Weltraum-Drache mit großen Kulleraugen, der hüpft, staunt, wackelt und bei Hindernissen ein lustiges „Boing“-Gesicht macht.
 
 **Tech:** React 18 · TypeScript · Tailwind CSS · Lucide-Icons · Vite · Web Audio API (keine Sound-Dateien) · Capacitor (Android)
 
-## 3 Welten · 60 handgefertigte Level + ∞
+## 5 Welten · 80 handgefertigte Level + ∞
 
 | Welt | Alter | Level 1–20 |
 |---|---|---|
 | 🌳 **Zauberwald der Glühwürmchen** – Mini-Entdecker | 4–5 | Ohne Lesen: Steuerkreuz mit großen Buttons (≥ 68 px). 1–5 gerade Wege, 6–12 Kurven & Zauberbeeren 🫐, 13–20 Mini-Labyrinthe mit schlafenden Bären 🐻 und Pfützen. |
 | 🏴‍☠️ **Kristall-Lagune der Piraten** – Junior-Coder | 6–8 | Sparky-Sprechblasen. 1–6 Wiederholen-Container (2×–6×), 7–13 Springen über Fässer & Kristalle 💎, 14–20 Schlüssel 🗝️ + magische Tore 🚪 + Kombinationen. |
 | 🚀 **Sternen-Akademie der Roboter** – Code-Helden | 9–12 | 1–6 verschachtelte Schleifen & Effizienz, 7–13 Bedingungen („Wenn Weg frei / versperrt / Hindernis voraus“), 14–20 Zauber-Makro F1 & Teleporter-Rätsel 🌀. |
+| 🌆 **Neon-Metropole** – Cyber-Pioniere | 13–17 | Cyberpunk-Look + Synthwave. 10 Level: Solange-Schleifen (`while`), Variablen/Zähler (`n = 6`, `n − 1`), Logik-Gatter **NICHT / UND / ODER**, Laser-Schranken 🟥 & Schalter ⏻ (State Machine), verschachtelte Schleifen. |
+| ⚛️ **Quantum-Lab** – Code-Architekten | 18+ | Dark-Glassmorphism + Lo-Fi. 10 Level: **Rekursion** (F1 ruft sich selbst, Stack Overflow ohne Basisfall), **Zwei-Bot-Synchronisation** (ein Programm, zwei Bots), Speicher-Register, knappe Block-Limits. |
+
+## S-Bahn-Modus 🚆
+
+- **🚆 S-Bahn-Express (3-Min-Rätsel):** Startbildschirm → ein Tages-Rätsel pro Altersstufe (jeden Tag neu, auf allen Geräten gleich), zählt als Bonus-Sterne.
+- **Einhändig:** Palette, Los, Reset und **Rückgängig** sitzen unten in der Daumen-Zone; viele Befehle → zweireihige Palette.
+- **Auto-Pause & Offline:** Jeder Block wird sofort gespeichert (`sparky:draft:<level>`), der letzte Bildschirm ebenfalls – beim nächsten Öffnen geht es exakt dort weiter.
+- **Stumm-Visualisierung:** Jeder Sound hat ein sichtbares Echo (Screen-Shake, Partikel-Blitze, Laser-Flash) plus `navigator.vibrate` (abschaltbar in den Einstellungen).
+
+## Profi-Code-Brücke (ab 13)
+
+Code-Ansicht in **Python, TypeScript und JavaScript** (inkl. `while`, `not/and/or`, `global n`, rekursives `f1()`), Live-Analyse („Rekursion · 4 Blöcke → 12 Aktionen · Code-Größe O(1)“) und 8 Profi-Karten mit echtem Code aus der Praxis – u. a. Game-Loop, State Machine, `Promise.all`, Fibonacci mit Registern, Big-O und rekursives SQL (`WITH RECURSIVE`). Erfolgs- und Fehlermeldungen im sachlich-witzigen Ton (z. B. „Stack Overflow: Deine Rekursion hat keinen Basisfall.“). Neue Avatare: Cyber-Drohne 🛸, Hologramm-Fuchs 🦊, Quantum-KI ⚛️ + Farben Neon & Hologramm.
 
 ## Endlos-Level, Belohnungen & Musik (Candy-Crush-Prinzip) 🍬
 

@@ -28,6 +28,8 @@ export interface BridgeTexts {
     /** Untertitel der Filme (Mini-Entdecker kommt ohne Text aus) */
     junior: string[];
     hero: string[];
+    teen: string[];
+    adult: string[];
   };
   code: { toggle: string; comment: string; empty: string };
   cards: {
@@ -77,7 +79,35 @@ export interface MoreTexts {
   skins: Record<SkinId, string>;
 }
 
-export interface Dict extends BridgeTexts, MoreTexts {
+/** Texte für Teenager & Erwachsene, S-Bahn-Modus und Logik-Gatter */
+export interface ProTexts {
+  pro: {
+    not: string;
+    and: string;
+    or: string;
+    roundN: (n: number) => string;
+    undo: string;
+    resumed: string;
+    vibration: string;
+    codeToggle: string;
+    expressButton: string;
+    expressSub: string;
+    expressDone: string;
+    expressLevel: string;
+    expressTitle: string;
+    /** Erfolgsmeldungen im Profi-Ton */
+    win: string[];
+    /** Fehlermeldungen im Profi-Ton */
+    fail: Record<FailReason, string>;
+    /** „4 Blöcke statt 12 Einzelbefehle“ */
+    efficiency: (blocks: number, actions: number) => string;
+    /** Live-Analyse unter dem Code */
+    insight: (blocks: number, actions: number, pattern: string) => string;
+    patterns: Record<'recursion' | 'parallel' | 'register' | 'whileLoop' | 'loop' | 'sequence', string>;
+  };
+}
+
+export interface Dict extends BridgeTexts, MoreTexts, ProTexts {
   /** Name der Sprache in der Sprache selbst */
   langName: string;
   titleTop: string;

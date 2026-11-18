@@ -56,7 +56,7 @@ export function MoviePlayer({ group, sound, costume, onClose }: Props) {
 
   const scene = sceneAt(movie, time);
   const ended = time >= MOVIE_SECONDS;
-  const captions = group === 'junior' ? t.movie.junior : group === 'hero' ? t.movie.hero : [];
+  const captions = group === 'mini' ? [] : t.movie[group];
   const bubble = scene.caption !== null ? captions[scene.caption] : scene.emoji;
 
   return (
@@ -132,9 +132,9 @@ function Stage({ scene, group, costume, bubble }: { scene: Scene; group: AgeGrou
   const { t } = useI18n();
   const rows = movie.grid.length;
   const cols = movie.grid[0].length;
-  const isHero = group === 'hero';
-  // Bühnen-Aufteilung (in % der Höhe): Helden brauchen Platz fürs Code-Fenster
-  const L = isHero
+  const hasCode = !!movie.codeProgram;
+  // Bühnen-Aufteilung (in % der Höhe): Code-Welten brauchen Platz fürs Code-Fenster
+  const L = hasCode
     ? { board: [3, 24], mod: 29, prog: [46, 15], pal: [84, 9] }
     : { board: [3, 33], mod: 39, prog: [56, 16], pal: [80, 10] };
 
@@ -151,7 +151,19 @@ function Stage({ scene, group, costume, bubble }: { scene: Scene; group: AgeGrou
               [...row].map((ch, x) => {
                 const k = `${x},${y}`;
                 const emoji =
-                  ch === '#' ? world.wall : ch === 'o' ? world.low : ch === 'G' ? world.goal : ch === '*' && !scene.collected.includes(k) ? world.bonus : '';
+                  ch === '#'
+                    ? world.wall
+                    : ch === 'o'
+                      ? world.low
+                      : ch === 'G'
+                        ? world.goal
+                        : ch === '*' && !scene.collected.includes(k)
+                          ? world.bonus
+                          : ch === 'X'
+                            ? scene.lasersOn ? '🔴' : '🟢'
+                            : ch === 'L'
+                              ? scene.lasersOn ? '🟥' : '⬛'
+                              : '';
                 return (
                   <div
                     key={k}
@@ -199,7 +211,7 @@ function Stage({ scene, group, costume, bubble }: { scene: Scene; group: AgeGrou
       )}
 
       {/* Programm */}
-      <div style={{ top: `${L.prog[0]}%`, height: `${L.prog[1]}%` }} className="glass absolute left-[4%] right-[4%] flex flex-col items-center justify-center gap-1 overflow-hidden rounded-2xl p-1.5">
+      <div style={{ top: `${L.prog[0]}%`, height: `${L.prog[1]}%` }} className={`glass absolute left-[4%] right-[4%] flex flex-col items-center justify-center gap-1 overflow-hidden rounded-2xl p-1.5 ${group === 'adult' ? 'pe-12' : ''}`}>
         <div className="flex flex-wrap items-center justify-center gap-1">
           {scene.program.length === 0 ? (
             <span className="text-2xl text-slate-300">⋯</span>
@@ -217,11 +229,21 @@ function Stage({ scene, group, costume, bubble }: { scene: Scene; group: AgeGrou
         )}
       </div>
 
-      {/* Code-Röntgenblick (Helden) */}
-      {isHero && (
+      {/* Stack-Anzeige (Rekursion) */}
+      {scene.stack > 0 && (
+        <div className="absolute right-[5%] z-10 flex flex-col-reverse items-center gap-[2px]" style={{ top: `${L.prog[0] - 1}%`, height: `${L.prog[1]}%` }}>
+          <span className="text-[min(2.4vw,10px)] font-bold text-teal-200">stack</span>
+          {Array.from({ length: scene.stack }, (_, i) => (
+            <span key={i} className="block h-[7%] w-8 animate-pop rounded-sm border border-teal-200/80 bg-teal-400/70" />
+          ))}
+        </div>
+      )}
+
+      {/* Code-Röntgenblick (Helden, Teenager, Erwachsene) */}
+      {hasCode && (
         <div className="absolute left-[4%] right-[4%] top-[63%] h-[20%]">
           {scene.showCode ? (
-            <MiniCode active={scene.active} comment={t.code.comment} />
+            <MiniCode group={group} active={scene.active} comment={t.code.comment} />
           ) : (
             <div className="flex h-full items-center justify-center">
               <span
@@ -302,6 +324,7 @@ function ChipView({ chip, active, group }: { chip: Chip; active: string | null; 
           {chip.count !== undefined && <span className="rounded bg-white px-1 text-orange-600 [text-shadow:none]">{chip.count}×</span>}
           {chip.cond && (
             <span className="rounded bg-white px-1 text-cyan-700 [text-shadow:none]">
+              {chip.not ? `${t.pro.not} ` : ''}
               {COND_EMOJI[chip.cond]} {t.conds[chip.cond]}
             </span>
           )}
@@ -320,8 +343,12 @@ function ChipView({ chip, active, group }: { chip: Chip; active: string | null; 
 
 const CODE_COLORS: Record<TokenKind, string> = { kw: '#f472b6', fn: '#67e8f9', num: '#fdba74', punc: '#cbd5e1', cm: '#94a3b8', var: '#fde68a', plain: '#e2e8f0' };
 
-function MiniCode({ active, comment }: { active: string | null; comment: string }) {
-  const lines = useMemo(() => generateCode(MOVIES.hero.codeProgram!, 'js', comment).filter((l, i) => i > 0 && l.tokens.length > 0), [comment]);
+function MiniCode({ group, active, comment }: { group: AgeGroupId; active: string | null; comment: string }) {
+  const movie = MOVIES[group];
+  const lines = useMemo(
+    () => generateCode(movie.codeProgram!, movie.codeLang ?? 'js', comment).filter((l, i) => i > 0 && l.tokens.length > 0),
+    [comment, movie],
+  );
   return (
     <div className="h-full animate-bounce-in overflow-hidden rounded-2xl p-2" style={{ background: 'linear-gradient(180deg,#1e1b4b,#0f172a)' }}>
       <pre className="text-[min(2.6vw,11px)] leading-[1.45]" style={{ fontFamily: 'ui-monospace, Menlo, Consolas, monospace' }}>

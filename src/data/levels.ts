@@ -1,10 +1,12 @@
 // ─────────────────────────────────────────────────────────────
-// ALLE 60 LEVEL im kompakten Grid-String-Format (20 pro Stufe)
+// ALLE 80 LEVEL im kompakten Grid-String-Format
+// (20 pro Stufe 1–3, je 10 für Teenager & Erwachsene – danach übernimmt der Generator)
 //
 // Legende:
 //   S Start · G Ziel · . frei · # hohes Hindernis (nicht überspringbar)
 //   o niedriges Hindernis (überspringbar) · B schlafender Bär · P Pfütze
 //   * Bonus (Beere/Kristall) · K Schlüssel · D magisches Tor · 1/2/3 Teleporter-Paare
+//   L Laser-Schranke · X Schalter (Laser an/aus) · T/H Start/Ziel des zweiten Bots
 //
 // Kompakte Schreibweise:  L(id, titel, grid, startDir, palette, maxBlocks, parBlocks, hint?)
 // Jedes Level hat in tests/levels.test.ts eine geprüfte Lösung.
@@ -19,6 +21,19 @@ const H_LOOP: PaletteKind[] = ['forward', 'turnLeft', 'turnRight', 'repeat'];
 const H_IF: PaletteKind[] = [...H_LOOP, 'if'];
 const H_JUMP_IF: PaletteKind[] = ['forward', 'turnLeft', 'turnRight', 'jump', 'repeat', 'if'];
 const H_ALL: PaletteKind[] = [...H_JUMP_IF, 'call'];
+// Teenager
+const TURN: PaletteKind[] = ['forward', 'turnLeft', 'turnRight'];
+const T_WHILE: PaletteKind[] = [...TURN, 'while'];
+const T_LOGIC: PaletteKind[] = [...TURN, 'while', 'if'];
+const T_VAR: PaletteKind[] = [...TURN, 'while', 'setVar', 'decVar'];
+const T_NEST: PaletteKind[] = [...TURN, 'repeat', 'while', 'if'];
+const T_JUMP: PaletteKind[] = [...TURN, 'jump', 'while', 'if'];
+const T_ALL: PaletteKind[] = [...TURN, 'jump', 'repeat', 'while', 'if', 'setVar', 'decVar'];
+// Erwachsene
+const A_REC: PaletteKind[] = [...TURN, 'if', 'call'];
+const A_REC_J: PaletteKind[] = [...TURN, 'jump', 'if', 'call'];
+const A_TWIN: PaletteKind[] = [...ARROWS, 'repeat', 'call'];
+const A_REG: PaletteKind[] = [...TURN, 'if', 'call', 'setVar', 'decVar'];
 
 function L(
   group: AgeGroupId,
@@ -155,25 +170,85 @@ const HERO: LevelDef[] = [
     'Das Finale! Springen, Portal, Drehen – ein cleveres Programm schafft alles.'),
 ];
 
-export const LEVELS: LevelDef[] = [...MINI, ...JUNIOR, ...HERO];
+// ═════════ Stufe 4: Cyber-Pioniere (13–17) · Neon-Metropole ═════════
+const TEEN: LevelDef[] = [
+  L('teen', 1, 'while (!amZiel)', ['#######', 'S.....G', '#######'], 'right', T_WHILE, 3, 2,
+    'Neuer Block: SOLANGE. Läuft, bis die Bedingung falsch ist. Zwei Blöcke reichen hier.'),
+  L('teen', 2, 'Sensor an', ['S...#', '###.#', 'G...#'], 'right', T_LOGIC, 6, 4,
+    'Schleife + Sensor = Autopilot. Dreh dich nur, wenn der Weg versperrt ist.'),
+  L('teen', 3, 'Laser-Schalter', ['..X..', 'S.L.G'], 'right', T_WHILE, 12, 10,
+    'Der Schalter ⏻ kippt ALLE Laser. Erst Strom aus, dann durch.'),
+  L('teen', 4, 'Zähler-Kreuzung', ['S.......', '######.#', '######.#', '######G#'], 'right', T_VAR, 8, 7,
+    'Ein Zähler weiß, wann Schluss ist: n = 6, dann SOLANGE n > 0 { vor; n−1 }.'),
+  L('teen', 5, 'NICHT-Gatter', ['S..L', '##.#', 'G..#'], 'right', T_LOGIC, 6, 4,
+    '„Versperrt“ ignoriert Laser. Aber NICHT „frei“ erwischt beides. Logik!'),
+  L('teen', 6, 'Schleife in Schleife', ['S..####', '##.####', '##...##', '####.##', '####...', '######.', '######G'], 'right', T_NEST, 9, 7,
+    'Verschachtelte Schleifen: Ein Treppenschritt ist selbst eine Schleife.'),
+  L('teen', 7, 'Sprung-Sensor', ['###########', 'S.o.X.L.o.G', '###########'], 'right', T_JUMP, 5, 4,
+    'WENN Hindernis → springen. Sonst vorwärts. Den Rest erledigt die Schleife.'),
+  L('teen', 8, 'ODER-Gatter', ['S.o..L', '####.#', '####o#', '####.#', 'G....#'], 'right', T_JUMP, 8, 6,
+    'Versperrt ODER Laser → abbiegen. Ein Gatter, zwei Gefahren.'),
+  L('teen', 9, 'Doppel-Schalter', ['###########', 'S.X.L.X.L.G', '###########'], 'right', T_ALL, 7, 5,
+    'Jeder Schalter KIPPT den Zustand. Zweimal kippen = wieder an. Spring drüber!'),
+  L('teen', 10, 'Neon-Finale', ['S........', '###X#####', '###.#####', '###o#####', '###.#####', '###.L...G'], 'right', T_ALL, 13, 11,
+    'Zähler, Sensoren, Schalter: alles, was du gelernt hast, in einem Programm.'),
+];
+
+// ═════════ Stufe 5: Code-Architekten (18+) · Quantum-Lab ═════════
+const ADULT: LevelDef[] = [
+  L('adult', 1, 'Rekursion', ['#########', 'S.......G', '#########'], 'right', A_REC, 5, 4,
+    'F1 darf sich selbst aufrufen: WENN frei { vor; F1 }. Basisfall inklusive.'),
+  L('adult', 2, 'Zwei Bots, ein Programm', ['S..G#', '#####', 'T...H'], 'right', A_TWIN, 3, 2,
+    'Beide Bots führen jeden Befehl gleichzeitig aus. Ein blockierter Bot wartet einfach.'),
+  L('adult', 3, 'Rekursive Spirale', ['S....', '####.', '..G#.', '.###.', '.....'], 'right', A_REC, 6, 5,
+    'Wand-Folger als Rekursion. Keine Schleife in Sicht – und trotzdem endlos.'),
+  L('adult', 4, 'Rekursive Treppe', ['S.####', '#..###', '##..##', '###..#', '####.G'], 'right', A_REC, 7, 6,
+    'Ein Schritt, dann derselbe Plan nochmal. Tail Recursion in Reinform.'),
+  L('adult', 5, 'Synchron-Labyrinth', ['S...#', '.##.#', '...G#', '#####', 'T....', '.###.', 'H....'], 'right', A_TWIN, 8, 7,
+    'Wände sind deine Synchronisations-Punkte. Nutze sie, um einen Bot warten zu lassen.'),
+  L('adult', 6, 'Speicher-Register', ['S.......', '######.#', '######.#', '######G#'], 'right', A_REG, 9, 9,
+    'Kein SOLANGE, nur Rekursion + Register n. Knappes Limit – jeder Block zählt.'),
+  L('adult', 7, 'Rekursion mit Sprung', ['##############', 'S.o.o..o.o...G', '##############'], 'right', A_REC_J, 7, 6,
+    'Zwei Fälle, ein rekursiver Aufruf. So sieht ein sauberer Parser aus.'),
+  L('adult', 8, 'Phasenversatz', ['S.#G', '..#.', '#...', '####', 'T...', '.##.', '...H'], 'right', A_TWIN, 8, 7,
+    'Wiederkehrende Muster erkennen und komprimieren. Big-O lässt grüßen.'),
+  L('adult', 9, 'Parallel-Ausführung', ['S..#..', '.#...#', '...#.G', '######', 'T.#...', '...#..', '.#...H'], 'right', A_TWIN, 7, 7,
+    'Kein Block zu viel: das Limit ist exakt die optimale Lösung.'),
+  L('adult', 10, 'Quantum-Finale', ['S.o.X', '####.', '..G#L', 'o###o', '.....'], 'right', A_REC_J, 9, 8,
+    'Springen, Abbiegen, Laufen – rekursiv, bis der Basisfall (das Ziel) erreicht ist.'),
+];
+
+export const LEVELS: LevelDef[] = [...MINI, ...JUNIOR, ...HERO, ...TEEN, ...ADULT];
 
 /** Handgefertigte Level pro Welt – danach übernimmt der Generator (∞) */
-export const HANDCRAFTED = 20;
+export const HANDCRAFTED_COUNT: Record<AgeGroupId, number> = { mini: 20, junior: 20, hero: 20, teen: 10, adult: 10 };
+export const handcrafted = (group: AgeGroupId) => HANDCRAFTED_COUNT[group];
 
 /** Nur die handgefertigten Level einer Welt */
 export const levelsFor = (group: AgeGroupId) => LEVELS.filter((l) => l.group === group);
 
 /** Level n (1-basiert) einer Welt – handgefertigt oder prozedural erzeugt */
 export function levelAt(group: AgeGroupId, n: number): LevelDef {
-  return n <= HANDCRAFTED ? levelsFor(group)[n - 1] : generateLevel(group, n);
+  return n <= handcrafted(group) ? levelsFor(group)[n - 1] : generateLevel(group, n);
 }
 
 export const levelNumber = (id: string) => Number(id.split('-')[1]);
+
+// ── S-Bahn-Express: ein Tages-Rätsel pro Altersstufe ──
+export const EXPRESS_BASE = 100000;
+export const isExpress = (id: string) => levelNumber(id) >= EXPRESS_BASE;
+/** Tag seit 1970 (lokale Zeit) – jeden Tag ein neues Rätsel, auf allen Geräten gleich */
+export function dayIndex(d = new Date()) {
+  return Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000);
+}
+export const expressId = (group: AgeGroupId, d = new Date()) => `${group}-${EXPRESS_BASE + dayIndex(d)}`;
+/** Datum eines Tages-Rätsels */
+export const expressDate = (id: string) => new Date((levelNumber(id) - EXPRESS_BASE) * 86400000);
 export const levelGroup = (id: string) => id.split('-')[0] as AgeGroupId;
 
 export function getLevel(id: string): LevelDef | undefined {
   const g = levelGroup(id);
   const n = levelNumber(id);
-  if (!['mini', 'junior', 'hero'].includes(g) || !(n >= 1)) return undefined;
+  if (!['mini', 'junior', 'hero', 'teen', 'adult'].includes(g) || !(n >= 1)) return undefined;
   return levelAt(g, n);
 }

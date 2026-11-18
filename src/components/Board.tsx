@@ -78,6 +78,37 @@ export function Board({ level, world, frame, frameIndex, stepMs, mood, costume }
         )}
       </div>
 
+      {/* Register-Anzeige (Variable n) */}
+      {level.palette.includes('setVar') && (
+        <div
+          key={`n${state.n}`}
+          className="pointer-events-none absolute -top-3 start-3 z-20 animate-pop rounded-full border border-indigo-300/60 bg-indigo-950/90 px-2.5 py-0.5 font-mono text-sm font-bold text-indigo-100 shadow-lg"
+          dir="ltr"
+        >
+          n = {state.n}
+        </div>
+      )}
+
+      {/* Zweiter Bot (Zwei-Bot-Synchronisation) */}
+      {state.pos2 && (
+        <div
+          className="pointer-events-none absolute z-10"
+          style={{
+            width: `${100 / cols}%`,
+            height: `${100 / rows}%`,
+            left: `${(state.pos2.x / cols) * 100}%`,
+            top: `${(state.pos2.y / rows) * 100}%`,
+            transition: `left ${moveMs}ms cubic-bezier(.45,.05,.35,1.25), top ${moveMs}ms cubic-bezier(.45,.05,.35,1.25)`,
+            filter: 'hue-rotate(150deg) saturate(1.3) drop-shadow(0 0 6px rgba(94,234,212,.8))',
+            opacity: 0.92,
+          }}
+        >
+          <div className="h-full w-full scale-100">
+            <Sparky mood={mood} dir={state.dir} costume="none" />
+          </div>
+        </div>
+      )}
+
       {/* Sparky */}
       <div
         className="pointer-events-none absolute z-10"
@@ -158,6 +189,39 @@ function TileContent({ tile, world, state, k }: { tile: string; world: WorldConf
       );
     case 'G':
       return <span className="animate-float drop-shadow-[0_0_12px_rgba(255,255,255,.95)]">{world.goal}</span>;
+    case 'H':
+      return (
+        <span className="relative animate-float drop-shadow-[0_0_12px_rgba(94,234,212,.95)]">
+          {world.goal2 ?? '🔷'}
+          <span className="absolute -bottom-[15%] -right-[25%] rounded-full bg-teal-400 px-[0.3em] text-[38%] font-black text-slate-900">2</span>
+        </span>
+      );
+    case 'T':
+      return <span className="absolute inset-[18%] rounded-full border-[3px] border-dashed border-teal-300/80" />;
+    case 'L':
+      return state.lasersOn ? (
+        <span className="relative flex h-full w-full items-center justify-center">
+          <span className="absolute inset-y-[8%] w-[22%] animate-pulse rounded-full bg-red-500" style={{ boxShadow: '0 0 10px 4px rgba(239,68,68,.85), 0 0 22px 8px rgba(244,63,94,.45)' }} />
+          <span className="absolute inset-y-[8%] w-[8%] rounded-full bg-white/90" />
+        </span>
+      ) : (
+        <span className="h-[70%] w-[22%] rounded-full border-2 border-dashed border-red-400/40" />
+      );
+    case 'X':
+      return (
+        <span
+          className="flex h-[66%] w-[66%] items-center justify-center rounded-full border-[3px] font-black"
+          style={{
+            borderColor: state.lasersOn ? '#f87171' : '#4ade80',
+            background: state.lasersOn ? 'radial-gradient(circle,#7f1d1d,#450a0a)' : 'radial-gradient(circle,#14532d,#052e16)',
+            boxShadow: state.lasersOn ? '0 0 10px rgba(248,113,113,.8)' : '0 0 10px rgba(74,222,128,.8)',
+            color: state.lasersOn ? '#fecaca' : '#bbf7d0',
+            fontSize: '45%',
+          }}
+        >
+          ⏻
+        </span>
+      );
     case 'S':
       return <span className="absolute inset-[18%] rounded-full border-[3px] border-dashed border-white/70" />;
     default:

@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────
-// Die drei Themenwelten (eine pro Altersstufe):
+// Die fünf Themenwelten (eine pro Altersstufe):
 // Design, Spielfeld-Grafik, Partikel und UI-Komplexität
 // (Namen & Texte der Welten stehen in den Sprachpaketen unter src/i18n)
 // ─────────────────────────────────────────────────────────────
@@ -27,7 +27,7 @@ export interface WorldConfig {
   /** Akzentfarbe für Buttons */
   accent: string;
   /** Partikel-Art im Hintergrund */
-  particles: 'fireflies' | 'bubbles' | 'stars';
+  particles: 'fireflies' | 'bubbles' | 'stars' | 'neon' | 'quantum';
   /** Dekoration auf der Level-Karte */
   decor: string[];
   /** Pfadfarbe auf der Level-Karte */
@@ -36,6 +36,12 @@ export interface WorldConfig {
   text: string;
   /** Mindestgröße der Touch-Buttons */
   buttonSize: number;
+  /** Teen/Erwachsene: sachlicher Ton, TypeScript in der Code-Brücke, Glas-Design */
+  pro?: boolean;
+  /** Laser-Schranke / Schalter / Ziel des zweiten Bots */
+  laser?: string;
+  switchOn?: string;
+  goal2?: string;
 }
 
 export const WORLDS: Record<AgeGroupId, WorldConfig> = {
@@ -105,6 +111,61 @@ export const WORLDS: Record<AgeGroupId, WorldConfig> = {
     text: 'text-white',
     buttonSize: 60,
   },
+  teen: {
+    id: 'teen',
+    emoji: '🌆',
+    showText: true,
+    goal: '💾',
+    bonus: '🔋',
+    wall: '🏢',
+    low: '🚧',
+    key: '🔑',
+    gate: '🔒',
+    bg: 'from-slate-950 via-fuchsia-950 to-cyan-900',
+    tileA: '#1e1b4b',
+    tileB: '#172554',
+    wallTile: '#020617',
+    frame: '#22d3ee',
+    accent: '#f0abfc',
+    particles: 'neon',
+    decor: ['🌃', '🛸', '📡', '🏙️', '🤖', '⚡', '🕹️', '🌐'],
+    path: '#22d3ee',
+    text: 'text-white',
+    buttonSize: 56,
+    pro: true,
+    laser: '🟥',
+    switchOn: '🔘',
+    goal2: '📀',
+  },
+  adult: {
+    id: 'adult',
+    emoji: '⚛️',
+    showText: true,
+    goal: '💠',
+    bonus: '✨',
+    wall: '🧊',
+    low: '🔹',
+    key: '🗝️',
+    gate: '🔐',
+    bg: 'from-zinc-950 via-slate-900 to-teal-950',
+    tileA: '#1e293b',
+    tileB: '#172133',
+    wallTile: '#020617',
+    frame: '#5eead4',
+    accent: '#2dd4bf',
+    particles: 'quantum',
+    decor: ['⚛️', '🧬', '🔬', '🧪', '💡', '♾️', '🧠', '🌀'],
+    path: '#5eead4',
+    text: 'text-white',
+    buttonSize: 54,
+    pro: true,
+    laser: '🟥',
+    switchOn: '🔘',
+    goal2: '🔷',
+  },
 };
 
-export const WORLD_ORDER: AgeGroupId[] = ['mini', 'junior', 'hero'];
+export const WORLD_ORDER: AgeGroupId[] = ['mini', 'junior', 'hero', 'teen', 'adult'];
+
+/** Ab hier gilt der Profi-Ton (Teenager & Erwachsene) */
+export const isPro = (g: AgeGroupId) => g === 'teen' || g === 'adult';

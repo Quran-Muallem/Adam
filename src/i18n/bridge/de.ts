@@ -23,6 +23,8 @@ export const bridgeDe: BridgeTexts = {
       'Los! Jede Zeile leuchtet, wenn ich sie ausführe.',
       'Genau so programmieren echte Profis! 🌟',
     ],
+    teen: ["Neon-Metropole. Kurzer Rundgang, dann bist du dran. 🌆", "Statt 6× „Vor“: SOLANGE nicht am Ziel → vor.", "Die Bedingung wird vor jeder Runde neu geprüft.", "Laser 🟥 blockieren. Der Schalter kippt ihren Zustand.", "Zustand an → aus. Das ist eine State Machine.", "So sieht das als Python aus:", "Zwei Blöcke statt sechs. Sauber. 😎"],
+    adult: ["Quantum-Lab. Kurz und präzise:", "F1 ruft sich selbst auf → Rekursion.", "Basisfall: Ist der Weg nicht frei, endet der Aufruf.", "Jeder Aufruf landet auf dem Stack. Ohne Basisfall: Stack Overflow.", "Dasselbe als TypeScript:", "Ausführung – Aufruf für Aufruf.", "4 Blöcke für 7 Schritte. Konstanter Code, beliebig lange Wege. ✓"],
   },
   code: { toggle: '👀 Echter Code (Python / JS)', comment: 'Sparkys Programm', empty: 'Lege Blöcke hin – hier erscheint dein Code!' },
   cards: {
@@ -46,6 +48,14 @@ export const bridgeDe: BridgeTexts = {
       sensor: { name: 'Sensoren', what: 'Das Programm „schaut“ nach vorne und entscheidet.', real: ['Damit steuern Ingenieure echte Mars-Rover um Felsen herum!', 'Saugroboter merken so, wo eine Treppe ist.'] },
       function: { name: 'Funktionen', what: 'Befehle einmal speichern und immer wieder aufrufen.', real: ['Der „Springen“-Knopf in jedem Spiel ruft eine Funktion auf.', 'Foto-Apps benutzen denselben Filter für tausende Bilder.'] },
       teleport: { name: 'Sprünge & Netzwerke', what: 'Direkt an einen anderen Ort springen.', real: ['Ein Link im Internet bringt dich sofort auf eine andere Seite.', 'In Spielen bringen Portale Figuren in neue Welten.'] },
+      whileLoop: { name: "While-Schleife", what: "Wiederholen, solange eine Bedingung gilt – ohne vorher zu wissen, wie oft.", real: ["Jedes Videospiel läuft in einer Game-Loop: Eingabe, Update, Zeichnen – 60× pro Sekunde.", "Server warten in einer Schleife auf neue Anfragen."] },
+      variables: { name: "Variablen & Zähler", what: "Ein benannter Speicherplatz, dessen Wert sich ändert.", real: ["Leben, Punkte, Munition: alles Variablen im Spielcode.", "Dein Akkustand ist eine Variable im Betriebssystem."] },
+      logic: { name: "Logik-Gatter", what: "UND, ODER, NICHT verknüpfen Bedingungen zu Entscheidungen.", real: ["Zugriffsrechte: eingeloggt UND (Admin ODER Besitzer).", "Prozessoren bestehen aus Milliarden winziger Logik-Gatter."] },
+      stateMachine: { name: "State Machine", what: "Ein System mit Zuständen, die durch Ereignisse wechseln.", real: ["Ampeln, Aufzüge und Getränkeautomaten sind State Machines.", "Spielfiguren wechseln so zwischen Laufen, Springen und Fallen."] },
+      recursion: { name: "Rekursion", what: "Eine Funktion ruft sich selbst auf – bis ein Basisfall erreicht ist.", real: ["Dateisysteme durchsuchen: Ordner in Ordnern in Ordnern.", "SQL über Hierarchien (WITH RECURSIVE), z. B. Organigramme."] },
+      parallel: { name: "Parallele Ausführung", what: "Mehrere Abläufe gleichzeitig steuern und synchron halten.", real: ["Promise.all lädt mehrere Daten gleichzeitig statt nacheinander.", "Grafikkarten berechnen tausende Pixel parallel."] },
+      registers: { name: "Register & Speicher", what: "Wenige, schnelle Speicherplätze für Zwischenwerte.", real: ["CPUs rechnen in Registern – schneller als jeder Arbeitsspeicher.", "Fibonacci mit zwei Variablen: O(n) statt O(2ⁿ) mit naiver Rekursion."] },
+      bigO: { name: "Big-O & Effizienz", what: "Wie wächst der Aufwand, wenn die Eingabe wächst?", real: ["Eine 4-Block-Schleife skaliert – 12 Einzelbefehle nicht.", "Suchmaschinen brauchen O(log n), sonst würdest du ewig warten."] },
     },
   },
 };

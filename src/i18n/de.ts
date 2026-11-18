@@ -1,12 +1,14 @@
 import { LEVELS } from '../data/levels';
 import { bridgeDe } from './bridge/de';
 import { moreDe } from './more/de';
+import { proDe } from './pro/de';
 import type { Dict } from './types';
 
 // Deutsch ist die Ausgangssprache: Level-Titel & Tipps kommen direkt aus levels.ts
 export const de: Dict = {
   ...bridgeDe,
   ...moreDe,
+  ...proDe,
   langName: 'Deutsch',
   titleTop: 'Sparkys',
   titleBottom: 'Code-Abenteuer',
@@ -42,6 +44,8 @@ export const de: Dict = {
       wallName: 'den Asteroiden',
       lowName: 'die Kiste',
     },
+    teen: { name: "Cyber-Pioniere", ages: "13–17 Jahre", world: "Neon-Metropole", tagline: "Variablen, Solange-Schleifen, Logik-Gatter & Laser", wallName: "den Wolkenkratzer", lowName: "die Absperrung" },
+    adult: { name: "Code-Architekten", ages: "18+ / Erwachsene", world: "Quantum-Lab", tagline: "Rekursion, Parallel-Bots, Register & knappe Limits", wallName: "den Quantenblock", lowName: "den Kristall" },
   },
   ui: {
     back: 'Zurück',
@@ -87,8 +91,11 @@ export const de: Dict = {
     repeat: { label: 'Wiederhole', short: 'Schleife' },
     if: { label: 'Wenn', short: 'Wenn' },
     call: { label: 'Zauber F1', short: 'F1' },
+    while: { label: "Solange", short: "Solange" },
+    setVar: { label: "Variable n =", short: "n =" },
+    decVar: { label: "n − 1", short: "n − 1" },
   },
-  conds: { pathClear: 'Weg frei', pathBlocked: 'Weg versperrt', obstacleAhead: 'Hindernis voraus' },
+  conds: { pathClear: 'Weg frei', pathBlocked: 'Weg versperrt', obstacleAhead: 'Hindernis voraus', laserAhead: "Laser voraus", atGoal: "am Ziel", varPositive: "n > 0" },
   result: {
     map: 'Karte',
     retry: 'Nochmal',
@@ -112,6 +119,9 @@ export const de: Dict = {
     cape: 'Superhelden-Umhang',
     ninja: 'Ninja-Sparky',
     cyber: 'Cyber-Rüstung',
+    drone: "Cyber-Drohne",
+    holofox: "Hologramm-Fuchs",
+    quantum: "Quantum-KI",
   },
   fail: {
     wall: ['Boing! Gegen {wall} geknuddelt! Versuch es nochmal!', 'Aua, meine Nase! Da geht’s nicht weiter. Noch ein Versuch?'],
@@ -124,6 +134,8 @@ export const de: Dict = {
     notReached: ['Fast! Ich bin noch nicht am Ziel. Füge noch ein paar Blöcke hinzu.', 'Guter Anfang! Aber der Weg ist noch nicht zu Ende.'],
     tooLong: ['Puh, mir ist ganz schwindelig! Dein Programm läuft viel zu lange.'],
     empty: ['Ich warte auf Befehle! Lege zuerst ein paar Blöcke hin.'],
+    laser: ["Zzzt! Ein Laser 🟥 blockiert. Erst auf den Schalter ⏻ treten!"],
+    overflow: ["Stack Overflow! F1 ruft sich endlos selbst auf – es fehlt ein Basisfall."],
   },
   win: ['Juhuu! Du bist ein Coding-Star! 🌟', 'Wow, das war genial programmiert!', 'Sparky tanzt vor Freude!', 'Grandios! Weiter so!', 'Volltreffer! Du bist der Hammer!'],
   start: ['Los geht’s!', 'Auf ins Abenteuer!', 'Ich bin bereit!', 'Wuuusch!'],

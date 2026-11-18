@@ -21,6 +21,8 @@ export const moreEn: MoreTexts = {
         'Tip: “If path blocked → turn” inside a loop solves many mazes.',
         'Crates in the way? “If obstacle ahead → Jump”!',
       ],
+      teen: ["New sector. Analyze first, then build.", "Laser in the way? The switch always comes before it.", "WHILE + sensor replaces lots of single commands."],
+      adult: ["Tight limit. Only the elegant solution fits.", "Two bots? Walls are your sync points.", "Think recursively: what’s the base case?"],
     },
   },
   map: {
@@ -62,5 +64,5 @@ export const moreEn: MoreTexts = {
     streakBonus: '+1 streak bonus',
     sticker: 'Random sticker',
   },
-  skins: { violet: 'Purple (classic)', mint: 'Mint', sunset: 'Sunset', ocean: 'Ocean', gold: 'Gold', rainbow: 'Rainbow dragon' },
+  skins: { violet: 'Purple (classic)', mint: 'Mint', sunset: 'Sunset', ocean: 'Ocean', gold: 'Gold', rainbow: 'Rainbow dragon', neon: "Neon", holo: "Hologram" },
 };

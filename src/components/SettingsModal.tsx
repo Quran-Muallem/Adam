@@ -1,5 +1,5 @@
 // Einstellungen: Musik, Sound-Effekte und Spielgeschwindigkeit (alles gespeichert)
-import { Music, Settings, Volume2, Zap } from 'lucide-react';
+import { Music, Settings, Smartphone, Volume2, Zap } from 'lucide-react';
 import type { CSSProperties, ReactNode } from 'react';
 import type { Speed } from '../hooks/useProgramRunner';
 import type { SoundApi } from '../hooks/useSoundEffects';
@@ -38,6 +38,16 @@ export function SettingsModal({ sound, speed, setSpeed, onClose }: Props) {
               onChange={(v) => {
                 sound.setSfxOn(v);
                 if (v) setTimeout(() => sound.play('click'), 0);
+              }}
+              labels={[t.settings.on, t.settings.off]}
+            />
+          </Row>
+          <Row icon={<Smartphone className="h-6 w-6" />} color="#8b5cf6" label={`📳 ${t.pro.vibration}`}>
+            <Toggle
+              on={sound.vibeOn}
+              onChange={(v) => {
+                sound.setVibeOn(v);
+                if (v) setTimeout(() => sound.play('collect'), 0);
               }}
               labels={[t.settings.on, t.settings.off]}
             />

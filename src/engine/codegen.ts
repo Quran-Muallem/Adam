@@ -3,9 +3,10 @@
 // (JavaScript oder Python) – mit Tokens fürs Syntax-Highlighting
 // und der Block-ID je Zeile, damit die laufende Zeile leuchten kann.
 // ─────────────────────────────────────────────────────────────
-import type { Block, Condition, Dir, Program } from '../types';
+import type { Block, CondExpr, Condition, Dir, Program } from '../types';
 
-export type CodeLang = 'js' | 'py';
+/** js = JavaScript, ts = TypeScript (ab Stufe 4), py = Python */
+export type CodeLang = 'js' | 'ts' | 'py';
 export type TokenKind = 'kw' | 'fn' | 'num' | 'punc' | 'cm' | 'var' | 'plain';
 export interface Token {
   text: string;
@@ -30,6 +31,9 @@ const COND: Record<Condition, { js: string; py: string }> = {
   pathClear: { js: 'pathClear', py: 'path_clear' },
   pathBlocked: { js: 'pathBlocked', py: 'path_blocked' },
   obstacleAhead: { js: 'obstacleAhead', py: 'obstacle_ahead' },
+  laserAhead: { js: 'laserAhead', py: 'laser_ahead' },
+  atGoal: { js: 'atGoal', py: 'at_goal' },
+  varPositive: { js: 'n > 0', py: 'n > 0' },
 };
 
 const SIMPLE: Partial<Record<Block['type'], { js: string; py: string }>> = {
@@ -42,60 +46,101 @@ const SIMPLE: Partial<Record<Block['type'], { js: string; py: string }>> = {
 
 const LOOP_VARS = ['i', 'j', 'k', 'n', 'm'];
 
+const usesVar = (blocks: Block[]): boolean =>
+  blocks.some(
+    (b) =>
+      b.type === 'setVar' ||
+      b.type === 'decVar' ||
+      ((b.type === 'if' || b.type === 'while') && (b.cond === 'varPositive' || b.cond2 === 'varPositive')) ||
+      ('body' in b && usesVar(b.body)),
+  );
+
 export function generateCode(program: Program, lang: CodeLang, comment: string): CodeLine[] {
   const lines: CodeLine[] = [];
-  const pad = (d: number) => tk('  '.repeat(d * (lang === 'py' ? 2 : 1)));
-  const cm = lang === 'js' ? '// ' : '# ';
+  const py = lang === 'py';
+  const L = py ? 'py' : 'js';
+  const semi = py ? [] : [tk(';', 'punc')];
+  const pad = (d: number) => tk('  '.repeat(d * (py ? 2 : 1)));
+  const cm = py ? '# ' : '// ';
 
   const call = (name: string, depth: number, blockId: string) =>
+    lines.push({ blockId, tokens: [pad(depth), tk(name, 'fn'), tk('()', 'punc'), ...semi] });
+
+  /** Ein Bedingungs-Atom: Funktion () oder Vergleich n > 0 */
+  const atom = (c: Condition): Token[] =>
+    c === 'varPositive' ? [tk('n', 'var'), tk(' > '), tk('0', 'num')] : [tk(COND[c][L], 'fn'), tk('()')];
+
+  const condTokens = (e: CondExpr): Token[] => {
+    const out: Token[] = [];
+    if (e.not) out.push(py ? tk('not ', 'kw') : tk('!', 'kw'));
+    const a = atom(e.cond);
+    if (e.not && e.cond === 'varPositive') out.push(tk('('), ...a, tk(')'));
+    else out.push(...a);
+    if (e.op && e.cond2) {
+      out.push(tk(py ? (e.op === 'and' ? ' and ' : ' or ') : e.op === 'and' ? ' && ' : ' || ', 'kw'), ...atom(e.cond2));
+    }
+    return out;
+  };
+
+  const header = (kw: string, e: CondExpr, depth: number, id: string) =>
     lines.push({
-      blockId,
-      tokens: [pad(depth), tk(name, 'fn'), tk('()', 'punc'), ...(lang === 'js' ? [tk(';', 'punc')] : [])],
+      blockId: id,
+      tokens: py
+        ? [pad(depth), tk(kw, 'kw'), tk(' '), ...condTokens(e), tk(':', 'punc')]
+        : [pad(depth), tk(kw, 'kw'), tk(' ('), ...condTokens(e), tk(') {', 'punc')],
     });
 
+  const close = (depth: number) => {
+    if (!py) lines.push({ tokens: [pad(depth), tk('}', 'punc')] });
+  };
+
   const emit = (blocks: Block[], depth: number, loopDepth: number) => {
-    if (blocks.length === 0 && lang === 'py' && depth > 0) lines.push({ tokens: [pad(depth), tk('pass', 'kw')] });
+    if (blocks.length === 0 && py && depth > 0) lines.push({ tokens: [pad(depth), tk('pass', 'kw')] });
     for (const b of blocks) {
-      if (b.type === 'move') call(MOVE[b.dir][lang], depth, b.id);
+      if (b.type === 'move') call(MOVE[b.dir][L], depth, b.id);
       else if (b.type === 'repeat') {
         const v = LOOP_VARS[loopDepth % LOOP_VARS.length];
         lines.push({
           blockId: b.id,
-          tokens:
-            lang === 'js'
-              ? [pad(depth), tk('for', 'kw'), tk(' ('), tk('let', 'kw'), tk(` ${v}`, 'var'), tk(' = '), tk('0', 'num'), tk('; '), tk(v, 'var'), tk(' < '), tk(String(b.count), 'num'), tk('; '), tk(`${v}++`, 'var'), tk(') {', 'punc')]
-              : [pad(depth), tk('for', 'kw'), tk(` ${v}`, 'var'), tk(' in '), tk('range', 'fn'), tk('('), tk(String(b.count), 'num'), tk('):', 'punc')],
+          tokens: py
+            ? [pad(depth), tk('for', 'kw'), tk(` ${v}`, 'var'), tk(' in '), tk('range', 'fn'), tk('('), tk(String(b.count), 'num'), tk('):', 'punc')]
+            : [pad(depth), tk('for', 'kw'), tk(' ('), tk('let', 'kw'), tk(` ${v}`, 'var'), ...(lang === 'ts' ? [tk(': '), tk('number', 'kw')] : []), tk(' = '), tk('0', 'num'), tk('; '), tk(v, 'var'), tk(' < '), tk(String(b.count), 'num'), tk('; '), tk(`${v}++`, 'var'), tk(') {', 'punc')],
         });
         emit(b.body, depth + 1, loopDepth + 1);
-        if (lang === 'js') lines.push({ tokens: [pad(depth), tk('}', 'punc')] });
-      } else if (b.type === 'if') {
-        const c = COND[b.cond][lang];
-        lines.push({
-          blockId: b.id,
-          tokens:
-            lang === 'js'
-              ? [pad(depth), tk('if', 'kw'), tk(' ('), tk(c, 'fn'), tk('()'), tk(') {', 'punc')]
-              : [pad(depth), tk('if', 'kw'), tk(' '), tk(c, 'fn'), tk('()'), tk(':', 'punc')],
-        });
+        close(depth);
+      } else if (b.type === 'if' || b.type === 'while') {
+        header(b.type, b, depth, b.id);
         emit(b.body, depth + 1, loopDepth);
-        if (lang === 'js') lines.push({ tokens: [pad(depth), tk('}', 'punc')] });
+        close(depth);
+      } else if (b.type === 'setVar') {
+        lines.push({ blockId: b.id, tokens: [pad(depth), tk('n', 'var'), tk(' = '), tk(String(b.value), 'num'), ...semi] });
+      } else if (b.type === 'decVar') {
+        lines.push({ blockId: b.id, tokens: [pad(depth), tk('n', 'var'), tk(' -= '), tk('1', 'num'), ...semi] });
       } else {
-        call(SIMPLE[b.type]![lang], depth, b.id);
+        call(SIMPLE[b.type]![L], depth, b.id);
       }
     }
   };
 
   lines.push({ tokens: [tk(cm + comment, 'cm')] });
 
+  if (usesVar(program.main) || usesVar(program.macro)) {
+    lines.push({
+      tokens: py
+        ? [tk('n', 'var'), tk(' = '), tk('0', 'num')]
+        : [tk('let', 'kw'), tk(' n', 'var'), ...(lang === 'ts' ? [tk(': '), tk('number', 'kw')] : []), tk(' = '), tk('0', 'num'), tk(';', 'punc')],
+    });
+  }
+
   if (program.macro.length > 0) {
     lines.push({
-      tokens:
-        lang === 'js'
-          ? [tk('function', 'kw'), tk(' '), tk('f1', 'fn'), tk('() {', 'punc')]
-          : [tk('def', 'kw'), tk(' '), tk('f1', 'fn'), tk('():', 'punc')],
+      tokens: py
+        ? [tk('def', 'kw'), tk(' '), tk('f1', 'fn'), tk('():', 'punc')]
+        : [tk('function', 'kw'), tk(' '), tk('f1', 'fn'), tk('()'), ...(lang === 'ts' ? [tk(': '), tk('void', 'kw')] : []), tk(' {', 'punc')],
     });
+    if (py && usesVar(program.macro)) lines.push({ tokens: [pad(1), tk('global', 'kw'), tk(' n', 'var')] });
     emit(program.macro, 1, 0);
-    if (lang === 'js') lines.push({ tokens: [tk('}', 'punc')] });
+    close(0);
     lines.push({ tokens: [] });
   }
 

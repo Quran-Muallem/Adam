@@ -21,6 +21,8 @@ export const moreEs: MoreTexts = {
         'Pista: «Si camino bloqueado → girar» dentro de un bucle resuelve muchos laberintos.',
         '¿Cajas en el camino? ¡«Si obstáculo delante → Saltar»!',
       ],
+      teen: ["Nuevo sector. Primero analiza, luego construye.", "¿Un láser? El interruptor siempre está antes.", "MIENTRAS + sensor sustituye muchas órdenes."],
+      adult: ["Límite ajustado. Solo cabe la solución elegante.", "¿Dos bots? Las paredes son tus puntos de sincronía.", "Piensa en recursivo: ¿cuál es el caso base?"],
     },
   },
   map: {
@@ -62,5 +64,5 @@ export const moreEs: MoreTexts = {
     streakBonus: '+1 bonus de racha',
     sticker: 'Pegatina sorpresa',
   },
-  skins: { violet: 'Morado (clásico)', mint: 'Menta', sunset: 'Atardecer', ocean: 'Océano', gold: 'Oro', rainbow: 'Dragón arcoíris' },
+  skins: { violet: 'Morado (clásico)', mint: 'Menta', sunset: 'Atardecer', ocean: 'Océano', gold: 'Oro', rainbow: 'Dragón arcoíris', neon: "Neón", holo: "Holograma" },
 };

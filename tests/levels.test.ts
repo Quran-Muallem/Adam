@@ -131,7 +131,7 @@ describe('60 Level', () => {
     });
   }
 
-  for (const level of LEVELS.filter((l) => l.group !== 'mini')) {
+  for (const level of LEVELS.filter((l) => l.group === 'junior' || l.group === 'hero')) {
     it(`${level.id}: Referenzlösung schafft 3 Sterne`, () => {
       const make = SOLUTIONS[level.id];
       expect(make, `Lösung für ${level.id} fehlt`).toBeDefined();

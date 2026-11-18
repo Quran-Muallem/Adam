@@ -1,10 +1,12 @@
 import { bridgeEs } from './bridge/es';
 import { moreEs } from './more/es';
+import { proEs } from './pro/es';
 import type { Dict } from './types';
 
 export const es: Dict = {
   ...bridgeEs,
   ...moreEs,
+  ...proEs,
   langName: 'Español',
   titleTop: 'La aventura de código',
   titleBottom: 'de Sparky',
@@ -40,6 +42,8 @@ export const es: Dict = {
       wallName: 'el asteroide',
       lowName: 'la caja',
     },
+    teen: { name: "Ciberpioneros", ages: "13–17 años", world: "Metrópolis Neón", tagline: "Variables, bucles «mientras», puertas lógicas y láseres", wallName: "el rascacielos", lowName: "la barrera" },
+    adult: { name: "Arquitectos del código", ages: "18+ / Adultos", world: "Laboratorio Cuántico", tagline: "Recursión, bots en paralelo, registros y límites ajustados", wallName: "el bloque cuántico", lowName: "el cristal" },
   },
   ui: {
     back: 'Atrás',
@@ -85,8 +89,11 @@ export const es: Dict = {
     repeat: { label: 'Repetir', short: 'Bucle' },
     if: { label: 'Si', short: 'Si' },
     call: { label: 'Hechizo F1', short: 'F1' },
+    while: { label: "Mientras", short: "Mientras" },
+    setVar: { label: "Variable n =", short: "n =" },
+    decVar: { label: "n − 1", short: "n − 1" },
   },
-  conds: { pathClear: 'camino libre', pathBlocked: 'camino bloqueado', obstacleAhead: 'obstáculo delante' },
+  conds: { pathClear: 'camino libre', pathBlocked: 'camino bloqueado', obstacleAhead: 'obstáculo delante', laserAhead: "láser delante", atGoal: "en la meta", varPositive: "n > 0" },
   result: {
     map: 'Mapa',
     retry: 'Otra vez',
@@ -110,6 +117,9 @@ export const es: Dict = {
     cape: 'Capa de superhéroe',
     ninja: 'Sparky ninja',
     cyber: 'Armadura cíber',
+    drone: "Ciberdrón",
+    holofox: "Zorro holograma",
+    quantum: "IA cuántica",
   },
   fail: {
     wall: ['¡Boing! ¡Abracé {wall}! ¡Inténtalo otra vez!', '¡Ay, mi nariz! Por ahí no se puede. ¿Otro intento?'],
@@ -122,6 +132,8 @@ export const es: Dict = {
     notReached: ['¡Casi! Aún no he llegado a la meta. Añade unos bloques más.', '¡Buen comienzo! Pero el camino no ha terminado.'],
     tooLong: ['¡Uf, qué mareo! Tu programa dura demasiado.'],
     empty: ['¡Espero tus órdenes! Pon primero unos bloques.'],
+    laser: ["¡Zzzt! Un láser 🟥 bloquea el paso. ¡Pisa primero el interruptor ⏻!"],
+    overflow: ["¡Desbordamiento de pila! F1 se llama a sí misma sin fin: falta un caso base."],
   },
   win: ['¡Bien! ¡Eres una estrella del código! 🌟', '¡Guau, qué programa tan genial!', '¡Sparky baila de alegría!', '¡Increíble! ¡Sigue así!', '¡Diana! ¡Eres lo máximo!'],
   start: ['¡Vamos allá!', '¡A la aventura!', '¡Estoy listo!', '¡Fiuuu!'],
@@ -186,5 +198,25 @@ export const es: Dict = {
     'hero-18': { t: 'Portal a la vuelta', h: '¡Combina una condición y un portal!' },
     'hero-19': { t: 'Cadena de portales', h: 'Tres tramos iguales, dos portales. ¿Macro o bucle?' },
     'hero-20': { t: 'El diploma estelar', h: '¡La final! Saltar, portal, girar: un programa listo lo hace todo.' },
+    "teen-1": { t: "while (!enMeta)", h: "Nuevo bloque: MIENTRAS. Se repite hasta que la condición sea falsa. Bastan dos bloques." },
+    "teen-2": { t: "Sensor activado", h: "Bucle + sensor = piloto automático. Gira solo si el camino está bloqueado." },
+    "teen-3": { t: "Interruptor láser", h: "El interruptor ⏻ cambia TODOS los láseres. Primero apagar, luego pasar." },
+    "teen-4": { t: "Cruce del contador", h: "Un contador sabe cuándo parar: n = 6, luego MIENTRAS n > 0 { avanzar; n−1 }." },
+    "teen-5": { t: "Puerta NO", h: "«Bloqueado» ignora los láseres. Pero NO «libre» detecta ambos. ¡Lógica!" },
+    "teen-6": { t: "Bucle en un bucle", h: "Bucles anidados: un escalón es en sí mismo un bucle." },
+    "teen-7": { t: "Sensor de salto", h: "SI obstáculo → saltar. Si no, avanzar. El bucle hace el resto." },
+    "teen-8": { t: "Puerta O", h: "Bloqueado O láser → girar. Una puerta, dos peligros." },
+    "teen-9": { t: "Doble interruptor", h: "Cada interruptor CAMBIA el estado. Dos veces = encendido otra vez. ¡Sáltalo!" },
+    "teen-10": { t: "Final neón", h: "Contadores, sensores, interruptores: todo lo aprendido en un programa." },
+    "adult-1": { t: "Recursión", h: "F1 puede llamarse a sí misma: SI libre { avanzar; F1 }. Caso base incluido." },
+    "adult-2": { t: "Dos bots, un programa", h: "Ambos bots ejecutan cada orden a la vez. Un bot bloqueado simplemente espera." },
+    "adult-3": { t: "Espiral recursiva", h: "Seguir la pared con recursión. Ningún bucle a la vista, y aun así infinito." },
+    "adult-4": { t: "Escalera recursiva", h: "Un paso y luego el mismo plan otra vez. Recursión de cola en estado puro." },
+    "adult-5": { t: "Laberinto sincronizado", h: "Las paredes son tus puntos de sincronía. Úsalas para que un bot espere." },
+    "adult-6": { t: "Registro de memoria", h: "Sin MIENTRAS, solo recursión + registro n. Límite ajustado: cada bloque cuenta." },
+    "adult-7": { t: "Recursión con saltos", h: "Dos casos, una llamada recursiva. Así es un parser limpio." },
+    "adult-8": { t: "Desfase", h: "Detecta patrones repetidos y comprímelos. Big-O te saluda." },
+    "adult-9": { t: "Ejecución en paralelo", h: "Ni un bloque de más: el límite es exactamente la solución óptima." },
+    "adult-10": { t: "Final cuántico", h: "Saltar, girar, avanzar, de forma recursiva hasta el caso base (la meta)." },
   },
 };

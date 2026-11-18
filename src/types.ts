@@ -4,8 +4,8 @@
 
 export type Dir = 'up' | 'down' | 'left' | 'right';
 
-/** Die drei Altersstufen / Themenwelten */
-export type AgeGroupId = 'mini' | 'junior' | 'hero';
+/** Die fünf Altersstufen / Themenwelten */
+export type AgeGroupId = 'mini' | 'junior' | 'hero' | 'teen' | 'adult';
 
 /**
  * Block-Arten, die in einer Palette angeboten werden können.
@@ -14,7 +14,9 @@ export type AgeGroupId = 'mini' | 'junior' | 'hero';
  * - forward/turnLeft/turnRight: relative Bewegung (Stufe 3)
  * - repeat: Schleifen-Container
  * - if: Bedingungs-Container (Stufe 3)
- * - call: ruft das Zauber-Makro F1 auf (Stufe 3)
+ * - call: ruft das Zauber-Makro F1 auf (Stufe 3; ab Stufe 5 auch rekursiv)
+ * - while: Solange-Schleife (Stufe 4+)
+ * - setVar / decVar: Variable n setzen bzw. um 1 verringern (Stufe 4+)
  */
 export type PaletteKind =
   | 'up'
@@ -27,10 +29,26 @@ export type PaletteKind =
   | 'turnRight'
   | 'repeat'
   | 'if'
-  | 'call';
+  | 'call'
+  | 'while'
+  | 'setVar'
+  | 'decVar';
 
-/** Bedingungen: frei / versperrt (Wand, Rand, Hindernis, Tor) / niedriges Hindernis voraus */
-export type Condition = 'pathClear' | 'pathBlocked' | 'obstacleAhead';
+/**
+ * Bedingungen:
+ * - pathClear: Feld voraus betretbar · pathBlocked: Wand/Rand/Hindernis/Tor voraus
+ * - obstacleAhead: niedriges Hindernis voraus · laserAhead: aktive Laser-Schranke voraus
+ * - atGoal: steht auf dem Ziel · varPositive: Variable n > 0
+ */
+export type Condition = 'pathClear' | 'pathBlocked' | 'obstacleAhead' | 'laserAhead' | 'atGoal' | 'varPositive';
+
+/** Zusammengesetzte Bedingung mit Logik-Gattern: [NICHT] a [UND|ODER b] */
+export interface CondExpr {
+  cond: Condition;
+  not?: boolean;
+  op?: 'and' | 'or';
+  cond2?: Condition;
+}
 
 export type Block =
   | { id: string; type: 'move'; dir: Dir }
@@ -39,7 +57,10 @@ export type Block =
   | { id: string; type: 'turnLeft' }
   | { id: string; type: 'turnRight' }
   | { id: string; type: 'repeat'; count: number; body: Block[] }
-  | { id: string; type: 'if'; cond: Condition; body: Block[] }
+  | ({ id: string; type: 'if'; body: Block[] } & CondExpr)
+  | ({ id: string; type: 'while'; body: Block[] } & CondExpr)
+  | { id: string; type: 'setVar'; value: number }
+  | { id: string; type: 'decVar' }
   | { id: string; type: 'call' };
 
 export type ContainerBlock = Extract<Block, { body: Block[] }>;
@@ -70,6 +91,9 @@ export interface InsertTarget {
  *   * = Bonus (Beere / Kristall / Stern)
  *   K = Schlüssel        D = magisches Tor (öffnet sich mit Schlüssel)
  *   1, 2, 3 = Teleporter-Paare (jede Ziffer kommt genau zweimal vor)
+ *   L = Laser-Schranke (blockiert, solange die Laser an sind)
+ *   X = Schalter (schaltet beim Betreten alle Laser um)
+ *   T = Start Bot 2   H = Ziel Bot 2  (Zwei-Bot-Synchronisation)
  */
 export interface LevelDef {
   id: string;
@@ -99,6 +123,12 @@ export interface WorldState {
   collected: string[];
   /** "x,y" der geöffneten Tore */
   openGates: string[];
+  /** Laser-Schranken aktiv? */
+  lasersOn: boolean;
+  /** Variable n (Register) */
+  n: number;
+  /** Zweiter Bot (nur bei Zwei-Bot-Leveln) */
+  pos2?: Pos;
 }
 
 export type FailReason =
@@ -109,6 +139,8 @@ export type FailReason =
   | 'edge'
   | 'locked'
   | 'tooHigh'
+  | 'laser'
+  | 'overflow'
   | 'notReached'
   | 'tooLong'
   | 'empty';
@@ -127,7 +159,8 @@ export type SoundName =
   | 'fail'
   | 'remove'
   | 'unlock'
-  | 'tick';
+  | 'tick'
+  | 'zap';
 
 /** Ein Animations-Frame der vorab berechneten Ausführung */
 export interface Frame {

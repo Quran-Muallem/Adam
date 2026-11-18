@@ -37,6 +37,19 @@ export function ExplorerCard({ card, t, isNew, compact }: Props) {
             <div className="text-sm font-semibold leading-snug text-slate-600">{c.what}</div>
           </div>
         </div>
+        {card.code && (
+          <div dir="ltr" className="mt-2 overflow-hidden rounded-2xl" style={{ background: 'linear-gradient(180deg,#1e1b4b,#0f172a)' }}>
+            <div className="flex items-center gap-1.5 border-b border-white/10 px-2.5 py-1">
+              <span className="h-2 w-2 rounded-full bg-rose-400" />
+              <span className="h-2 w-2 rounded-full bg-amber-300" />
+              <span className="h-2 w-2 rounded-full bg-emerald-400" />
+              <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-teal-200">{card.code.lang}</span>
+            </div>
+            <pre className="thin-scroll overflow-x-auto px-2.5 py-1.5 text-[11.5px] leading-[1.5] text-slate-100" style={{ fontFamily: 'ui-monospace, Menlo, Consolas, monospace' }}>
+              {card.code.src}
+            </pre>
+          </div>
+        )}
         <div className="mt-2 rounded-2xl bg-slate-50 p-2">
           <div className="mb-1 text-xs font-bold text-slate-500">🚀 {t.cards.realWorld}</div>
           {c.real.map((r, i) => (

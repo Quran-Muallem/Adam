@@ -26,12 +26,18 @@ export function createBlock(kind: PaletteKind): Block {
       return { id, type: 'repeat', count: 2, body: [] };
     case 'if':
       return { id, type: 'if', cond: 'pathBlocked', body: [] };
+    case 'while':
+      return { id, type: 'while', cond: 'atGoal', not: true, body: [] };
+    case 'setVar':
+      return { id, type: 'setVar', value: 3 };
+    case 'decVar':
+      return { id, type: 'decVar' };
     case 'call':
       return { id, type: 'call' };
   }
 }
 
-export const isContainer = (b: Block): b is Extract<Block, { body: Block[] }> => b.type === 'repeat' || b.type === 'if';
+export const isContainer = (b: Block): b is Extract<Block, { body: Block[] }> => b.type === 'repeat' || b.type === 'if' || b.type === 'while';
 
 /** Zählt alle Blöcke (inkl. verschachtelter Blöcke und Makro-Definition) */
 export function countBlocks(blocks: Block[]): number {

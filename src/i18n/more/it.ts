@@ -21,6 +21,8 @@ export const moreIt: MoreTexts = {
         'Consiglio: «Se strada bloccata → gira» dentro un ciclo risolve molti labirinti.',
         'Casse sulla strada? «Se ostacolo davanti → Salta»!',
       ],
+      teen: ["Nuovo settore. Prima analizza, poi costruisci.", "Un laser? L’interruttore è sempre prima.", "FINCHÉ + sensore sostituisce tanti comandi singoli."],
+      adult: ["Limite stretto. Passa solo la soluzione elegante.", "Due bot? I muri sono i tuoi punti di sincronia.", "Pensa in modo ricorsivo: qual è il caso base?"],
     },
   },
   map: {
@@ -62,5 +64,5 @@ export const moreIt: MoreTexts = {
     streakBonus: '+1 bonus serie',
     sticker: 'Adesivo a sorpresa',
   },
-  skins: { violet: 'Viola (classico)', mint: 'Menta', sunset: 'Tramonto', ocean: 'Oceano', gold: 'Oro', rainbow: 'Drago arcobaleno' },
+  skins: { violet: 'Viola (classico)', mint: 'Menta', sunset: 'Tramonto', ocean: 'Oceano', gold: 'Oro', rainbow: 'Drago arcobaleno', neon: "Neon", holo: "Ologramma" },
 };

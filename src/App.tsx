@@ -12,11 +12,13 @@ import { SettingsModal } from './components/SettingsModal';
 import { SparkyLook } from './components/Sparky';
 import { Trophies } from './components/Trophies';
 import { Wardrobe } from './components/Wardrobe';
-import { getLevel, levelGroup } from './data/levels';
+import { getLevel, isExpress, levelGroup } from './data/levels';
 import type { Speed } from './hooks/useProgramRunner';
 import { useProgress } from './hooks/useProgress';
 import { useSoundEffects } from './hooks/useSoundEffects';
+import { WORLD_ORDER } from './data/worlds';
 import type { AgeGroupId } from './types';
+import { FxLayer } from './components/FxLayer';
 
 type Screen =
   | { name: 'home' }
@@ -27,11 +29,34 @@ type Screen =
   | { name: 'game'; levelId: string };
 
 const SPEED_KEY = 'sparky:speed';
+const SCREEN_KEY = 'sparky:screen';
+
+/** Auto-Pause: beim nächsten Öffnen geht es genau dort weiter (Karte oder Level) */
+function loadScreen(): Screen {
+  try {
+    const raw = localStorage.getItem(SCREEN_KEY);
+    if (raw) {
+      const s = JSON.parse(raw) as Screen;
+      if (s.name === 'game' && getLevel(s.levelId)) return s;
+      if (s.name === 'map' && WORLD_ORDER.includes(s.group)) return s;
+    }
+  } catch {
+    /* ignorieren */
+  }
+  return { name: 'home' };
+}
 
 export default function App() {
   const sound = useSoundEffects();
   const prog = useProgress();
-  const [screen, setScreen] = useState<Screen>({ name: 'home' });
+  const [screen, setScreen] = useState<Screen>(loadScreen);
+  useEffect(() => {
+    try {
+      localStorage.setItem(SCREEN_KEY, JSON.stringify(screen.name === 'map' || screen.name === 'game' ? screen : { name: 'home' }));
+    } catch {
+      /* ignorieren */
+    }
+  }, [screen]);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [speed, setSpeedState] = useState<Speed>(() => {
     try {
@@ -69,6 +94,7 @@ export default function App() {
           sound={sound}
           prog={prog}
           onPick={(group) => setScreen({ name: 'map', group })}
+          onExpress={(levelId) => setScreen({ name: 'game', levelId })}
           onWardrobe={() => setScreen({ name: 'wardrobe' })}
           onAlbum={() => setScreen({ name: 'album' })}
           onTrophies={() => setScreen({ name: 'trophies' })}
@@ -118,7 +144,7 @@ export default function App() {
           sound={sound}
           speed={speed}
           prog={prog}
-          onBack={() => setScreen({ name: 'map', group: level.group })}
+          onBack={() => setScreen(isExpress(level.id) ? { name: 'home' } : { name: 'map', group: level.group })}
           onOpenLevel={(levelId) => setScreen({ name: 'game', levelId })}
           onSettings={openSettings}
         />
@@ -130,6 +156,7 @@ export default function App() {
   return (
     <SparkyLook.Provider value={{ costume: prog.costume, skin: prog.skin }}>
       {view}
+      <FxLayer />
       {settingsOpen && <SettingsModal sound={sound} speed={speed} setSpeed={setSpeed} onClose={() => setSettingsOpen(false)} />}
     </SparkyLook.Provider>
   );

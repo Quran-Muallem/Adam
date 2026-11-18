@@ -4,11 +4,13 @@
 // Frames dann nur noch ab – dadurch gibt es keine Race-Conditions
 // zwischen Spiel-Logik und Animation.
 // ─────────────────────────────────────────────────────────────
-import type { Block, Condition, Dir, FailReason, Frame, LevelDef, Program, RunResult, SoundName, WorldState } from '../types';
-import { add, initialState, isBlocked, LOW_OBSTACLES, parseMap, posKey, tileAt, TURN_LEFT, TURN_RIGHT } from './world';
+import type { Block, CondExpr, Condition, Dir, FailReason, Frame, LevelDef, Program, RunResult, SoundName, WorldState } from '../types';
+import { add, initialState, isBlocked, isWallLike, LOW_OBSTACLES, parseMap, posKey, tileAt, TURN_LEFT, TURN_RIGHT, twinMove } from './world';
 
 /** Sicherheitsnetz gegen extrem lange Programme */
-const MAX_ACTIONS = 600;
+const MAX_ACTIONS = 900;
+/** Maximale Verschachtelungs-/Rekursionstiefe */
+const MAX_DEPTH = 160;
 
 class Halt {
   constructor(
@@ -17,7 +19,7 @@ class Halt {
   ) {}
 }
 
-const BLOCK_REASON: Record<string, FailReason> = { '#': 'wall', o: 'obstacle', B: 'bear', P: 'puddle', D: 'locked' };
+const BLOCK_REASON: Record<string, FailReason> = { '#': 'wall', o: 'obstacle', B: 'bear', P: 'puddle', D: 'locked', L: 'laser' };
 
 export function runProgram(level: LevelDef, program: Program): RunResult {
   const map = parseMap(level);
@@ -61,6 +63,10 @@ export function runProgram(level: LevelDef, program: Program): RunResult {
       state = { ...state, openGates: [...state.openGates, k] };
       sound = 'gate';
     }
+    if (t === 'X') {
+      state = { ...state, lasersOn: !state.lasersOn };
+      sound = 'zap';
+    }
     if (target.x === map.goal.x && target.y === map.goal.y) {
       push(stack, { motion, sound });
       throw new Halt('success');
@@ -76,8 +82,20 @@ export function runProgram(level: LevelDef, program: Program): RunResult {
     push(stack, { motion, sound });
   };
 
+  const twin = !!map.start2 && !!map.goal2;
+  const onGoal = (p: { x: number; y: number }, g: { x: number; y: number }) => p.x === g.x && p.y === g.y;
+
+  /** Zwei-Bot-Modus: beide Bots führen denselben Befehl aus; blockierte Bots bleiben stehen */
+  const twinStep = (stack: string[], dir: Dir) => {
+    const r = twinMove(map, state, state.pos, state.pos2!, dir);
+    state = { ...state, dir, pos: r.a, pos2: r.b };
+    push(stack, r.moved ? { motion: 'walk', sound: r.both ? 'step' : 'tick' } : { motion: 'bump', bumpDir: dir, sound: 'boing' });
+    if (onGoal(state.pos, map.goal) && onGoal(state.pos2!, map.goal2!)) throw new Halt('success');
+  };
+
   const step = (stack: string[], dir: Dir) => {
     tick();
+    if (twin) return twinStep(stack, dir);
     enter(stack, add(state.pos, dir), 'walk', dir);
   };
 
@@ -88,21 +106,41 @@ export function runProgram(level: LevelDef, program: Program): RunResult {
     const midTile = tileAt(map, mid);
     // Über hohe Hindernisse und geschlossene Tore kann man nicht springen
     if (midTile === '#' || (midTile === 'D' && isBlocked(map, mid, state))) bump(stack, dir, 'tooHigh');
+    // Aktive Laser-Schranken reichen bis zur Decke
+    if (midTile === 'L' && state.lasersOn) bump(stack, dir, 'laser');
     enter(stack, add(state.pos, dir, 2), 'jump', dir);
   };
 
-  const evalCond = (cond: Condition) => {
+  const evalBase = (cond: Condition): boolean => {
     const ahead = add(state.pos, state.dir);
-    if (cond === 'obstacleAhead') {
-      const t = tileAt(map, ahead);
-      return t !== null && LOW_OBSTACLES.has(t);
+    const t = tileAt(map, ahead);
+    switch (cond) {
+      case 'obstacleAhead':
+        return t !== null && LOW_OBSTACLES.has(t);
+      case 'laserAhead':
+        return t === 'L' && state.lasersOn;
+      case 'atGoal':
+        return onGoal(state.pos, map.goal);
+      case 'varPositive':
+        return state.n > 0;
+      case 'pathBlocked':
+        return isWallLike(map, ahead, state);
+      case 'pathClear':
+        return !isBlocked(map, ahead, state);
     }
-    const blocked = isBlocked(map, ahead, state);
-    return cond === 'pathBlocked' ? blocked : !blocked;
+  };
+
+  /** Logik-Gatter: [NICHT] a [UND|ODER b] */
+  const evalCond = (e: CondExpr) => {
+    const a = e.not ? !evalBase(e.cond) : evalBase(e.cond);
+    if (!e.op || !e.cond2) return a;
+    const b = evalBase(e.cond2);
+    return e.op === 'and' ? a && b : a || b;
   };
 
   const exec = (blocks: Block[], parentStack: string[], depth: number) => {
-    if (depth > 12) throw new Halt('fail', 'tooLong');
+    // Zu tiefe Rekursion → Stack Overflow (wie in echten Programmen)
+    if (depth > MAX_DEPTH) throw new Halt('fail', 'overflow');
     for (const b of blocks) {
       const stack = [...parentStack, b.id];
       switch (b.type) {
@@ -132,11 +170,35 @@ export function runProgram(level: LevelDef, program: Program): RunResult {
           break;
         case 'if': {
           tick();
-          const ok = evalCond(b.cond);
+          const ok = evalCond(b);
           push(stack, { motion: 'think', condResult: ok, sound: 'tick' });
           if (ok) exec(b.body, stack, depth + 1);
           break;
         }
+        case 'while': {
+          let i = 0;
+          for (;;) {
+            tick();
+            const ok = evalCond(b);
+            loops[b.id] = i + 1;
+            push(stack, { motion: 'think', condResult: ok, sound: 'tick' });
+            if (!ok) break;
+            exec(b.body, stack, depth + 1);
+            i++;
+          }
+          delete loops[b.id];
+          break;
+        }
+        case 'setVar':
+          tick();
+          state = { ...state, n: b.value };
+          push(stack, { motion: 'think', sound: 'tick' });
+          break;
+        case 'decVar':
+          tick();
+          state = { ...state, n: state.n - 1 };
+          push(stack, { motion: 'think', sound: 'tick' });
+          break;
         case 'call':
           tick();
           push(stack, { motion: 'think', sound: 'tick' });
@@ -167,5 +229,5 @@ export function runProgram(level: LevelDef, program: Program): RunResult {
 }
 
 function cloneState(s: WorldState): WorldState {
-  return { ...s, pos: { ...s.pos }, collected: [...s.collected], openGates: [...s.openGates] };
+  return { ...s, pos: { ...s.pos }, collected: [...s.collected], openGates: [...s.openGates], ...(s.pos2 ? { pos2: { ...s.pos2 } } : {}) };
 }

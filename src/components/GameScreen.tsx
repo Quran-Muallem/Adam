@@ -1,15 +1,16 @@
 // ─────────────────────────────────────────────────────────────
 // GameScreen: Spielfeld + Sparky-Sprechblase + Programm + Palette
 // ─────────────────────────────────────────────────────────────
-import { ChevronLeft, Clapperboard, CornerLeftUp, Crosshair, Play, RotateCcw, Settings, Square, Star, Trash2 } from 'lucide-react';
-import { useCallback, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { ChevronLeft, Clapperboard, CornerLeftUp, Crosshair, Play, RotateCcw, Settings, Square, Star, Trash2, Undo2 } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { useStoredState } from '../hooks/useStoredState';
 import { cardForLevel, unlockedCards } from '../data/cards';
 import { COSTUMES, type Costume } from '../data/costumes';
-import { HANDCRAFTED, levelAt, levelNumber } from '../data/levels';
+import { expressDate, handcrafted, isExpress, levelAt, levelNumber } from '../data/levels';
 import { pick } from '../data/messages';
 import { useI18n } from '../i18n';
-import { WORLDS } from '../data/worlds';
+import { isPro, WORLDS } from '../data/worlds';
+import { runProgram } from '../engine/interpreter';
 import { countProgram, createBlock, emptyProgram, findBlock, insertBlock, isContainer, parentTarget, removeBlock, targetExists, updateBlock } from '../engine/program';
 import { hasBonus, rate } from '../engine/rating';
 import type { CodeLang } from '../engine/codegen';
@@ -39,6 +40,30 @@ interface Props {
 }
 
 const MAIN_TARGET: InsertTarget = { root: 'main', parentId: null };
+const UNDO_MAX = 50;
+
+// ── Auto-Pause & Offline-Sicherheit: jeder Zug wird sofort gespeichert ──
+const draftKey = (id: string) => `sparky:draft:${id}`;
+function loadDraft(id: string): Program {
+  try {
+    const raw = localStorage.getItem(draftKey(id));
+    if (raw) {
+      const p = JSON.parse(raw) as Program;
+      if (Array.isArray(p.main) && Array.isArray(p.macro)) return p;
+    }
+  } catch {
+    /* ignorieren */
+  }
+  return emptyProgram();
+}
+function saveDraft(id: string, p: Program) {
+  try {
+    if (p.main.length === 0 && p.macro.length === 0) localStorage.removeItem(draftKey(id));
+    else localStorage.setItem(draftKey(id), JSON.stringify(p));
+  } catch {
+    /* Speicher voll / nicht verfügbar */
+  }
+}
 
 export function GameScreen(props: Props) {
   const { level, sound, speed, prog } = props;
@@ -51,9 +76,27 @@ export function GameScreen(props: Props) {
   tRef.current = { t, failLines };
   const { play } = sound;
   const isMini = level.group === 'mini';
+  const pro = isPro(level.group);
+  const express = isExpress(level.id);
   const hasMacro = level.palette.includes('call');
 
-  const [program, setProgram] = useState<Program>(emptyProgram);
+  const [program, setProgramState] = useState<Program>(() => loadDraft(level.id));
+  const [resumed] = useState(() => countProgram(program) > 0);
+  // Rückgängig: Verlauf der letzten Programm-Stände
+  const historyRef = useRef<Program[]>([]);
+  const [undoCount, setUndoCount] = useState(0);
+  const curRef = useRef(program);
+  curRef.current = program;
+  const setProgram = useCallback((fn: (p: Program) => Program) => {
+    const prev = curRef.current;
+    const next = fn(prev);
+    if (next === prev) return;
+    historyRef.current = [...historyRef.current.slice(-(UNDO_MAX - 1)), prev];
+    setUndoCount(historyRef.current.length);
+    curRef.current = next;
+    setProgramState(next);
+  }, []);
+  useEffect(() => saveDraft(level.id, program), [level.id, program]);
   const [target, setTarget] = useState<InsertTarget>(MAIN_TARGET);
   const [result, setResult] = useState<{
     kind: 'success' | 'fail';
@@ -76,7 +119,7 @@ export function GameScreen(props: Props) {
 
   // Endlos-Level: es gibt immer ein nächstes Level
   const levelNo = levelNumber(level.id);
-  const nextLevel = levelAt(level.group, levelNo + 1);
+  const nextLevel = express ? null : levelAt(level.group, levelNo + 1);
   const blockCount = countProgram(program);
   const bonus = hasBonus(level);
 
@@ -90,10 +133,17 @@ export function GameScreen(props: Props) {
         const unlocked = COSTUMES.filter((c) => c.stars > prevTotal && c.stars <= newTotal);
         play('win');
         const milestone = prog.saveStars(level.id, stars);
-        setResult({ kind: 'success', stars, message: pick(tRef.current.t.win), newCostume: unlocked[unlocked.length - 1] ?? null, cardIsNew, milestone });
+        const { t: tt } = tRef.current;
+        // Profi-Ton + Effizienz-Analyse (Big-O) für Teenager & Erwachsene
+        const blocks = countProgram(programRef.current);
+        const actions = res.frames.filter((f) => f.motion && f.motion !== 'think').length;
+        const message = pro ? `${pick(tt.pro.win)}\n${tt.pro.efficiency(blocks, actions)}` : pick(tt.win);
+        setResult({ kind: 'success', stars, message, newCostume: unlocked[unlocked.length - 1] ?? null, cardIsNew, milestone });
       } else {
         play('fail');
-        setResult({ kind: 'fail', stars: 0, message: pick(tRef.current.failLines(res.reason ?? 'notReached', level.group)), newCostume: null, cardIsNew: false, milestone: null });
+        const reason = res.reason ?? 'notReached';
+        const message = pro ? tRef.current.t.pro.fail[reason] : pick(tRef.current.failLines(reason, level.group));
+        setResult({ kind: 'fail', stars: 0, message, newCostume: null, cardIsNew: false, milestone: null });
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -139,10 +189,21 @@ export function GameScreen(props: Props) {
     play('click');
   };
 
+  const undo = () => {
+    if (locked || historyRef.current.length === 0) return;
+    if (frame) runner.reset();
+    const prev = historyRef.current[historyRef.current.length - 1];
+    historyRef.current = historyRef.current.slice(0, -1);
+    setUndoCount(historyRef.current.length);
+    setProgramState(prev);
+    setTarget(MAIN_TARGET);
+    play('remove');
+  };
+
   const clearAll = () => {
     if (locked) return;
     runner.reset();
-    setProgram(emptyProgram());
+    setProgram(() => emptyProgram());
     setTarget(MAIN_TARGET);
     play('remove');
   };
@@ -181,18 +242,43 @@ export function GameScreen(props: Props) {
           label: t.loop.focusInto(
             focusContainer.type === 'repeat'
               ? `${t.blocks.repeat.label} ${focusContainer.count}×`
-              : `${t.blocks.if.label} ${t.conds[focusContainer.cond]}`,
+              : `${t.blocks[focusContainer.type].label} ${focusContainer.not ? `${t.pro.not} ` : ''}${t.conds[focusContainer.cond]}`,
           ),
           exit: parentTarget(program, focusContainer.id),
         }
       : { inside: false, label: effTarget.root === 'macro' ? t.loop.focusMacro : t.loop.focusMain, exit: MAIN_TARGET };
 
-  const isKindDisabled = useMemo(() => (k: PaletteKind) => k === 'call' && target.root === 'macro', [target.root]);
+  // Ab Stufe 5 darf F1 sich selbst aufrufen (Rekursion)
+  const isKindDisabled = useMemo(() => (k: PaletteKind) => k === 'call' && target.root === 'macro' && level.group !== 'adult', [target.root, level.group]);
+
+  // Live-Analyse für die Profi-Code-Brücke: Blöcke vs. ausgeführte Aktionen
+  const insight = useMemo(() => {
+    if (!pro || blockCount === 0) return null;
+    const res = runProgram(level, program);
+    const actions = res.frames.filter((f) => f.motion && f.motion !== 'think').length;
+    const has = (pred: (b: Block) => boolean) => {
+      const walk = (bs: Block[]): boolean => bs.some((b) => pred(b) || ('body' in b && walk(b.body)));
+      return walk(program.main) || walk(program.macro);
+    };
+    const pattern =
+      has((b) => b.type === 'call') && program.macro.some(function rec(b: Block): boolean { return b.type === 'call' || ('body' in b && b.body.some(rec)); })
+        ? 'recursion'
+        : level.grid.join('').includes('T')
+          ? 'parallel'
+          : has((b) => b.type === 'setVar')
+            ? 'register'
+            : has((b) => b.type === 'while')
+              ? 'whileLoop'
+              : has((b) => b.type === 'repeat')
+                ? 'loop'
+                : 'sequence';
+    return t.pro.insight(blockCount, actions, t.pro.patterns[pattern]);
+  }, [pro, blockCount, level, program, t]);
   const bubble = levelHint(level);
 
   return (
     <div
-      className={`safe-area relative flex h-[100dvh] flex-col overflow-hidden bg-gradient-to-br ${world.bg}`}
+      className={`world-${level.group} safe-area relative flex h-[100dvh] flex-col overflow-hidden bg-gradient-to-br ${world.bg}`}
       onScroll={(e) => {
         if (e.currentTarget.scrollTop) e.currentTarget.scrollTop = 0;
       }}
@@ -205,7 +291,13 @@ export function GameScreen(props: Props) {
           <ChevronLeft className="h-7 w-7 rtl:rotate-180" strokeWidth={3} />
         </RoundBtn>
         <div className={`flex min-w-0 flex-1 flex-col leading-tight ${world.text} drop-shadow`}>
-          <span className="line-clamp-2 text-base font-bold leading-tight sm:text-lg">{world.showText ? (levelNo > HANDCRAFTED ? levelTitle(level) : `${levelNo}. ${levelTitle(level)}`) : `${world.emoji} ${levelNo}`}</span>
+          <span className="line-clamp-2 text-base font-bold leading-tight sm:text-lg">{express
+              ? `🚆 ${t.pro.expressTitle} · ${expressDate(level.id).toLocaleDateString(undefined, { day: 'numeric', month: 'short', timeZone: 'UTC' })}`
+              : world.showText
+                ? levelNo > handcrafted(level.group)
+                  ? levelTitle(level)
+                  : `${levelNo}. ${levelTitle(level)}`
+                : `${world.emoji} ${levelNo}`}</span>
           <span className="flex">
             {[1, 2, 3].map((i) => (
               <Star key={i} className={`h-4 w-4 ${i <= bestStars ? 'fill-yellow-300 text-amber-500' : 'text-white/70'}`} />
@@ -272,6 +364,9 @@ export function GameScreen(props: Props) {
                 <RoundBtn label={t.ui.resetSparky} onClick={() => runner.reset()} disabled={locked || !frame} color="#ffffff" dark mini>
                   <RotateCcw className="h-7 w-7" strokeWidth={3} />
                 </RoundBtn>
+                <RoundBtn label={t.pro.undo} onClick={undo} disabled={locked || undoCount === 0} color="#ffffff" dark mini>
+                  <Undo2 className="h-7 w-7 rtl:-scale-x-100" strokeWidth={3} />
+                </RoundBtn>
                 <RoundBtn label={t.ui.clearAll} onClick={clearAll} disabled={locked || program.main.length === 0} color="#ffffff" dark mini>
                   <Trash2 className="h-7 w-7" strokeWidth={2.5} />
                 </RoundBtn>
@@ -301,7 +396,7 @@ export function GameScreen(props: Props) {
                 )}
                 {[
                   { on: false, label: `🧩 ${t.ui.myProgram}` },
-                  { on: true, label: t.code.toggle },
+                  { on: true, label: pro ? t.pro.codeToggle : t.code.toggle },
                 ].map((tab) => (
                   <button
                     key={String(tab.on)}
@@ -343,7 +438,7 @@ export function GameScreen(props: Props) {
               </div>
               {showCode && (
                 <div className="flex min-h-[110px] flex-1 animate-bounce-in flex-col md:flex-none">
-                  <CodeView program={program} lang={codeLang} setLang={setCodeLang} frame={frame} t={t} />
+                  <CodeView program={program} lang={codeLang} setLang={setCodeLang} frame={frame} t={t} pro={pro} insight={insight} />
                 </div>
               )}
 
@@ -395,6 +490,9 @@ export function GameScreen(props: Props) {
                 <RoundBtn label={t.ui.resetSparky} onClick={() => runner.reset()} disabled={locked || !frame} color="#ffffff" dark big>
                   <RotateCcw className="h-6 w-6" strokeWidth={3} />
                 </RoundBtn>
+                <RoundBtn label={t.pro.undo} onClick={undo} disabled={locked || undoCount === 0} color="#ffffff" dark big>
+                  <Undo2 className="h-6 w-6 rtl:-scale-x-100" strokeWidth={3} />
+                </RoundBtn>
                 <div className="flex-1">
                   <RunButton running={isRunning} onClick={runOrStop} disabled={!!result || blockCount === 0} showText wide labels={t.ui} />
                 </div>
@@ -404,6 +502,7 @@ export function GameScreen(props: Props) {
         </div>
       </main>
 
+      {resumed && !frame && !result && <ResumeToast text={t.pro.resumed} />}
       {movieOpen && <MoviePlayer group={level.group} sound={sound} costume={costume} onClose={() => setMovieOpen(false)} />}
       {result?.kind === 'success' && <Confetti />}
       {result && (
@@ -429,6 +528,20 @@ export function GameScreen(props: Props) {
           }}
         />
       )}
+    </div>
+  );
+}
+
+function ResumeToast({ text }: { text: string }) {
+  const [show, setShow] = useState(true);
+  useEffect(() => {
+    const id = setTimeout(() => setShow(false), 2600);
+    return () => clearTimeout(id);
+  }, []);
+  if (!show) return null;
+  return (
+    <div className="pointer-events-none fixed inset-x-0 top-16 z-30 flex justify-center">
+      <span className="animate-bounce-in rounded-full bg-emerald-500 px-4 py-1.5 text-sm font-bold text-white shadow-lg">💾 {text}</span>
     </div>
   );
 }
