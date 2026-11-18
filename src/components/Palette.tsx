@@ -67,7 +67,7 @@ export function Palette({ kinds, world, onAdd, disabled, isKindDisabled }: Props
             className="squish flex min-w-0 flex-col items-center justify-center gap-0.5 rounded-[1.2rem] px-1 py-1"
           >
             <Icon className="h-7 w-7" strokeWidth={3} />
-            <span className="text-[11px] font-bold leading-[1.1]">{meta.short}</span>
+            <span className="text-center text-[11px] font-bold leading-[1.1]">{meta.short}</span>
           </button>
         );
       })}

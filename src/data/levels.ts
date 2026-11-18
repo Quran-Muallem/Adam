@@ -111,9 +111,9 @@ const JUNIOR: LevelDef[] = [
 const HERO: LevelDef[] = [
   // 1–6: verschachtelte Schleifen & Effizienz
   L('hero', 1, 'Doppel-Schleife', ['S...', '###.', '###.', '###G'], 'right', H_LOOP, 12, 4,
-    'Eine Schleife IN einer Schleife! „3× Vorwärts, dann Rechts“ – und das 2×.'),
+    'Ich laufe immer in Blickrichtung (gelber Pfeil)! „Links/Rechts drehen“ dreht mich auf der Stelle. Tipp: Schleife in Schleife – „3× Vorwärts, Rechts drehen“ und das 2×.'),
   L('hero', 2, 'Treppe zu den Sternen', ['####G', '###..', '##..#', '#..##', 'S.###'], 'right', H_LOOP, 18, 5,
-    'Ein Treppenschritt: Vorwärts, Links, Vorwärts, Rechts.'),
+    'Ein Treppenschritt: Vorwärts, Links drehen, Vorwärts, Rechts drehen. Nach dem Links-Drehen schaue ich nach oben!'),
   L('hero', 3, 'Riesen-Treppe', ['S...###', '###.###', '###.###', '###....', '######.', '######.', '######G'], 'right', H_LOOP, 20, 7,
     'Jede Stufe ist 3 Felder lang. Verschachtle deine Schleifen!'),
   L('hero', 4, 'Die große Kurve', ['S....', '####.', '####.', '####.', 'G....'], 'right', H_LOOP, 16, 4,
