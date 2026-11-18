@@ -1,0 +1,66 @@
+import type { MoreTexts } from '../types';
+
+export const moreIt: MoreTexts = {
+  settings: { title: 'Impostazioni', music: 'Musica arcade', sfx: 'Effetti sonori', speed: 'Velocità di gioco', on: 'Sì', off: 'No', done: 'Fatto' },
+  loop: {
+    inside: '+ Metti qui un comando per il ciclo',
+    insideIf: '+ Metti qui un comando per «Se»',
+    after: '+ Continua dopo',
+    focusInto: (l) => `Il prossimo blocco va DENTRO «${l}»`,
+    focusMain: 'Il prossimo blocco va nel programma principale',
+    focusMacro: 'Il prossimo blocco va nella macro F1',
+    exit: 'Esci dal ciclo',
+  },
+  gen: {
+    title: (n) => `Avventura ${n}`,
+    hints: {
+      mini: ['🍓'],
+      junior: ['Una nuova avventura! I cicli fanno risparmiare blocchi.', 'Vedi un barile? Saltaci sopra!', 'C’è una chiave? Prendila, poi passa dal portale!'],
+      hero: [
+        'Un nuovo labirinto! Ce la fai con un ciclo e delle condizioni?',
+        'Consiglio: «Se strada bloccata → gira» dentro un ciclo risolve molti labirinti.',
+        'Casse sulla strada? «Se ostacolo davanti → Salta»!',
+      ],
+    },
+  },
+  map: {
+    chest: 'Scrigno del tesoro',
+    chestReady: 'Tocca per aprirlo!',
+    chestWon: 'Lo scrigno si è aperto!',
+    milestone: (n) => `Traguardo ${n}`,
+    milestoneReward: 'Tesoro del traguardo',
+    newSticker: 'Nuovo adesivo!',
+    bonusStars: (n) => `+${n} stelle bonus`,
+  },
+  rewards: {
+    trophies: 'Trofei',
+    badgesTitle: 'Medaglie e titoli',
+    stickersTitle: 'Album degli adesivi',
+    noTitle: 'Ancora nessun titolo: inizia a giocare!',
+    colors: 'Colori',
+    costumesTab: 'Costumi',
+    badges: {
+      firstSteps: { name: 'Primi passi', desc: 'Il tuo primo livello superato' },
+      loopMaster: { name: 'Maestro dei cicli', desc: 'Livello 6 della laguna superato' },
+      jumpPro: { name: 'Campione di salti', desc: 'Livello 13 della laguna superato' },
+      worldTraveler: { name: 'Giramondo', desc: 'Hai giocato in tutti e tre i mondi' },
+      conditionPro: { name: 'Esperto di condizioni', desc: "Livello 13 dell'accademia superato" },
+      macroMage: { name: 'Mago delle macro', desc: 'Hai padroneggiato la macro F1' },
+      starCollector: { name: 'Collezionista di stelle', desc: '50 stelle raccolte' },
+      loyal: { name: 'Amico fedele', desc: 'Ruota girata 7 giorni di fila' },
+      perfectionist: { name: 'Perfezionista', desc: '20 livelli con 3 stelle' },
+      champ25: { name: 'Campione del codice livello 25', desc: 'Livello 25 raggiunto in un mondo' },
+      champ50: { name: 'Campione del codice livello 50', desc: 'Livello 50 raggiunto in un mondo' },
+      champ100: { name: 'Campione del codice livello 100', desc: 'Livello 100 raggiunto in un mondo' },
+    },
+  },
+  daily: {
+    button: 'Sorpresa del giorno',
+    spin: 'Gira!',
+    comeBack: 'Torna domani per un altro giro!',
+    streak: (n) => `🔥 ${n} ${n === 1 ? 'giorno' : 'giorni'} di fila`,
+    streakBonus: '+1 bonus serie',
+    sticker: 'Adesivo a sorpresa',
+  },
+  skins: { violet: 'Viola (classico)', mint: 'Menta', sunset: 'Tramonto', ocean: 'Oceano', gold: 'Oro', rainbow: 'Drago arcobaleno' },
+};

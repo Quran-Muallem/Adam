@@ -1,10 +1,12 @@
 import { LEVELS } from '../data/levels';
 import { bridgeDe } from './bridge/de';
+import { moreDe } from './more/de';
 import type { Dict } from './types';
 
 // Deutsch ist die Ausgangssprache: Level-Titel & Tipps kommen direkt aus levels.ts
 export const de: Dict = {
   ...bridgeDe,
+  ...moreDe,
   langName: 'Deutsch',
   titleTop: 'Sparkys',
   titleBottom: 'Code-Abenteuer',
@@ -108,6 +110,8 @@ export const de: Dict = {
     astronaut: 'Astronautenhelm',
     crown: 'Königskrone',
     cape: 'Superhelden-Umhang',
+    ninja: 'Ninja-Sparky',
+    cyber: 'Cyber-Rüstung',
   },
   fail: {
     wall: ['Boing! Gegen {wall} geknuddelt! Versuch es nochmal!', 'Aua, meine Nase! Da geht’s nicht weiter. Noch ein Versuch?'],

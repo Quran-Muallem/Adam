@@ -9,6 +9,7 @@
 // Kompakte Schreibweise:  L(id, titel, grid, startDir, palette, maxBlocks, parBlocks, hint?)
 // Jedes Level hat in tests/levels.test.ts eine geprüfte Lösung.
 // ─────────────────────────────────────────────────────────────
+import { generateLevel } from '../engine/generator';
 import type { AgeGroupId, Dir, LevelDef, PaletteKind } from '../types';
 
 const ARROWS: PaletteKind[] = ['up', 'down', 'left', 'right'];
@@ -156,5 +157,23 @@ const HERO: LevelDef[] = [
 
 export const LEVELS: LevelDef[] = [...MINI, ...JUNIOR, ...HERO];
 
+/** Handgefertigte Level pro Welt – danach übernimmt der Generator (∞) */
+export const HANDCRAFTED = 20;
+
+/** Nur die handgefertigten Level einer Welt */
 export const levelsFor = (group: AgeGroupId) => LEVELS.filter((l) => l.group === group);
-export const getLevel = (id: string) => LEVELS.find((l) => l.id === id);
+
+/** Level n (1-basiert) einer Welt – handgefertigt oder prozedural erzeugt */
+export function levelAt(group: AgeGroupId, n: number): LevelDef {
+  return n <= HANDCRAFTED ? levelsFor(group)[n - 1] : generateLevel(group, n);
+}
+
+export const levelNumber = (id: string) => Number(id.split('-')[1]);
+export const levelGroup = (id: string) => id.split('-')[0] as AgeGroupId;
+
+export function getLevel(id: string): LevelDef | undefined {
+  const g = levelGroup(id);
+  const n = levelNumber(id);
+  if (!['mini', 'junior', 'hero'].includes(g) || !(n >= 1)) return undefined;
+  return levelAt(g, n);
+}

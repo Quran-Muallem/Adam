@@ -50,12 +50,18 @@ function mapTree(blocks: Block[], fn: (b: Block) => Block | null): Block[] {
   return out;
 }
 
+/** Fügt am Ende ein – oder direkt hinter `afterId`, falls angegeben */
+function addTo(list: Block[], block: Block, afterId?: string): Block[] {
+  const i = afterId ? list.findIndex((b) => b.id === afterId) : -1;
+  return i < 0 ? [...list, block] : [...list.slice(0, i + 1), block, ...list.slice(i + 1)];
+}
+
 export function insertBlock(program: Program, target: InsertTarget, block: Block): Program {
   const root = program[target.root];
   const next =
     target.parentId === null
-      ? [...root, block]
-      : mapTree(root, (b) => (b.id === target.parentId && isContainer(b) ? { ...b, body: [...b.body, block] } : b));
+      ? addTo(root, block, target.afterId)
+      : mapTree(root, (b) => (b.id === target.parentId && isContainer(b) ? { ...b, body: addTo(b.body, block, target.afterId) } : b));
   return { ...program, [target.root]: next };
 }
 
@@ -83,4 +89,23 @@ export function findBlock(blocks: Block[], id: string): Block | null {
 /** Ist das Einfügeziel (noch) gültig? */
 export function targetExists(program: Program, t: InsertTarget) {
   return t.parentId === null || findBlock(program[t.root], t.parentId) !== null;
+}
+
+/** Einfügeziel des Containers, in dem der Block `id` liegt (für "Aus Schleife raus") */
+export function parentTarget(program: Program, id: string): InsertTarget {
+  const search = (blocks: Block[], parent: string | null): string | null | undefined => {
+    for (const b of blocks) {
+      if (b.id === id) return parent;
+      if (isContainer(b)) {
+        const r = search(b.body, b.id);
+        if (r !== undefined) return r;
+      }
+    }
+    return undefined;
+  };
+  for (const root of ['main', 'macro'] as const) {
+    const r = search(program[root], null);
+    if (r !== undefined) return { root, parentId: r };
+  }
+  return { root: 'main', parentId: null };
 }

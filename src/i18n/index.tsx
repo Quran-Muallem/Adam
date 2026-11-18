@@ -3,6 +3,7 @@
 // Die Sprache wird gespeichert; beim ersten Start gilt die Gerätesprache.
 // ─────────────────────────────────────────────────────────────
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { levelNumber } from '../data/levels';
 import type { AgeGroupId, FailReason, LevelDef } from '../types';
 import { ar } from './ar';
 import { de } from './de';
@@ -77,8 +78,13 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       t,
       rtl: isRtl(lang),
       setLang,
-      levelTitle: (l) => t.levels[l.id]?.t ?? l.title,
-      levelHint: (l) => (l.hint ? (t.levels[l.id]?.h ?? l.hint) : undefined),
+      levelTitle: (l) => t.levels[l.id]?.t ?? t.gen.title(levelNumber(l.id)),
+      levelHint: (l) => {
+        const tr = t.levels[l.id];
+        if (tr) return l.hint ? (tr.h ?? l.hint) : undefined;
+        const hints = t.gen.hints[l.group];
+        return hints[levelNumber(l.id) % hints.length];
+      },
       failLines: (reason, group) =>
         t.fail[reason].map((s) => s.replace('{wall}', t.worlds[group].wallName).replace('{low}', t.worlds[group].lowName)),
     };

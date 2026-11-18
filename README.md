@@ -4,13 +4,25 @@ Eine extrem bunte, verspielte Lern-App im Animationsfilm-Stil, die Kindern von *
 
 **Tech:** React 18 · TypeScript · Tailwind CSS · Lucide-Icons · Vite · Web Audio API (keine Sound-Dateien) · Capacitor (Android)
 
-## 3 Welten · 60 Level
+## 3 Welten · 60 handgefertigte Level + ∞
 
 | Welt | Alter | Level 1–20 |
 |---|---|---|
 | 🌳 **Zauberwald der Glühwürmchen** – Mini-Entdecker | 4–5 | Ohne Lesen: Steuerkreuz mit großen Buttons (≥ 68 px). 1–5 gerade Wege, 6–12 Kurven & Zauberbeeren 🫐, 13–20 Mini-Labyrinthe mit schlafenden Bären 🐻 und Pfützen. |
 | 🏴‍☠️ **Kristall-Lagune der Piraten** – Junior-Coder | 6–8 | Sparky-Sprechblasen. 1–6 Wiederholen-Container (2×–6×), 7–13 Springen über Fässer & Kristalle 💎, 14–20 Schlüssel 🗝️ + magische Tore 🚪 + Kombinationen. |
 | 🚀 **Sternen-Akademie der Roboter** – Code-Helden | 9–12 | 1–6 verschachtelte Schleifen & Effizienz, 7–13 Bedingungen („Wenn Weg frei / versperrt / Hindernis voraus“), 14–20 Zauber-Makro F1 & Teleporter-Rätsel 🌀. |
+
+## Endlos-Level, Belohnungen & Musik (Candy-Crush-Prinzip) 🍬
+
+- **∞ Level pro Welt:** Level 1–20 sind handgefertigt, ab Level 21 baut ein **prozeduraler Generator** (`src/engine/generator.ts`) aus Welt + Levelnummer als Seed immer neue Labyrinthe mit Hindernissen, Bonus-Items, Schlüsseln & Toren. Jedes Level wird beim Erzeugen mit dem echten Interpreter durchgespielt – nur garantiert lösbare Level kommen ins Spiel; `parBlocks` = kürzestes gefundenes Programm (bei den Code-Helden auch Wand-Folge-Programme mit Bedingungen).
+- **Endlose Karte** (Level 1 unten, nach oben unendlich scrollen) mit **Meilenstein-Inseln** alle 10 Level (Schatz: +5 ⭐ und Sticker).
+- **Schatztruhen-Balken:** alle 15 Sterne springt eine Truhe auf (Konfetti + Sticker).
+- **Kostüme & Farben:** u. a. Ninja-Sparky, Cyber-Rüstung, Königskrone, Superhelden-Umhang, Regenbogen-Drache.
+- **Abzeichen & Titel** (z. B. „Schleifen-Meister“, „Code-Champion Level 50“) und **Sticker-Album** im Trophäen-Raum.
+- **Tägliche Überraschung:** Glücksrad einmal pro Tag (Bonus-Sterne oder Zufalls-Sticker), Serien-Bonus ab 3 Tagen.
+- **Arcade-Musik:** fröhlicher Loop pro Welt (Marimba, Harfe, Chiptune), live mit der Web Audio API erzeugt; startet sanft beim ersten Antippen.
+- **Einstellungen (⚙️):** Musik, Sound-Effekte und Spielgeschwindigkeit getrennt schaltbar, gespeichert.
+- **Schleifen als C-Klammer:** pulsierende Zone „+ Hier Befehl für Schleife einfügen“, Zone „+ Danach weitergehen“ und eine Fokus-Leiste („Nächster Block kommt IN …“ + „Aus Schleife raus“).
 
 ## Erklär-Kino & Kumpel-Modus 🎬
 

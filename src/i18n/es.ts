@@ -1,8 +1,10 @@
 import { bridgeEs } from './bridge/es';
+import { moreEs } from './more/es';
 import type { Dict } from './types';
 
 export const es: Dict = {
   ...bridgeEs,
+  ...moreEs,
   langName: 'Español',
   titleTop: 'La aventura de código',
   titleBottom: 'de Sparky',
@@ -106,6 +108,8 @@ export const es: Dict = {
     astronaut: 'Casco de astronauta',
     crown: 'Corona real',
     cape: 'Capa de superhéroe',
+    ninja: 'Sparky ninja',
+    cyber: 'Armadura cíber',
   },
   fail: {
     wall: ['¡Boing! ¡Abracé {wall}! ¡Inténtalo otra vez!', '¡Ay, mi nariz! Por ahí no se puede. ¿Otro intento?'],

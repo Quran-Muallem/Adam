@@ -4,7 +4,7 @@
 // (Texte in den Sprachpaketen unter src/i18n → cards.items)
 // ─────────────────────────────────────────────────────────────
 import type { AgeGroupId } from '../types';
-import { LEVELS, levelsFor } from './levels';
+import { getLevel, HANDCRAFTED, levelGroup, levelNumber } from './levels';
 
 export type CardId =
   | 'sequence'
@@ -53,13 +53,26 @@ const RANGES: Record<AgeGroupId, [number, CardId][]> = {
 };
 
 export function cardForLevel(levelId: string): CardDef {
-  const level = LEVELS.find((l) => l.id === levelId)!;
-  const n = levelsFor(level.group).indexOf(level) + 1;
-  const id = RANGES[level.group].find(([max]) => n <= max)![1];
+  const group = levelGroup(levelId);
+  const n = levelNumber(levelId);
+  let id: CardId;
+  if (n <= HANDCRAFTED) {
+    id = RANGES[group].find(([max]) => n <= max)![1];
+  } else {
+    // Endlos-Level: Karte passend zu dem, was im Level vorkommt
+    const grid = getLevel(levelId)?.grid.join('') ?? '';
+    if (group === 'mini') id = grid.includes('*') ? 'collect' : 'avoid';
+    else if (group === 'junior') id = grid.includes('K') ? 'keygate' : grid.includes('o') ? 'jump' : 'loop';
+    else id = grid.includes('o') ? 'sensor' : n % 2 ? 'condition' : 'efficiency';
+  }
   return CARDS.find((c) => c.id === id)!;
 }
 
 /** Freigeschaltete Karten = Karten, deren Level mindestens 1 Stern hat */
 export function unlockedCards(stars: Record<string, number>): Set<CardId> {
-  return new Set(LEVELS.filter((l) => (stars[l.id] ?? 0) > 0).map((l) => cardForLevel(l.id).id));
+  return new Set(
+    Object.entries(stars)
+      .filter(([, s]) => s > 0)
+      .map(([id]) => cardForLevel(id).id),
+  );
 }

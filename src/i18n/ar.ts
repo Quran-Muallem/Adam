@@ -1,9 +1,11 @@
 import { bridgeAr } from './bridge/ar';
+import { moreAr } from './more/ar';
 import type { Dict } from './types';
 
 // العربية – يُعرض بالاتجاه من اليمين إلى اليسار (RTL)، بينما تبقى لوحة اللعب كما هي
 export const ar: Dict = {
   ...bridgeAr,
+  ...moreAr,
   langName: 'العربية',
   titleTop: 'مغامرة البرمجة',
   titleBottom: 'مع سباركي',
@@ -107,6 +109,8 @@ export const ar: Dict = {
     astronaut: 'خوذة رائد الفضاء',
     crown: 'التاج الملكي',
     cape: 'عباءة البطل الخارق',
+    ninja: 'سباركي النينجا',
+    cyber: 'الدرع السيبراني',
   },
   fail: {
     wall: ['بوينغ! اصطدمت بـ{wall}! حاول مرة أخرى!', 'آه، أنفي! لا يمكن المرور من هنا. محاولة أخرى؟'],

@@ -1,8 +1,10 @@
 import { bridgeIt } from './bridge/it';
+import { moreIt } from './more/it';
 import type { Dict } from './types';
 
 export const it: Dict = {
   ...bridgeIt,
+  ...moreIt,
   langName: 'Italiano',
   titleTop: "L'avventura di codice",
   titleBottom: 'di Sparky',
@@ -106,6 +108,8 @@ export const it: Dict = {
     astronaut: 'Casco da astronauta',
     crown: 'Corona reale',
     cape: 'Mantello da supereroe',
+    ninja: 'Sparky ninja',
+    cyber: 'Armatura cyber',
   },
   fail: {
     wall: ['Boing! Ho abbracciato {wall}! Riprova!', 'Ahi, il mio naso! Di lì non si passa. Un altro tentativo?'],

@@ -4,6 +4,7 @@ import type { CSSProperties, ReactNode } from 'react';
 import type { CardDef } from '../data/cards';
 import type { Costume, CostumeId } from '../data/costumes';
 import { ExplorerCard } from './ExplorerCard';
+import type { Reward } from '../hooks/useProgress';
 import type { WorldConfig } from '../data/worlds';
 import type { Dict } from '../i18n';
 import { Sparky } from './Sparky';
@@ -16,6 +17,7 @@ interface Props {
   t: Dict;
   costume: CostumeId;
   newCostume: Costume | null;
+  milestone?: Reward | null;
   card: CardDef;
   cardIsNew: boolean;
   hasNext: boolean;
@@ -55,6 +57,13 @@ export function ResultOverlay(p: Props) {
           <p className="mb-4 text-xl font-bold text-slate-700">{p.message}</p>
         ) : (
           <p className="mb-4 text-5xl">{success ? '😋' : '🙈'}</p>
+        )}
+
+        {p.milestone && (
+          <div className="mb-4 animate-pop rounded-2xl bg-gradient-to-r from-amber-300 to-yellow-200 p-3 font-bold text-amber-900 shadow-lg">
+            🎁 {p.t.map.milestoneReward}: ⭐ {p.t.map.bonusStars(p.milestone.stars)}
+            {p.milestone.sticker && <span className="ms-2 text-3xl align-middle">{p.milestone.sticker}</span>}
+          </div>
         )}
 
         {success && (

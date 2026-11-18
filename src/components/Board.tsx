@@ -13,7 +13,8 @@ interface Props {
   frameIndex: number;
   stepMs: number;
   mood: SparkyMood;
-  costume: CostumeId;
+  /** Ohne Angabe: Kostüm aus dem SparkyLook-Kontext */
+  costume?: CostumeId;
 }
 
 const PORTAL_COLORS: Record<string, string> = {

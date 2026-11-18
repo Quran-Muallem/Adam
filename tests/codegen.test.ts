@@ -46,3 +46,15 @@ describe('Code-Brücke', () => {
     expect(lines.filter((l) => l.blockId).length).toBe(8);
   });
 });
+
+describe('Einfügen hinter einer Schleife', () => {
+  it('afterId fügt direkt hinter dem Block ein', async () => {
+    const { insertBlock, createBlock } = await import('../src/engine/program');
+    const loop = rep(2, F());
+    const tail = R();
+    let p: Program = { main: [loop, tail], macro: [] };
+    const nb = createBlock('forward');
+    p = insertBlock(p, { root: 'main', parentId: null, afterId: loop.id }, nb);
+    expect(p.main.map((b) => b.id)).toEqual([loop.id, nb.id, tail.id]);
+  });
+});

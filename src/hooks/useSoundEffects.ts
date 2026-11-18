@@ -7,8 +7,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { SoundName } from '../types';
 
 const MUTE_KEY = 'sparky:muted';
+const SFX_KEY = 'sparky:sfx';
+const MUSIC_KEY = 'sparky:music';
 
-type Timbre = 'marimba' | 'harp' | 'bell' | 'boing' | 'whoosh' | 'soft';
+type Timbre = 'marimba' | 'harp' | 'bell' | 'boing' | 'whoosh' | 'soft' | 'chip' | 'bass';
 
 interface Note {
   /** Frequenz in Hz */
@@ -59,13 +61,75 @@ const RECIPES: Record<SoundName, Note[]> = {
   unlock: [h(N.G5, 0, 0.5), h(N.C6, 0.08, 0.5), h(N.E6, 0.16, 0.7)],
 };
 
-function readMuted() {
+function readBool(key: string, fallback: boolean) {
   try {
-    return localStorage.getItem(MUTE_KEY) === '1';
+    const v = localStorage.getItem(key);
+    return v === null ? fallback : v === '1';
   } catch {
-    return false;
+    return fallback;
   }
 }
+function writeBool(key: string, v: boolean) {
+  try {
+    localStorage.setItem(key, v ? '1' : '0');
+  } catch {
+    /* Speicher nicht verfügbar */
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// ARCADE-MUSIK: kleine fröhliche Loops (4 Takte, Achtelnoten),
+// eine Melodie pro Welt. Zahlen = Stufen der Tonleiter, null = Pause.
+// ─────────────────────────────────────────────────────────────
+export type MusicTheme = 'home' | 'mini' | 'junior' | 'hero';
+
+interface Song {
+  bpm: number;
+  root: number;
+  scale: number[];
+  lead: (number | null)[];
+  bass: (number | null)[];
+  leadTimbre: Timbre;
+  leadVol: number;
+}
+
+const PENTA = [0, 2, 4, 7, 9];
+const DORIAN = [0, 2, 3, 5, 7, 9, 10];
+const MINOR_PENTA = [0, 3, 5, 7, 10];
+const _ = null;
+
+const SONGS: Record<MusicTheme, Song> = {
+  // Start-Karte: ruhige Marimba in C-Dur
+  home: {
+    bpm: 96, root: N.C5, scale: PENTA, leadTimbre: 'marimba', leadVol: 0.11,
+    lead: [0, _, 2, _, 4, _, 2, _, 3, _, 4, _, 5, _, _, _, 5, _, 4, _, 2, _, 4, _, 3, _, 2, _, 0, _, _, _],
+    bass: [0, _, _, _, 0, _, _, _, 3, _, _, _, 3, _, _, _, 2, _, _, _, 2, _, _, _, 3, _, _, _, 0, _, _, _],
+  },
+  // Zauberwald: verspielt & hüpfend
+  mini: {
+    bpm: 92, root: N.F4 * 2, scale: PENTA, leadTimbre: 'marimba', leadVol: 0.1,
+    lead: [0, 2, 4, _, 4, _, 2, _, 3, _, 4, 5, 4, _, _, _, 2, _, 0, 2, 4, _, 4, _, 3, 2, 1, _, 0, _, _, _],
+    bass: [0, _, _, _, 3, _, _, _, 0, _, _, _, 3, _, _, _, 1, _, _, _, 4, _, _, _, 3, _, _, _, 0, _, _, _],
+  },
+  // Kristall-Lagune: schaukelnde Piraten-Melodie (dorisch)
+  junior: {
+    bpm: 108, root: N.D5, scale: DORIAN, leadTimbre: 'harp', leadVol: 0.09,
+    lead: [0, _, 2, 3, 4, _, 3, 2, 4, _, 6, _, 4, _, _, _, 3, _, 4, 5, 6, _, 5, 4, 3, _, 1, _, 0, _, _, _],
+    bass: [0, _, 4, _, 0, _, 4, _, 3, _, 0, _, 3, _, 0, _, 5, _, 2, _, 5, _, 2, _, 4, _, 1, _, 0, _, 4, _],
+  },
+  // Sternen-Akademie: flotter Chiptune mit Arpeggios
+  hero: {
+    bpm: 118, root: N.A4, scale: MINOR_PENTA, leadTimbre: 'chip', leadVol: 0.045,
+    lead: [0, 2, 4, 5, 4, 2, 0, _, 1, 3, 5, 6, 5, 3, 1, _, 2, 4, 6, 7, 6, 4, 2, _, 3, 2, 1, 0, 1, _, 0, _],
+    bass: [0, _, 0, _, 0, _, 0, _, 3, _, 3, _, 3, _, 3, _, 1, _, 1, _, 1, _, 1, _, 4, _, 4, _, 2, _, 2, _],
+  },
+};
+
+const degreeFreq = (song: Song, deg: number, octave = 0) => {
+  const len = song.scale.length;
+  const semis = song.scale[((deg % len) + len) % len] + 12 * (Math.floor(deg / len) + octave);
+  return song.root * Math.pow(2, semis / 12);
+};
 
 /** Spielt einen einzelnen Ton mit passender Klangfarbe */
 function voice(ctx: AudioContext, out: AudioNode, n: Note, now: number) {
@@ -85,7 +149,11 @@ function voice(ctx: AudioContext, out: AudioNode, n: Note, now: number) {
             ? [[1, 1, 'sine'], [2, 0.2, 'triangle']]
             : n.timbre === 'whoosh'
               ? [[1, 1, 'sawtooth']]
-              : [[1, 1, 'triangle']];
+              : n.timbre === 'chip'
+                ? [[1, 0.6, 'square'], [2, 0.12, 'square']]
+                : n.timbre === 'bass'
+                  ? [[1, 1, 'triangle'], [2, 0.2, 'sine']]
+                  : [[1, 1, 'triangle']];
 
   const gain = ctx.createGain();
   gain.gain.setValueAtTime(0.0001, t0);
@@ -133,9 +201,15 @@ function voice(ctx: AudioContext, out: AudioNode, n: Note, now: number) {
 export function useSoundEffects() {
   const ctxRef = useRef<AudioContext | null>(null);
   const masterRef = useRef<GainNode | null>(null);
-  const [muted, setMuted] = useState<boolean>(readMuted);
-  const mutedRef = useRef(muted);
-  mutedRef.current = muted;
+  const musicGainRef = useRef<GainNode | null>(null);
+  const [sfxOn, setSfxOnState] = useState<boolean>(() => readBool(SFX_KEY, !readBool(MUTE_KEY, false)));
+  const [musicOn, setMusicOnState] = useState<boolean>(() => readBool(MUSIC_KEY, true));
+  const sfxRef = useRef(sfxOn);
+  sfxRef.current = sfxOn;
+  const musicRef = useRef(musicOn);
+  musicRef.current = musicOn;
+  const themeRef = useRef<MusicTheme>('home');
+  const seq = useRef({ step: 0, next: 0, timer: 0 as ReturnType<typeof setInterval> | 0, playing: false });
 
   /** AudioContext erst bei der ersten Interaktion erzeugen (Autoplay-Regeln) */
   const ensureCtx = useCallback(() => {
@@ -152,8 +226,12 @@ export function useSoundEffects() {
       const master = ctx.createGain();
       master.gain.value = 0.9;
       master.connect(comp).connect(ctx.destination);
+      const music = ctx.createGain();
+      music.gain.value = 0;
+      music.connect(comp);
       ctxRef.current = ctx;
       masterRef.current = master;
+      musicGainRef.current = music;
     }
     if (ctxRef.current.state === 'suspended') void ctxRef.current.resume();
     return ctxRef.current;
@@ -161,7 +239,7 @@ export function useSoundEffects() {
 
   const play = useCallback(
     (name: SoundName) => {
-      if (mutedRef.current) return;
+      if (!sfxRef.current) return;
       const ctx = ensureCtx();
       if (!ctx || !masterRef.current) return;
       const now = ctx.currentTime + 0.01;
@@ -170,27 +248,106 @@ export function useSoundEffects() {
     [ensureCtx],
   );
 
-  const toggleMute = useCallback(() => {
-    setMuted((v) => {
-      const next = !v;
-      try {
-        localStorage.setItem(MUTE_KEY, next ? '1' : '0');
-      } catch {
-        /* Speicher nicht verfügbar */
+  // ── Musik-Sequenzer (Lookahead-Scheduler) ──
+  const stopMusic = useCallback(() => {
+    const s = seq.current;
+    if (s.timer) clearInterval(s.timer);
+    s.timer = 0;
+    s.playing = false;
+    const ctx = ctxRef.current;
+    const g = musicGainRef.current;
+    if (ctx && g) {
+      g.gain.cancelScheduledValues(ctx.currentTime);
+      g.gain.setTargetAtTime(0, ctx.currentTime, 0.15);
+    }
+  }, []);
+
+  const startMusic = useCallback(() => {
+    if (!musicRef.current) return;
+    const ctx = ensureCtx();
+    const g = musicGainRef.current;
+    if (!ctx || !g || seq.current.playing) return;
+    const s = seq.current;
+    s.playing = true;
+    s.step = 0;
+    s.next = ctx.currentTime + 0.1;
+    // sanft einblenden
+    g.gain.cancelScheduledValues(ctx.currentTime);
+    g.gain.setValueAtTime(0.0001, ctx.currentTime);
+    g.gain.linearRampToValueAtTime(1, ctx.currentTime + 2.5);
+    s.timer = setInterval(() => {
+      const song = SONGS[themeRef.current];
+      const eighth = 60 / song.bpm / 2;
+      while (s.next < ctx.currentTime + 0.25) {
+        const i = s.step % song.lead.length;
+        const l = song.lead[i];
+        const b = song.bass[i];
+        if (l !== null) voice(ctx, g, { f: degreeFreq(song, l), at: 0, dur: eighth * 1.8, timbre: song.leadTimbre, vol: song.leadVol }, s.next);
+        if (b !== null) voice(ctx, g, { f: degreeFreq(song, b, -2), at: 0, dur: eighth * 3.5, timbre: 'bass', vol: 0.09 }, s.next);
+        // leiser Glitzer-Akzent alle 2 Takte
+        if (i === 0 && s.step % 64 === 0) voice(ctx, g, { f: degreeFreq(song, 4, 1), at: 0, dur: 1.2, timbre: 'bell', vol: 0.025 }, s.next);
+        s.next += eighth;
+        s.step++;
       }
-      return next;
-    });
+    }, 40);
+  }, [ensureCtx]);
+
+  /** Welt-Musik wechseln (startet beim nächsten Takt neu) */
+  const setTheme = useCallback((t: MusicTheme) => {
+    if (themeRef.current === t) return;
+    themeRef.current = t;
+    seq.current.step = 0;
+  }, []);
+
+  const setMusicOn = useCallback(
+    (v: boolean) => {
+      setMusicOnState(v);
+      musicRef.current = v;
+      writeBool(MUSIC_KEY, v);
+      if (v) startMusic();
+      else stopMusic();
+    },
+    [startMusic, stopMusic],
+  );
+
+  const setSfxOn = useCallback((v: boolean) => {
+    setSfxOnState(v);
+    sfxRef.current = v;
+    writeBool(SFX_KEY, v);
+  }, []);
+
+  // Musik startet beim ersten Antippen (Browser-Autoplay-Regeln)
+  useEffect(() => {
+    const kick = () => {
+      ensureCtx();
+      startMusic();
+    };
+    window.addEventListener('pointerdown', kick);
+    return () => window.removeEventListener('pointerdown', kick);
+  }, [ensureCtx, startMusic]);
+
+  // App im Hintergrund → Ton pausieren
+  useEffect(() => {
+    const onVis = () => {
+      const ctx = ctxRef.current;
+      if (!ctx) return;
+      if (document.hidden) void ctx.suspend();
+      else void ctx.resume();
+    };
+    document.addEventListener('visibilitychange', onVis);
+    return () => document.removeEventListener('visibilitychange', onVis);
   }, []);
 
   useEffect(
     () => () => {
+      stopMusic();
       void ctxRef.current?.close();
       ctxRef.current = null;
     },
-    [],
+    [stopMusic],
   );
 
-  return { play, muted, toggleMute };
+  return { play, sfxOn, setSfxOn, musicOn, setMusicOn, setTheme };
 }
 
 export type SoundApi = ReturnType<typeof useSoundEffects>;

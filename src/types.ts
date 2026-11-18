@@ -55,6 +55,8 @@ export interface InsertTarget {
   root: 'main' | 'macro';
   /** id eines repeat/if-Blocks – oder null für die oberste Ebene */
   parentId: string | null;
+  /** Optional: direkt HINTER diesem Block einfügen (statt am Ende) */
+  afterId?: string;
 }
 
 /**

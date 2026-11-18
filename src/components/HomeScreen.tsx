@@ -1,26 +1,27 @@
-// Startbildschirm: illustrierte Abenteuerkarte mit den drei Themenwelten
-import { BookOpen, Globe, RotateCcw, Shirt, Star, Volume2, VolumeX } from 'lucide-react';
-import { useState, type CSSProperties } from 'react';
-import type { CostumeId } from '../data/costumes';
-import { levelsFor } from '../data/levels';
+// Startbildschirm: illustrierte Abenteuerkarte mit den drei Themenwelten + Menü
+import { BookOpen, Gift, Globe, RotateCcw, Settings, Shirt, Star, Trophy } from 'lucide-react';
+import { useState, type CSSProperties, type ReactNode } from 'react';
+import { bestTitle } from '../data/rewards';
 import { WORLD_ORDER } from '../data/worlds';
+import type { ProgressApi } from '../hooks/useProgress';
 import type { SoundApi } from '../hooks/useSoundEffects';
 import { DICTS, LANGS, useI18n, type Lang } from '../i18n';
 import type { AgeGroupId } from '../types';
+import { DailyWheel } from './DailyWheel';
 import { RoundBtn } from './GameScreen';
 import { Particles } from './Particles';
 import { Sparky } from './Sparky';
+
 const DICT_NAMES = Object.fromEntries(Object.entries(DICTS).map(([k, d]) => [k, d.langName])) as Record<Lang, string>;
 
 interface Props {
   sound: SoundApi;
-  costume: CostumeId;
-  totalStars: number;
-  starsIn: (g: AgeGroupId) => number;
+  prog: ProgressApi;
   onPick: (g: AgeGroupId) => void;
   onWardrobe: () => void;
   onAlbum: () => void;
-  onResetProgress: () => void;
+  onTrophies: () => void;
+  onSettings: () => void;
 }
 
 /** Illustrationen der Inseln */
@@ -29,19 +30,19 @@ const ISLAND: Record<AgeGroupId, { bg: string; scene: string[]; side: 'left' | '
     bg: 'radial-gradient(circle at 35% 30%, #bef264 0%, #65a30d 55%, #365314 100%)',
     scene: ['🌳', '🍄', '🌲', '🍓', '🌸', '✨'],
     side: 'left',
-    color: '#f97316',
+    color: '#ea580c',
   },
   junior: {
     bg: 'radial-gradient(circle at 35% 30%, #a5f3fc 0%, #06b6d4 50%, #0e7490 100%)',
     scene: ['🏝️', '🏴‍☠️', '💎', '🐚', '🦀', '⛵'],
     side: 'right',
-    color: '#0ea5e9',
+    color: '#0284c7',
   },
   hero: {
     bg: 'radial-gradient(circle at 35% 30%, #c4b5fd 0%, #7c3aed 50%, #312e81 100%)',
     scene: ['🏰', '🪐', '🤖', '🚀', '⭐', '🛰️'],
     side: 'left',
-    color: '#d946ef',
+    color: '#c026d3',
   },
 };
 
@@ -54,22 +55,19 @@ const SCENE_POS = [
   { l: '50%', t: '12%', s: 1 },
 ];
 
-export function HomeScreen({ sound, costume, totalStars, starsIn, onPick, onWardrobe, onAlbum, onResetProgress }: Props) {
+export function HomeScreen({ sound, prog, onPick, onWardrobe, onAlbum, onTrophies, onSettings }: Props) {
   const [confirmReset, setConfirmReset] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
+  const [wheelOpen, setWheelOpen] = useState(false);
   const { t, lang, setLang } = useI18n();
   const current = LANGS.find((l) => l.id === lang)!;
+  const title = bestTitle(prog.badges);
 
   return (
     <div className="safe-area relative h-[100dvh] overflow-hidden bg-gradient-to-b from-sky-400 via-indigo-400 to-fuchsia-400">
       <Particles kind="stars" count={30} />
-      {/* Wolken */}
-      {['8%', '58%', '30%'].map((t, i) => (
-        <div
-          key={t}
-          className="pointer-events-none absolute animate-float text-6xl opacity-80"
-          style={{ top: t, left: i % 2 ? '70%' : '-4%', animationDelay: `${i * 0.8}s` }}
-        >
+      {['8%', '58%', '30%'].map((top, i) => (
+        <div key={top} className="pointer-events-none absolute animate-float text-6xl opacity-80" style={{ top, left: i % 2 ? '70%' : '-4%', animationDelay: `${i * 0.8}s` }}>
           ☁️
         </div>
       ))}
@@ -78,86 +76,79 @@ export function HomeScreen({ sound, costume, totalStars, starsIn, onPick, onWard
         <div className="mx-auto flex max-w-xl flex-col items-center px-4 pb-10">
           {/* Kopfzeile */}
           <div className="flex w-full items-center justify-between py-3">
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  sound.play('click');
-                  onWardrobe();
-                }}
-                aria-label={t.home.costumes}
-                className="squish flex h-12 items-center gap-2 rounded-[1.2rem] px-3 font-bold"
-                style={{ '--c': '#d946ef' } as CSSProperties}
-              >
-                <Shirt className="h-6 w-6" /> <span className="hidden sm:inline">{t.home.costumes}</span>
-              </button>
-              <button
-                type="button"
-                aria-label={t.cards.album}
-                onClick={() => {
-                  sound.play('click');
-                  onAlbum();
-                }}
-                className="squish flex h-12 items-center gap-2 rounded-[1.2rem] px-3 font-bold"
-                style={{ '--c': '#0ea5e9' } as CSSProperties}
-              >
-                <BookOpen className="h-6 w-6" />
-              </button>
+            <RoundBtn
+              label={t.home.language}
+              onClick={() => {
+                sound.play('click');
+                setLangOpen(true);
+              }}
+              color="#ffffff"
+              dark
+            >
+              <span className="text-2xl leading-none">{current.flag}</span>
+            </RoundBtn>
+            <div className="glass flex items-center gap-1 rounded-full px-4 py-1.5 text-lg font-bold text-slate-700">
+              <Star className="h-5 w-5 fill-yellow-300 text-amber-500" /> {prog.totalStars}
             </div>
-            <div className="glass flex items-center gap-1 rounded-full px-3 py-1.5 text-lg font-bold text-slate-700">
-              <Star className="h-5 w-5 fill-yellow-300 text-amber-500" /> {totalStars}
-            </div>
-            <div className="flex gap-2">
-              <RoundBtn
-                label={t.home.language}
-                onClick={() => {
-                  sound.play('click');
-                  setLangOpen(true);
-                }}
-                color="#ffffff"
-                dark
-              >
-                <span className="text-2xl leading-none">{current.flag}</span>
-              </RoundBtn>
-              <RoundBtn label={sound.muted ? t.ui.soundOn : t.ui.soundOff} onClick={sound.toggleMute} color="#ffffff" dark>
-                {sound.muted ? <VolumeX className="h-6 w-6" /> : <Volume2 className="h-6 w-6" />}
-              </RoundBtn>
-            </div>
+            <RoundBtn label={t.settings.title} onClick={onSettings} color="#ffffff" dark>
+              <Settings className="h-6 w-6" />
+            </RoundBtn>
           </div>
 
           {/* Titel mit Sparky */}
-          <div className="mt-8 h-28 w-28 sm:h-36 sm:w-36">
-            <Sparky mood="happy" costume={costume} />
+          <div className="mt-6 h-28 w-28 sm:h-36 sm:w-36">
+            <Sparky mood="happy" />
           </div>
-          <h1
-            className="mt-1 text-center text-4xl font-bold leading-none text-white sm:text-5xl"
-            style={{ textShadow: '0 4px 0 #7c3aed, 0 8px 18px rgba(76,29,149,.55)' }}
-          >
+          <h1 className="mt-1 text-center text-4xl font-bold leading-none text-white sm:text-5xl" style={{ textShadow: '0 4px 0 #7c3aed, 0 8px 18px rgba(76,29,149,.55)' }}>
             {t.titleTop}
             <br />
             {t.titleBottom}
           </h1>
-          <p className="mt-2 text-center text-lg font-bold text-white drop-shadow">{t.home.whereTo}</p>
+          {title && (
+            <button
+              type="button"
+              onClick={onTrophies}
+              className="mt-2 animate-pop rounded-full border border-white/30 bg-slate-900/75 px-4 py-1 text-sm font-extrabold tracking-wide text-white shadow-lg backdrop-blur-sm"
+            >
+              {title.emoji} {t.rewards.badges[title.id].name}
+            </button>
+          )}
+
+          {/* Menü */}
+          <div className="mt-4 grid w-full grid-cols-4 gap-2">
+            <MenuBtn color="#d946ef" label={t.home.costumes} onClick={() => { sound.play('click'); onWardrobe(); }}>
+              <Shirt className="h-7 w-7" />
+            </MenuBtn>
+            <MenuBtn color="#0ea5e9" label={t.cards.album} onClick={() => { sound.play('click'); onAlbum(); }}>
+              <BookOpen className="h-7 w-7" />
+            </MenuBtn>
+            <MenuBtn color="#f59e0b" label={t.rewards.trophies} onClick={() => { sound.play('click'); onTrophies(); }}>
+              <Trophy className="h-7 w-7" />
+            </MenuBtn>
+            <MenuBtn
+              color="#f43f5e"
+              label={t.daily.button}
+              pulse={prog.canSpin}
+              badge={prog.canSpin ? '!' : prog.progress.streak > 1 ? `🔥${prog.progress.streak}` : undefined}
+              onClick={() => {
+                sound.play('click');
+                setWheelOpen(true);
+              }}
+            >
+              <Gift className="h-7 w-7" />
+            </MenuBtn>
+          </div>
+
+          <p className="mt-5 text-center text-lg font-bold text-white drop-shadow">{t.home.whereTo}</p>
 
           {/* Abenteuer-Pfad mit drei Inseln */}
-          <div className="relative mt-4 w-full">
+          <div className="relative mt-3 w-full">
             <svg className="pointer-events-none absolute inset-0 h-full w-full" viewBox="0 0 100 300" preserveAspectRatio="none" aria-hidden>
-              <path
-                d="M30 40 C 90 70, 90 100, 70 140 S 10 200, 30 250"
-                fill="none"
-                stroke="#fff"
-                strokeWidth="5"
-                strokeDasharray="2 10"
-                strokeLinecap="round"
-                vectorEffect="non-scaling-stroke"
-                opacity="0.85"
-              />
+              <path d="M30 40 C 90 70, 90 100, 70 140 S 10 200, 30 250" fill="none" stroke="#fff" strokeWidth="5" strokeDasharray="2 10" strokeLinecap="round" vectorEffect="non-scaling-stroke" opacity="0.85" />
             </svg>
-
             {WORLD_ORDER.map((id, i) => {
               const wt = t.worlds[id];
               const isl = ISLAND[id];
-              const max = levelsFor(id).length * 3;
               return (
                 <button
                   key={id}
@@ -170,11 +161,8 @@ export function HomeScreen({ sound, costume, totalStars, starsIn, onPick, onWard
                   style={{ animationDelay: `${i * 0.12}s` }}
                 >
                   <div
-                    className="relative h-36 w-36 shrink-0 rounded-[46%_54%_50%_50%] transition active:scale-95 sm:h-44 sm:w-44"
-                    style={{
-                      background: isl.bg,
-                      boxShadow: '0 10px 0 rgba(0,0,0,.18), 0 20px 30px -10px rgba(0,0,0,.45), inset 0 6px 0 rgba(255,255,255,.35)',
-                    }}
+                    className="relative h-32 w-32 shrink-0 rounded-[46%_54%_50%_50%] transition active:scale-95 sm:h-44 sm:w-44"
+                    style={{ background: isl.bg, boxShadow: '0 10px 0 rgba(0,0,0,.18), 0 20px 30px -10px rgba(0,0,0,.45), inset 0 6px 0 rgba(255,255,255,.35)' }}
                   >
                     <span className="absolute left-[18%] top-[8%] h-[18%] w-[40%] rounded-full bg-white/40 blur-[2px]" />
                     {isl.scene.map((e, k) => (
@@ -187,16 +175,16 @@ export function HomeScreen({ sound, costume, totalStars, starsIn, onPick, onWard
                       </span>
                     ))}
                   </div>
-                  <div className="glass flex-1 rounded-[1.6rem] px-4 py-3">
-                    <div className="text-xs font-bold uppercase tracking-wide" style={{ color: isl.color }}>
+                  <div className="glass min-w-0 flex-1 rounded-[1.6rem] px-4 py-3">
+                    <div className="text-xs font-bold uppercase leading-tight tracking-wide" style={{ color: isl.color }}>
                       {wt.world}
                     </div>
-                    <div className="text-2xl font-bold leading-tight text-slate-800">{wt.name}</div>
-                    <div className="text-sm font-semibold text-slate-500">
+                    <div className="text-xl font-bold leading-tight text-slate-800 sm:text-2xl">{wt.name}</div>
+                    <div className="text-sm font-semibold leading-snug text-slate-500">
                       {wt.ages} · {wt.tagline}
                     </div>
                     <div className={`mt-1 flex items-center gap-1 text-sm font-bold text-slate-700 ${isl.side === 'right' ? 'justify-end' : ''}`}>
-                      <Star className="h-4 w-4 fill-yellow-300 text-amber-500" /> {starsIn(id)} / {max}
+                      <Star className="h-4 w-4 fill-yellow-300 text-amber-500" /> {prog.starsIn(id)} · Lv {prog.frontier(id)}
                     </div>
                   </div>
                 </button>
@@ -208,7 +196,7 @@ export function HomeScreen({ sound, costume, totalStars, starsIn, onPick, onWard
             type="button"
             onClick={() => {
               if (confirmReset) {
-                onResetProgress();
+                prog.reset();
                 setConfirmReset(false);
                 sound.play('remove');
               } else {
@@ -252,6 +240,28 @@ export function HomeScreen({ sound, costume, totalStars, starsIn, onPick, onWard
           </div>
         </div>
       )}
+
+      {wheelOpen && <DailyWheel sound={sound} prog={prog} onClose={() => setWheelOpen(false)} />}
     </div>
+  );
+}
+
+function MenuBtn(p: { color: string; label: string; onClick: () => void; pulse?: boolean; badge?: string; children: ReactNode }) {
+  return (
+    <button
+      type="button"
+      aria-label={p.label}
+      onClick={p.onClick}
+      className={`squish relative flex min-h-[78px] flex-col items-center justify-center gap-1 rounded-[1.4rem] px-1 py-2 ${p.pulse ? 'animate-breathe' : ''}`}
+      style={{ '--c': p.color } as CSSProperties}
+    >
+      {p.children}
+      <span className="text-center text-[11px] font-bold leading-tight">{p.label}</span>
+      {p.badge && (
+        <span className="absolute -right-1 -top-2 min-w-[24px] animate-pop rounded-full bg-yellow-300 px-1.5 py-0.5 text-xs font-extrabold text-rose-700 shadow [text-shadow:none]">
+          {p.badge}
+        </span>
+      )}
+    </button>
   );
 }

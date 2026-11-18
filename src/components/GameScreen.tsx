@@ -1,19 +1,20 @@
 // ─────────────────────────────────────────────────────────────
 // GameScreen: Spielfeld + Sparky-Sprechblase + Programm + Palette
 // ─────────────────────────────────────────────────────────────
-import { Clapperboard, ChevronLeft, Play, RotateCcw, Square, Star, Trash2, Turtle, Volume2, VolumeX, Zap } from 'lucide-react';
+import { ChevronLeft, Clapperboard, CornerLeftUp, Crosshair, Play, RotateCcw, Settings, Square, Star, Trash2 } from 'lucide-react';
 import { useCallback, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { useStoredState } from '../hooks/useStoredState';
 import { cardForLevel, unlockedCards } from '../data/cards';
-import { COSTUMES, type Costume, type CostumeId } from '../data/costumes';
-import { levelsFor } from '../data/levels';
+import { COSTUMES, type Costume } from '../data/costumes';
+import { HANDCRAFTED, levelAt, levelNumber } from '../data/levels';
 import { pick } from '../data/messages';
 import { useI18n } from '../i18n';
 import { WORLDS } from '../data/worlds';
-import { countProgram, createBlock, emptyProgram, insertBlock, isContainer, removeBlock, targetExists, updateBlock } from '../engine/program';
+import { countProgram, createBlock, emptyProgram, findBlock, insertBlock, isContainer, parentTarget, removeBlock, targetExists, updateBlock } from '../engine/program';
 import { hasBonus, rate } from '../engine/rating';
 import type { CodeLang } from '../engine/codegen';
 import { STEP_MS, useProgramRunner, type Speed } from '../hooks/useProgramRunner';
+import type { ProgressApi, Reward } from '../hooks/useProgress';
 import type { SoundApi } from '../hooks/useSoundEffects';
 import type { Block, InsertTarget, LevelDef, PaletteKind, Program, RunResult } from '../types';
 import { Board } from './Board';
@@ -31,21 +32,19 @@ interface Props {
   level: LevelDef;
   sound: SoundApi;
   speed: Speed;
-  onToggleSpeed: () => void;
-  bestStars: number;
-  totalStars: number;
-  allStars: Record<string, number>;
-  costume: CostumeId;
-  onSaveStars: (levelId: string, stars: number) => void;
-  onWear: (id: CostumeId) => void;
+  prog: ProgressApi;
   onBack: () => void;
   onOpenLevel: (id: string) => void;
+  onSettings: () => void;
 }
 
 const MAIN_TARGET: InsertTarget = { root: 'main', parentId: null };
 
 export function GameScreen(props: Props) {
-  const { level, sound, speed, bestStars, totalStars, costume } = props;
+  const { level, sound, speed, prog } = props;
+  const bestStars = prog.progress.stars[level.id] ?? 0;
+  const totalStars = prog.totalStars;
+  const costume = prog.costume;
   const world = WORLDS[level.group];
   const { t, levelTitle, levelHint, failLines } = useI18n();
   const tRef = useRef({ t, failLines });
@@ -62,6 +61,7 @@ export function GameScreen(props: Props) {
     message: string;
     newCostume: Costume | null;
     cardIsNew: boolean;
+    milestone: Reward | null;
   } | null>(null);
   const card = cardForLevel(level.id);
   const [limitFlash, setLimitFlash] = useState(false);
@@ -71,12 +71,12 @@ export function GameScreen(props: Props) {
   const [codeLang, setCodeLang] = useStoredState<CodeLang>('sparky:codeLang', 'js');
   const programRef = useRef(program);
   programRef.current = program;
-  const statsRef = useRef({ bestStars, totalStars, allStars: props.allStars });
-  statsRef.current = { bestStars, totalStars, allStars: props.allStars };
+  const statsRef = useRef({ bestStars, totalStars, allStars: prog.progress.stars });
+  statsRef.current = { bestStars, totalStars, allStars: prog.progress.stars };
 
-  const siblings = levelsFor(level.group);
-  const index = siblings.findIndex((l) => l.id === level.id);
-  const nextLevel = siblings[index + 1];
+  // Endlos-Level: es gibt immer ein nächstes Level
+  const levelNo = levelNumber(level.id);
+  const nextLevel = levelAt(level.group, levelNo + 1);
   const blockCount = countProgram(program);
   const bonus = hasBonus(level);
 
@@ -89,11 +89,11 @@ export function GameScreen(props: Props) {
         const newTotal = prevTotal - prevBest + Math.max(prevBest, stars);
         const unlocked = COSTUMES.filter((c) => c.stars > prevTotal && c.stars <= newTotal);
         play('win');
-        props.onSaveStars(level.id, stars);
-        setResult({ kind: 'success', stars, message: pick(tRef.current.t.win), newCostume: unlocked[unlocked.length - 1] ?? null, cardIsNew });
+        const milestone = prog.saveStars(level.id, stars);
+        setResult({ kind: 'success', stars, message: pick(tRef.current.t.win), newCostume: unlocked[unlocked.length - 1] ?? null, cardIsNew, milestone });
       } else {
         play('fail');
-        setResult({ kind: 'fail', stars: 0, message: pick(tRef.current.failLines(res.reason ?? 'notReached', level.group)), newCostume: null, cardIsNew: false });
+        setResult({ kind: 'fail', stars: 0, message: pick(tRef.current.failLines(res.reason ?? 'notReached', level.group)), newCostume: null, cardIsNew: false, milestone: null });
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -118,7 +118,9 @@ export function GameScreen(props: Props) {
     const block = createBlock(kind);
     const t = targetExists(program, target) ? target : MAIN_TARGET;
     setProgram((p) => insertBlock(p, t, block));
+    // Neue Schleife → Fokus hinein; sonst bei "danach" hinter dem neuen Block weitermachen
     if (isContainer(block)) setTarget({ root: t.root, parentId: block.id });
+    else if (t.afterId) setTarget({ ...t, afterId: block.id });
     play('click');
   };
 
@@ -166,6 +168,25 @@ export function GameScreen(props: Props) {
   else if (isRunning && (frame?.motion === 'walk' || frame?.motion === 'jump')) mood = 'walk';
   else if (isRunning && frame?.motion === 'think') mood = 'think';
 
+
+  // ── Aktiver Fokus (wohin der nächste Block eingefügt wird) ──
+  const effTarget = targetExists(program, target) ? target : MAIN_TARGET;
+  const focusContainer = effTarget.parentId ? findBlock(program[effTarget.root], effTarget.parentId) : null;
+  const showFocus = !isMini && (hasMacro || program.main.some(isContainer) || program.macro.length > 0);
+  const focus = !showFocus
+    ? null
+    : focusContainer && isContainer(focusContainer)
+      ? {
+          inside: true,
+          label: t.loop.focusInto(
+            focusContainer.type === 'repeat'
+              ? `${t.blocks.repeat.label} ${focusContainer.count}×`
+              : `${t.blocks.if.label} ${t.conds[focusContainer.cond]}`,
+          ),
+          exit: parentTarget(program, focusContainer.id),
+        }
+      : { inside: false, label: effTarget.root === 'macro' ? t.loop.focusMacro : t.loop.focusMain, exit: MAIN_TARGET };
+
   const isKindDisabled = useMemo(() => (k: PaletteKind) => k === 'call' && target.root === 'macro', [target.root]);
   const bubble = levelHint(level);
 
@@ -184,7 +205,7 @@ export function GameScreen(props: Props) {
           <ChevronLeft className="h-7 w-7 rtl:rotate-180" strokeWidth={3} />
         </RoundBtn>
         <div className={`flex min-w-0 flex-1 flex-col leading-tight ${world.text} drop-shadow`}>
-          <span className="truncate text-lg font-bold">{world.showText ? `${index + 1}. ${levelTitle(level)}` : `${world.emoji} ${index + 1}`}</span>
+          <span className="line-clamp-2 text-base font-bold leading-tight sm:text-lg">{world.showText ? (levelNo > HANDCRAFTED ? levelTitle(level) : `${levelNo}. ${levelTitle(level)}`) : `${world.emoji} ${levelNo}`}</span>
           <span className="flex">
             {[1, 2, 3].map((i) => (
               <Star key={i} className={`h-4 w-4 ${i <= bestStars ? 'fill-yellow-300 text-amber-500' : 'text-white/70'}`} />
@@ -203,12 +224,8 @@ export function GameScreen(props: Props) {
         >
           <Clapperboard className="h-6 w-6" strokeWidth={2.5} />
         </RoundBtn>
-        <RoundBtn label={speed === 'turbo' ? t.ui.turbo : t.ui.normal} onClick={props.onToggleSpeed} color={speed === 'turbo' ? '#facc15' : '#ffffff'} dark>
-          {speed === 'turbo' ? <Zap className="h-6 w-6 fill-amber-500 text-amber-700" /> : <Turtle className="h-6 w-6" />}
-          {world.showText && <span className="hidden text-sm font-bold sm:inline">{speed === 'turbo' ? t.ui.turbo : t.ui.normal}</span>}
-        </RoundBtn>
-        <RoundBtn label={sound.muted ? t.ui.soundOn : t.ui.soundOff} onClick={sound.toggleMute} color="#ffffff" dark>
-          {sound.muted ? <VolumeX className="h-6 w-6" /> : <Volume2 className="h-6 w-6" />}
+        <RoundBtn label={t.settings.title} onClick={props.onSettings} color="#ffffff" dark>
+          <Settings className="h-6 w-6" />
         </RoundBtn>
       </header>
 
@@ -216,7 +233,7 @@ export function GameScreen(props: Props) {
         {/* ── Spielfeld ── */}
         <div className={`flex shrink-0 flex-col gap-2 md:w-1/2 md:shrink md:justify-center ${isMini ? '[--board-h:34dvh]' : '[--board-h:24dvh]'} md:[--board-h:62dvh]`}>
           <div dir="ltr">
-            <Board level={level} world={world} frame={frame} frameIndex={frameIndex} stepMs={stepMs} mood={mood} costume={costume} />
+            <Board level={level} world={world} frame={frame} frameIndex={frameIndex} stepMs={stepMs} mood={mood} />
           </div>
           {world.showText && bubble && (
             // Tipp-Blase: offen, solange noch keine Blöcke liegen (oder Sparky läuft) – sonst als 💡 eingeklappt
@@ -228,28 +245,13 @@ export function GameScreen(props: Props) {
                 disabled={blockCount === 0}
               >
                 <div className="h-11 w-11 shrink-0">
-                  <Sparky mood={isRunning ? 'think' : 'idle'} costume={costume} />
+                  <Sparky mood={isRunning ? 'think' : 'idle'} />
                 </div>
                 <div key={bubble} className="glass relative flex-1 animate-bounce-in rounded-2xl rounded-bl-md px-3 py-1.5 text-xs font-semibold text-slate-700 sm:text-sm">
                   {bubble}
                 </div>
               </button>
-            ) : (
-              <button
-                type="button"
-                aria-label="💡"
-                onClick={() => {
-                  play('click');
-                  setBubbleOpen(true);
-                }}
-                className="glass -mt-1 flex h-9 items-center gap-1 self-start rounded-full px-3 text-sm font-bold text-slate-700"
-              >
-                <span className="h-6 w-6">
-                  <Sparky mood="idle" costume={costume} />
-                </span>
-                💡
-              </button>
-            )
+            ) : null
           )}
         </div>
 
@@ -283,7 +285,20 @@ export function GameScreen(props: Props) {
             <>
               {/* Code-Brücke: Umschalter Blöcke ↔ Echter Code
                   Handy: immer nur ein Bereich, dafür in voller Höhe · Tablet: beide sichtbar */}
-              <div className="flex shrink-0 rounded-full bg-black/25 p-1" role="tablist">
+              <div className="flex shrink-0 items-center gap-1 rounded-full bg-black/25 p-1" role="tablist">
+                {world.showText && bubble && blockCount > 0 && !bubbleOpen && (
+                  <button
+                    type="button"
+                    aria-label="💡"
+                    onClick={() => {
+                      play('click');
+                      setBubbleOpen(true);
+                    }}
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/90 text-lg shadow"
+                  >
+                    💡
+                  </button>
+                )}
                 {[
                   { on: false, label: `🧩 ${t.ui.myProgram}` },
                   { on: true, label: t.code.toggle },
@@ -332,6 +347,29 @@ export function GameScreen(props: Props) {
                 </div>
               )}
 
+              {/* Aktiver Fokus: Wohin kommt der nächste Block? */}
+              {focus && (
+                <div
+                  className={`flex shrink-0 items-center gap-2 rounded-full px-3 py-1 text-xs font-bold shadow-lg transition sm:text-sm ${
+                    focus.inside ? 'animate-breathe bg-orange-500 text-white ring-4 ring-yellow-300' : 'bg-white/90 text-slate-700'
+                  }`}
+                >
+                  <Crosshair className="h-4 w-4 shrink-0" strokeWidth={3} />
+                  <span className="min-w-0 flex-1 leading-tight">{focus.label}</span>
+                  {focus.inside && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        play('click');
+                        setTarget(focus.exit);
+                      }}
+                      className="flex shrink-0 items-center gap-1 rounded-full bg-white px-3 py-1 text-xs font-extrabold text-orange-600 shadow active:scale-95"
+                    >
+                      <CornerLeftUp className="h-4 w-4 rtl:-scale-x-100" strokeWidth={3} /> {t.loop.exit}
+                    </button>
+                  )}
+                </div>
+              )}
               <div className="shrink-0 rounded-[1.8rem] bg-white/25 p-2 shadow-lg backdrop-blur-md">
                 <div className={`mb-2 flex items-center justify-between px-1 text-sm font-bold ${world.text}`}>
                   <span className={`rounded-full px-2 transition ${limitFlash ? 'animate-shake bg-red-500 text-white' : ''}`}>
@@ -377,6 +415,7 @@ export function GameScreen(props: Props) {
           t={t}
           costume={costume}
           newCostume={result.newCostume}
+          milestone={result.milestone}
           card={card}
           cardIsNew={result.cardIsNew}
           hasNext={!!nextLevel}
@@ -384,7 +423,7 @@ export function GameScreen(props: Props) {
           onNext={() => nextLevel && props.onOpenLevel(nextLevel.id)}
           onMap={props.onBack}
           onWear={(id) => {
-            props.onWear(id);
+            prog.setCostume(id);
             play('unlock');
             setResult((r) => (r ? { ...r, newCostume: null } : r));
           }}

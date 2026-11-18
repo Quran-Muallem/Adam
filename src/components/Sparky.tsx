@@ -3,8 +3,8 @@
 // Mimik: idle (neugierig, blinzelt), walk, happy, boing, sad, think
 // Kostüme werden als SVG-Ebenen darübergelegt.
 // ─────────────────────────────────────────────────────────────
-import { useId } from 'react';
-import type { CostumeId } from '../data/costumes';
+import { createContext, useContext, useId } from 'react';
+import { SKINS, type CostumeId, type SkinId } from '../data/costumes';
 import type { Dir } from '../types';
 
 export type SparkyMood = 'idle' | 'walk' | 'happy' | 'boing' | 'sad' | 'think';
@@ -12,9 +12,14 @@ export type SparkyMood = 'idle' | 'walk' | 'happy' | 'boing' | 'sad' | 'think';
 interface Props {
   mood?: SparkyMood;
   dir?: Dir;
+  /** Ohne Angabe: das gewählte Kostüm aus dem LookContext */
   costume?: CostumeId;
+  skin?: SkinId;
   className?: string;
 }
+
+/** Aktuelles Aussehen (Kostüm + Farbe) – wird in App gesetzt */
+export const SparkyLook = createContext<{ costume: CostumeId; skin: SkinId }>({ costume: 'none', skin: 'violet' });
 
 const MOOD_ANIM: Record<SparkyMood, string> = {
   idle: 'animate-breathe',
@@ -25,8 +30,11 @@ const MOOD_ANIM: Record<SparkyMood, string> = {
   think: 'animate-breathe',
 };
 
-export function Sparky({ mood = 'idle', dir = 'right', costume = 'none', className = '' }: Props) {
+export function Sparky({ mood = 'idle', dir = 'right', costume: costumeProp, skin: skinProp, className = '' }: Props) {
   const uid = useId().replace(/:/g, '');
+  const lookCtx = useContext(SparkyLook);
+  const costume = costumeProp ?? lookCtx.costume;
+  const sk = SKINS.find((x) => x.id === (skinProp ?? lookCtx.skin)) ?? SKINS[0];
   const flip = dir === 'left';
   // Blickrichtung der Pupillen
   const look = { x: dir === 'up' || dir === 'down' ? 0 : 2.5, y: dir === 'up' ? -3.5 : dir === 'down' ? 3 : 0 };
@@ -37,10 +45,10 @@ export function Sparky({ mood = 'idle', dir = 'right', costume = 'none', classNa
       <svg viewBox="0 0 120 120" className="h-full w-full overflow-visible" style={{ filter: 'drop-shadow(0 6px 4px rgba(0,0,0,.28))' }}>
         <defs>
           <radialGradient id={`body${uid}`} cx="38%" cy="30%" r="75%">
-            <stop offset="0%" stopColor="#ddd6fe" />
-            <stop offset="35%" stopColor="#a78bfa" />
-            <stop offset="80%" stopColor="#7c3aed" />
-            <stop offset="100%" stopColor="#5b21b6" />
+            <stop offset="0%" stopColor={sk.body[0]} />
+            <stop offset="35%" stopColor={sk.body[1]} />
+            <stop offset="80%" stopColor={sk.body[2]} />
+            <stop offset="100%" stopColor={sk.body[3]} />
           </radialGradient>
           <radialGradient id={`belly${uid}`} cx="45%" cy="35%" r="70%">
             <stop offset="0%" stopColor="#fffbeb" />
@@ -74,8 +82,8 @@ export function Sparky({ mood = 'idle', dir = 'right', costume = 'none', classNa
           />
 
           {/* Füße */}
-          <ellipse cx="46" cy="101" rx="11" ry="7" fill="#6d28d9" />
-          <ellipse cx="76" cy="101" rx="11" ry="7" fill="#6d28d9" />
+          <ellipse cx="46" cy="101" rx="11" ry="7" fill={sk.feet} />
+          <ellipse cx="76" cy="101" rx="11" ry="7" fill={sk.feet} />
           <ellipse cx="49" cy="99" rx="4" ry="2" fill="#c4b5fd" opacity="0.7" />
           <ellipse cx="79" cy="99" rx="4" ry="2" fill="#c4b5fd" opacity="0.7" />
 
@@ -87,7 +95,7 @@ export function Sparky({ mood = 'idle', dir = 'right', costume = 'none', classNa
           <path d="M76 38 Q80 24 88 24 Q84 34 84 42 Z" fill={`url(#horn${uid})`} stroke="#b45309" strokeWidth="1.5" />
 
           {/* Körper / Kopf */}
-          <ellipse cx="62" cy="68" rx="38" ry="34" fill={`url(#body${uid})`} stroke="#4c1d95" strokeWidth="2.5" />
+          <ellipse cx="62" cy="68" rx="38" ry="34" fill={`url(#body${uid})`} stroke={sk.outline} strokeWidth="2.5" />
           {/* Weltraum-Pünktchen */}
           <circle cx="36" cy="64" r="2" fill="#fef08a" />
           <circle cx="42" cy="78" r="1.4" fill="#fef08a" />
@@ -242,6 +250,27 @@ function Hat({ costume, uid }: { costume: CostumeId; uid: string }) {
           <circle cx="70" cy="30" r="3" fill="#ef4444" />
           <circle cx="60" cy="33" r="2" fill="#3b82f6" />
           <circle cx="80" cy="33" r="2" fill="#10b981" />
+        </g>
+      );
+    case 'ninja':
+      return (
+        <g>
+          {/* Stirnband mit flatternden Enden */}
+          <path d="M26 46 Q62 30 100 42 L99 50 Q62 38 27 54 Z" fill="#1f2937" stroke="#111827" strokeWidth="1.5" />
+          <rect x="58" y="38" width="12" height="9" rx="2" fill="#9ca3af" transform="rotate(-8 64 42)" />
+          <path d="M28 50 Q14 46 6 54 M28 52 Q16 58 10 66" fill="none" stroke="#dc2626" strokeWidth="5" strokeLinecap="round" />
+        </g>
+      );
+    case 'cyber':
+      return (
+        <g>
+          {/* Visier + Rüstung */}
+          <rect x="54" y="47" width="46" height="18" rx="9" fill="#22d3ee" fillOpacity="0.45" stroke="#0e7490" strokeWidth="2.5" />
+          <path d="M58 51 L72 51" stroke="#ecfeff" strokeWidth="2.5" strokeLinecap="round" opacity="0.9" />
+          <path d="M52 76 Q68 70 84 76 L82 96 Q68 100 54 96 Z" fill="#94a3b8" stroke="#334155" strokeWidth="2" />
+          <circle cx="68" cy="85" r="4" fill="#22d3ee" stroke="#0e7490" strokeWidth="1.5" />
+          <line x1="66" y1="34" x2="70" y2="16" stroke="#475569" strokeWidth="3" />
+          <circle cx="70" cy="15" r="4" fill="#22d3ee" />
         </g>
       );
     default:

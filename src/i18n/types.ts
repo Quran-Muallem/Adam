@@ -1,6 +1,7 @@
 // Struktur eines Sprachpakets – jede Sprache muss ALLE Schlüssel liefern
 import type { CardId } from '../data/cards';
-import type { CostumeId } from '../data/costumes';
+import type { CostumeId, SkinId } from '../data/costumes';
+import type { BadgeId } from '../data/rewards';
 import type { AgeGroupId, Condition, FailReason, PaletteKind } from '../types';
 
 export type Lang = 'ar' | 'en' | 'de' | 'fr' | 'es' | 'it';
@@ -41,7 +42,42 @@ export interface BridgeTexts {
   };
 }
 
-export interface Dict extends BridgeTexts {
+/** Texte für Einstellungen, Schleifen-Fokus, Endlos-Level & Belohnungen */
+export interface MoreTexts {
+  settings: { title: string; music: string; sfx: string; speed: string; on: string; off: string; done: string };
+  loop: {
+    inside: string;
+    insideIf: string;
+    after: string;
+    focusInto: (label: string) => string;
+    focusMain: string;
+    focusMacro: string;
+    exit: string;
+  };
+  gen: { title: (n: number) => string; hints: Record<AgeGroupId, string[]> };
+  map: {
+    chest: string;
+    chestReady: string;
+    chestWon: string;
+    milestone: (n: number) => string;
+    milestoneReward: string;
+    newSticker: string;
+    bonusStars: (n: number) => string;
+  };
+  rewards: {
+    trophies: string;
+    badgesTitle: string;
+    stickersTitle: string;
+    noTitle: string;
+    colors: string;
+    costumesTab: string;
+    badges: Record<BadgeId, { name: string; desc: string }>;
+  };
+  daily: { button: string; spin: string; comeBack: string; streak: (n: number) => string; streakBonus: string; sticker: string };
+  skins: Record<SkinId, string>;
+}
+
+export interface Dict extends BridgeTexts, MoreTexts {
   /** Name der Sprache in der Sprache selbst */
   langName: string;
   titleTop: string;

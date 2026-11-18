@@ -1,14 +1,18 @@
 // ─────────────────────────────────────────────────────────────
 // App: einfacher Screen-Router
-// Abenteuerkarte → Welt-Karte (20 Level) → Spiel   (+ Kostüm-Schrank)
+// Abenteuerkarte → Welt-Karte (∞ Level) → Spiel
+// (+ Kostüme, Code-Wissen, Trophäen, Einstellungen)
 // ─────────────────────────────────────────────────────────────
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { Album } from './components/Album';
 import { GameScreen } from './components/GameScreen';
 import { HomeScreen } from './components/HomeScreen';
 import { LevelMap } from './components/LevelMap';
+import { SettingsModal } from './components/SettingsModal';
+import { SparkyLook } from './components/Sparky';
+import { Trophies } from './components/Trophies';
 import { Wardrobe } from './components/Wardrobe';
-import { getLevel } from './data/levels';
+import { getLevel, levelGroup } from './data/levels';
 import type { Speed } from './hooks/useProgramRunner';
 import { useProgress } from './hooks/useProgress';
 import { useSoundEffects } from './hooks/useSoundEffects';
@@ -18,6 +22,7 @@ type Screen =
   | { name: 'home' }
   | { name: 'wardrobe' }
   | { name: 'album' }
+  | { name: 'trophies' }
   | { name: 'map'; group: AgeGroupId }
   | { name: 'game'; levelId: string };
 
@@ -27,7 +32,8 @@ export default function App() {
   const sound = useSoundEffects();
   const prog = useProgress();
   const [screen, setScreen] = useState<Screen>({ name: 'home' });
-  const [speed, setSpeed] = useState<Speed>(() => {
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [speed, setSpeedState] = useState<Speed>(() => {
     try {
       return localStorage.getItem(SPEED_KEY) === 'turbo' ? 'turbo' : 'normal';
     } catch {
@@ -35,78 +41,96 @@ export default function App() {
     }
   });
 
-  const { play } = sound;
-  const toggleSpeed = useCallback(() => {
-    play('click');
-    setSpeed((s) => {
-      const next: Speed = s === 'normal' ? 'turbo' : 'normal';
-      try {
-        localStorage.setItem(SPEED_KEY, next);
-      } catch {
-        /* ignorieren */
-      }
-      return next;
-    });
-  }, [play]);
+  const setSpeed = useCallback((s: Speed) => {
+    setSpeedState(s);
+    try {
+      localStorage.setItem(SPEED_KEY, s);
+    } catch {
+      /* ignorieren */
+    }
+  }, []);
 
+  // Die Musik passt sich der Welt an
+  const { setTheme, play } = sound;
+  const theme = screen.name === 'map' ? screen.group : screen.name === 'game' ? levelGroup(screen.levelId) : 'home';
+  useEffect(() => setTheme(theme), [theme, setTheme]);
+
+  const openSettings = useCallback(() => {
+    play('click');
+    setSettingsOpen(true);
+  }, [play]);
+  const home = () => setScreen({ name: 'home' });
+
+  let view: ReactNode = null;
   switch (screen.name) {
     case 'home':
-      return (
+      view = (
         <HomeScreen
           sound={sound}
-          costume={prog.costume}
-          totalStars={prog.totalStars}
-          starsIn={prog.starsIn}
+          prog={prog}
           onPick={(group) => setScreen({ name: 'map', group })}
           onWardrobe={() => setScreen({ name: 'wardrobe' })}
           onAlbum={() => setScreen({ name: 'album' })}
-          onResetProgress={prog.reset}
+          onTrophies={() => setScreen({ name: 'trophies' })}
+          onSettings={openSettings}
         />
       );
+      break;
     case 'wardrobe':
-      return (
+      view = (
         <Wardrobe
           sound={sound}
           costume={prog.costume}
+          skin={prog.skin}
           totalStars={prog.totalStars}
           onWear={prog.setCostume}
-          onBack={() => setScreen({ name: 'home' })}
+          onSkin={prog.setSkin}
+          onBack={home}
         />
       );
+      break;
     case 'album':
-      return <Album sound={sound} stars={prog.progress.stars} onBack={() => setScreen({ name: 'home' })} />;
+      view = <Album sound={sound} stars={prog.progress.stars} onBack={home} />;
+      break;
+    case 'trophies':
+      view = <Trophies sound={sound} prog={prog} onBack={home} />;
+      break;
     case 'map':
-      return (
+      view = (
         <LevelMap
+          key={screen.group}
           group={screen.group}
           sound={sound}
-          stars={prog.progress.stars}
-          costume={prog.costume}
-          isUnlocked={prog.isUnlocked}
-          onBack={() => setScreen({ name: 'home' })}
+          prog={prog}
+          onBack={home}
           onOpen={(levelId) => setScreen({ name: 'game', levelId })}
+          onSettings={openSettings}
         />
       );
+      break;
     case 'game': {
       const level = getLevel(screen.levelId);
-      if (!level) return null;
-      return (
+      if (!level) break;
+      view = (
         <GameScreen
           key={level.id}
           level={level}
           sound={sound}
           speed={speed}
-          onToggleSpeed={toggleSpeed}
-          bestStars={prog.progress.stars[level.id] ?? 0}
-          totalStars={prog.totalStars}
-          allStars={prog.progress.stars}
-          costume={prog.costume}
-          onSaveStars={prog.saveStars}
-          onWear={prog.setCostume}
+          prog={prog}
           onBack={() => setScreen({ name: 'map', group: level.group })}
           onOpenLevel={(levelId) => setScreen({ name: 'game', levelId })}
+          onSettings={openSettings}
         />
       );
+      break;
     }
   }
+
+  return (
+    <SparkyLook.Provider value={{ costume: prog.costume, skin: prog.skin }}>
+      {view}
+      {settingsOpen && <SettingsModal sound={sound} speed={speed} setSpeed={setSpeed} onClose={() => setSettingsOpen(false)} />}
+    </SparkyLook.Provider>
+  );
 }
