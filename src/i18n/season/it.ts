@@ -47,6 +47,8 @@ export const seasonIt: ExtraTexts = {
     speed: "Velocità",
     language: "Lingua",
     worldDone: "Completa il mondo",
+    gameSound: "Gioco e suono",
+    festsSeason: "Feste e stagioni",
     eventPlay: "Gioca ora!",
     spinTitle: "Premio del giorno",
     super: "Super!",

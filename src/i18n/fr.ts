@@ -200,7 +200,7 @@ export const fr: Dict = {
     'hero-18': { t: 'Le portail au coin', h: 'Combine une condition et un portail !' },
     'hero-19': { t: 'La chaîne de portails', h: 'Trois sections identiques, deux portails. Macro ou boucle ?' },
     'hero-20': { t: 'Le diplôme des étoiles', h: 'La finale ! Sauter, portail, tourner – un programme malin fait tout.' },
-    "teen-1": { t: "while (!auBut)", h: "Nouveau bloc : TANT QUE. Il tourne jusqu’à ce que la condition soit fausse. Deux blocs suffisent." },
+    "teen-1": { t: "Jusqu'au but", h: "Nouveau bloc : TANT QUE. Il tourne jusqu’à ce que la condition soit fausse. Deux blocs suffisent." },
     "teen-2": { t: "Capteur activé", h: "Boucle + capteur = pilote automatique. Tourne seulement si le chemin est bloqué." },
     "teen-3": { t: "Interrupteur laser", h: "L’interrupteur ⏻ bascule TOUS les lasers. D’abord couper, ensuite passer." },
     "teen-4": { t: "Carrefour du compteur", h: "Un compteur sait quand s’arrêter : n = 6, puis TANT QUE n > 0 { avancer ; n−1 }." },

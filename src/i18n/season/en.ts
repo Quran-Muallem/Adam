@@ -47,6 +47,8 @@ export const seasonEn: ExtraTexts = {
     speed: "Speed",
     language: "Language",
     worldDone: "Complete world",
+    gameSound: "Game & sound",
+    festsSeason: "Festivals & seasons",
     eventPlay: "Play now!",
     spinTitle: "Daily reward",
     super: "Super!",

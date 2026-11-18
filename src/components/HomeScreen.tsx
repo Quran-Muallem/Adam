@@ -21,7 +21,7 @@ import { useI18n } from '../i18n';
 import type { AgeGroupId } from '../types';
 import { DailyWheel } from './DailyWheel';
 import { SeasonBanner, SeasonLayer } from './SeasonLayer';
-import { Sprite, type SpriteName } from './sprites';
+import type { SpriteName } from './sprites';
 
 /** Maße der Vorlage */
 const DW = 1438;
@@ -291,8 +291,8 @@ function WorldCard(p: { id: AgeGroupId; de: boolean; name: string; ages: string;
   const ph = PLACEHOLDER[p.id];
   const text: ReactNode = (
     <>
-      <span className="absolute flex flex-col justify-end text-start leading-[1.05]" style={{ left: u(55), bottom: u(38), right: u(420) }}>
-        <span className="line-clamp-2 uppercase" style={{ ...OUTLINE, fontSize: u(p.name.length > 12 ? 74 : 98) }}>
+      <span className="absolute flex flex-col justify-end text-start leading-[1.05]" style={{ left: u(55), bottom: u(38), right: original ? u(420) : u(470) }}>
+        <span className="line-clamp-3 uppercase" style={{ ...OUTLINE, fontSize: u(p.name.length > 12 ? 70 : 92) }}>
           {p.name}
         </span>
         <span style={{ ...OUTLINE, fontSize: u(60) }}>({p.ages})</span>
@@ -301,7 +301,11 @@ function WorldCard(p: { id: AgeGroupId; de: boolean; name: string; ages: string;
         className="absolute flex items-center justify-center"
         style={{ left: u(B.play_blank[0] - B.card1[0]), top: u(B.play_blank[1] - B.card1[1]), width: u(B.play_blank[2] - B.play_blank[0]), height: u(B.play_blank[3] - B.play_blank[1]) }}
       >
-        <img src={IMG('play_blank')} alt="" className="absolute inset-0 h-full w-full" draggable={false} />
+        {original ? (
+          <img src={IMG('play_blank')} alt="" className="absolute inset-0 h-full w-full" draggable={false} />
+        ) : (
+          <span className="squish absolute rounded-full" style={{ '--c': '#34c84a', position: 'absolute', inset: `${u(18)} ${u(10)} ${u(26)}` } as CSSProperties} />
+        )}
         <span className="relative uppercase" style={{ ...OUTLINE, fontSize: u(68), WebkitTextStroke: `${u(7)} #145a1c` }}>
           {p.play}
         </span>
@@ -317,17 +321,26 @@ function WorldCard(p: { id: AgeGroupId; de: boolean; name: string; ages: string;
         </>
       ) : (
         <>
-          {/* Platzhalter: gleiche Kartenform – die Illustration dieser Welt fehlt in der Vorlage */}
+          {/* Welt-Karte: kräftiger Verlauf, dicker 3D-Rahmen, Welt-Illustration mit Sparky (aus den Design-Vorlagen) */}
           <span
             className="absolute overflow-hidden"
-            style={{ inset: u(14), borderRadius: u(62), border: `${u(9)} solid ${ph.ring}`, background: ph.bg, boxShadow: `0 ${u(10)} ${u(18)} rgba(0,0,0,.35)` }}
+            style={{
+              inset: u(14),
+              borderRadius: u(62),
+              border: `${u(10)} solid rgba(15,23,42,.85)`,
+              background: ph.bg,
+              boxShadow: `inset 0 0 0 ${u(10)} ${ph.ring}, 0 ${u(16)} 0 rgba(0,0,0,.4)`,
+            }}
           >
-            {ph.scene.map((s, k) => (
-              <span key={s} className="absolute" style={{ left: `${8 + k * 30}%`, top: `${8 + (k % 2) * 10}%`, width: `${30 - k * 3}%` }}>
-                <Sprite name={s} className="h-auto w-full" />
-              </span>
-            ))}
-            <span className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/60 to-transparent" />
+            <img
+              src={IMG(`world_${p.id}`)}
+              alt=""
+              draggable={false}
+              className="absolute inset-y-0 right-0 h-full object-cover"
+              style={{ width: '54%', WebkitMaskImage: 'linear-gradient(90deg, transparent 0, #000 30%)', maskImage: 'linear-gradient(90deg, transparent 0, #000 30%)' }}
+            />
+            <span className="absolute inset-x-0 bottom-0 h-[55%] bg-gradient-to-t from-black/55 to-transparent" />
+            <span className="absolute inset-0" style={{ boxShadow: `inset 0 0 0 ${u(10)} ${ph.ring}` }} />
           </span>
           {text}
         </>

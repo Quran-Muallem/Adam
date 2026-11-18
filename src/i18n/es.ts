@@ -200,7 +200,7 @@ export const es: Dict = {
     'hero-18': { t: 'Portal a la vuelta', h: '¡Combina una condición y un portal!' },
     'hero-19': { t: 'Cadena de portales', h: 'Tres tramos iguales, dos portales. ¿Macro o bucle?' },
     'hero-20': { t: 'El diploma estelar', h: '¡La final! Saltar, portal, girar: un programa listo lo hace todo.' },
-    "teen-1": { t: "while (!enMeta)", h: "Nuevo bloque: MIENTRAS. Se repite hasta que la condición sea falsa. Bastan dos bloques." },
+    "teen-1": { t: "Hasta la meta", h: "Nuevo bloque: MIENTRAS. Se repite hasta que la condición sea falsa. Bastan dos bloques." },
     "teen-2": { t: "Sensor activado", h: "Bucle + sensor = piloto automático. Gira solo si el camino está bloqueado." },
     "teen-3": { t: "Interruptor láser", h: "El interruptor ⏻ cambia TODOS los láseres. Primero apagar, luego pasar." },
     "teen-4": { t: "Cruce del contador", h: "Un contador sabe cuándo parar: n = 6, luego MIENTRAS n > 0 { avanzar; n−1 }." },

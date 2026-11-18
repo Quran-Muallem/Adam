@@ -172,7 +172,7 @@ const HERO: LevelDef[] = [
 
 // ═════════ Stufe 4: Cyber-Pioniere (13–17) · Neon-Metropole ═════════
 const TEEN: LevelDef[] = [
-  L('teen', 1, 'while (!amZiel)', ['#######', 'S.....G', '#######'], 'right', T_WHILE, 3, 2,
+  L('teen', 1, 'Bis zum Ziel', ['#######', 'S.....G', '#######'], 'right', T_WHILE, 3, 2,
     'Neuer Block: SOLANGE. Läuft, bis die Bedingung falsch ist. Zwei Blöcke reichen hier.'),
   L('teen', 2, 'Sensor an', ['S...#', '###.#', 'G...#'], 'right', T_LOGIC, 6, 4,
     'Schleife + Sensor = Autopilot. Dreh dich nur, wenn der Weg versperrt ist.'),

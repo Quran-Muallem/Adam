@@ -108,15 +108,15 @@ export function Trophies({ sound, prog, onBack }: Props) {
         <Ribbon color="purple" className="mb-4">
           {t.ui2.stickers} · {owned.length}/{STICKERS.length}
         </Ribbon>
-        <div className="ui-panel mb-6 grid grid-cols-5 gap-2 p-3">
+        <div className="ui-panel mb-6 grid grid-cols-5 gap-2 p-3" style={{ background: 'linear-gradient(180deg,#c7b5ff,#8b5cf6)' }}>
           {STICKERS.map((s) => (
             <div
               key={s}
               className={`flex aspect-square items-center justify-center rounded-2xl text-[1.7rem] ${
-                owned.includes(s) ? 'bg-gradient-to-b from-[#fff8d6] to-[#ffe08a] shadow-[0_0_0_2px_#e0a31a,0_3px_0_#e0a31a]' : 'bg-[#e6eef9] shadow-[inset_0_2px_3px_rgba(0,0,0,.12)]'
+                owned.includes(s) ? 'border-[3px] border-slate-900/80 bg-gradient-to-b from-[#fff8d6] to-[#ffd54a] shadow-[0_4px_0_rgba(0,0,0,.4)]' : 'border-[3px] border-slate-900/40 bg-white/40 shadow-[inset_0_2px_3px_rgba(0,0,0,.15)]'
               }`}
             >
-              {owned.includes(s) ? s : <Lock className="h-4 w-4 text-[#9fb3d1]" strokeWidth={3} />}
+              {owned.includes(s) ? s : <Lock className="h-4 w-4 text-[#4c1d95]/70" strokeWidth={3} />}
             </div>
           ))}
         </div>

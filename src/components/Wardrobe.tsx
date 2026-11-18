@@ -1,7 +1,7 @@
 // Kostüm-Editor: Vorschau auf der Wiese, Kacheln für Kostüme & Farben,
 // freigeschaltet durch gesammelte Sterne – „Anwenden“ zieht Sparky um
 import { Check, Lock } from 'lucide-react';
-import { useState } from 'react';
+import { useState, type CSSProperties } from 'react';
 import { COSTUMES, SKINS, type CostumeId, type SkinId } from '../data/costumes';
 import type { SoundApi } from '../hooks/useSoundEffects';
 import { useI18n } from '../i18n';
@@ -45,14 +45,14 @@ export function Wardrobe({ sound, costume, skin, totalStars, onWear, onSkin, onB
         <GameButton
           big
           className="mx-auto w-full max-w-xs"
-          disabled={!dirty}
           onClick={() => {
-            sound.play('unlock');
+            sound.play(dirty ? 'unlock' : 'click');
             if (pc !== costume) onWear(pc);
             if (ps !== skin) onSkin(ps);
+            if (!dirty) onBack();
           }}
         >
-          {dirty ? t.ui2.apply : <Check className="h-8 w-8" strokeWidth={4} />}
+          {t.ui2.apply}
         </GameButton>
       }
     >
@@ -67,7 +67,7 @@ export function Wardrobe({ sound, costume, skin, totalStars, onWear, onSkin, onB
         <p className="ui-outline-blue font-game mb-3 text-center text-[15px] leading-snug text-white">{t.wardrobe.intro}</p>
 
         {/* Reiter */}
-        <div className="mx-auto mb-4 flex max-w-xs rounded-full bg-[#10388a]/40 p-1 shadow-[inset_0_2px_4px_rgba(0,0,0,.3)]" role="tablist">
+        <div className="mx-auto mb-4 flex max-w-xs rounded-full border-[3px] border-slate-900/80 bg-gradient-to-b from-[#1662d0] to-[#2f95f3] p-1 shadow-[0_6px_0_rgba(0,0,0,.4)]" role="tablist">
           {(['costumes', 'colors'] as const).map((k) => (
             <button
               key={k}
@@ -79,7 +79,7 @@ export function Wardrobe({ sound, costume, skin, totalStars, onWear, onSkin, onB
                 setTab(k);
               }}
               className={`font-game flex h-10 flex-1 items-center justify-center rounded-full text-[17px] transition ${
-                tab === k ? 'ui-tile !rounded-full text-[#1b2a55]' : 'text-white'
+                tab === k ? 'ui-tile ui-tile-selected !rounded-full text-[#5a2d00]' : 'text-white'
               }`}
             >
               {k === 'costumes' ? t.rewards.costumesTab : t.rewards.colors}
@@ -106,13 +106,14 @@ export function Wardrobe({ sound, costume, skin, totalStars, onWear, onSkin, onB
                   else setPs(item.id as SkinId);
                 }}
                 className={`ui-tile relative flex flex-col items-center overflow-hidden p-1 pb-1.5 ${sel ? 'ui-tile-selected' : ''}`}
+                style={sel ? undefined : ({ '--c': open ? '#b18cff' : '#94a3b8' } as CSSProperties)}
               >
-                <div className={`relative aspect-square w-full overflow-hidden rounded-xl ${open ? '' : 'opacity-50 grayscale'}`}>
+                <div className={`relative aspect-square w-full overflow-hidden rounded-xl border-[3px] border-slate-900/70 bg-gradient-to-b from-[#bfe6ff] to-[#7cc8ff] ${open ? '' : 'opacity-50 grayscale'}`}>
                   <div className="absolute left-[-22%] top-[-6%] h-[150%] w-[144%]">
                     {tab === 'costumes' ? <Sparky mood="idle" costume={item.id as CostumeId} skin={ps} /> : <Sparky mood="idle" costume={pc} skin={item.id as SkinId} />}
                   </div>
                 </div>
-                <span className="ui-ink mt-1 line-clamp-1 w-full text-center text-[12px] font-extrabold leading-tight">{name}</span>
+                <span className="font-game ui-head-text mt-1 line-clamp-1 w-full text-center text-[13px] leading-tight text-white">{name}</span>
                 {worn && (
                   <span className="absolute end-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-b from-[#5fe27a] to-[#22a63f] shadow-[0_0_0_2px_#157a2a]">
                     <Check className="h-4 w-4 text-white" strokeWidth={4} />

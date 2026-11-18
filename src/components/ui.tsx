@@ -268,6 +268,44 @@ export function ScreenShell({
   );
 }
 
+/** Einheitlicher Container: dicker dunkler Rand, 3D-Sockel, farbiger Kopf, Lesefläche weiß/95 */
+export function Panel({
+  title,
+  color = '#2f95f3',
+  icon,
+  children,
+  className = '',
+  bodyClass = 'px-3 py-1',
+}: {
+  title?: ReactNode;
+  color?: string;
+  icon?: ReactNode;
+  children: ReactNode;
+  className?: string;
+  bodyClass?: string;
+}) {
+  return (
+    <div className={`ui-panel ${className}`}>
+      {title && (
+        <div className="ui-panel-head flex items-center gap-2 px-3 py-2" style={{ '--c': color } as CSSProperties}>
+          {icon && <span className="h-8 w-8 shrink-0">{icon}</span>}
+          <span className="font-game ui-head-text min-w-0 flex-1 text-[1.15rem] leading-tight">{title}</span>
+        </div>
+      )}
+      <div className={bodyClass}>{children}</div>
+    </div>
+  );
+}
+
+/** Farbiges Icon-Abzeichen für Listenzeilen */
+export function IconBadge({ color, children, size = 40 }: { color: string; children: ReactNode; size?: number }) {
+  return (
+    <span className="ui-icon-badge shrink-0" style={{ '--c': color, width: size, height: size } as CSSProperties}>
+      {children}
+    </span>
+  );
+}
+
 /** Rote Banderole mit gefalteten Enden */
 export function Ribbon({ children, color = 'red', className = '' }: { children: ReactNode; color?: 'red' | 'gold' | 'purple' | 'green'; className?: string }) {
   const c = {

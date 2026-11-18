@@ -47,6 +47,8 @@ export const seasonAr: ExtraTexts = {
     speed: "السرعة",
     language: "اللغة",
     worldDone: "أكمل العالم",
+    gameSound: "اللعبة والصوت",
+    festsSeason: "الأعياد والمواسم",
     eventPlay: "العب الآن!",
     spinTitle: "المكافأة اليومية",
     super: "رائع!",

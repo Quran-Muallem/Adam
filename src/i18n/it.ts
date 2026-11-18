@@ -200,7 +200,7 @@ export const it: Dict = {
     'hero-18': { t: "Portale dietro l'angolo", h: 'Combina una condizione e un portale!' },
     'hero-19': { t: 'Catena di portali', h: 'Tre tratti uguali, due portali. Macro o ciclo?' },
     'hero-20': { t: 'Il diploma stellare', h: 'Il finale! Salta, portale, gira: un programma furbo fa tutto.' },
-    "teen-1": { t: "while (!alTraguardo)", h: "Nuovo blocco: FINCHÉ. Gira finché la condizione è falsa. Bastano due blocchi." },
+    "teen-1": { t: "Fino al traguardo", h: "Nuovo blocco: FINCHÉ. Gira finché la condizione è falsa. Bastano due blocchi." },
     "teen-2": { t: "Sensore acceso", h: "Ciclo + sensore = pilota automatico. Gira solo se la strada è bloccata." },
     "teen-3": { t: "Interruttore laser", h: "L’interruttore ⏻ inverte TUTTI i laser. Prima spegni, poi passa." },
     "teen-4": { t: "Incrocio del contatore", h: "Un contatore sa quando fermarsi: n = 6, poi FINCHÉ n > 0 { avanti; n−1 }." },

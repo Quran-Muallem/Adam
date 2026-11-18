@@ -141,7 +141,7 @@ export interface ExtraTexts {
     apply: string; chooseLanguage: string; save: string; achievements: string; yourAchievements: string;
     costumeEditor: string; settings: string; knowledge: string; stickers: string; locked: string;
     sound: string; music: string; vibration: string; speed: string; language: string; worldDone: string;
-    eventPlay: string; daysLeft: (n: number) => string; spinTitle: string;
+    eventPlay: string; festsSeason: string; gameSound: string; daysLeft: (n: number) => string; spinTitle: string;
   };
 }
 

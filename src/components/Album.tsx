@@ -1,5 +1,6 @@
 // Code-Wissen: alle freigeschalteten Entdecker-Karten, nach Welten sortiert
 import { Lock } from 'lucide-react';
+import type { CSSProperties } from 'react';
 import { CARDS, unlockedCards } from '../data/cards';
 import { WORLD_ORDER } from '../data/worlds';
 import type { SoundApi } from '../hooks/useSoundEffects';
@@ -54,16 +55,16 @@ export function Album({ sound, stars, onBack }: Props) {
                 unlocked.has(c.id) ? (
                   <ExplorerCard key={c.id} card={c} t={t} compact />
                 ) : (
-                  <div key={c.id} className="ui-panel flex min-h-[96px] items-center gap-3 !bg-[#e9f1fb] p-3 opacity-90">
-                    <span className="relative h-14 w-14 shrink-0 rounded-2xl bg-white/70 p-1.5 grayscale">
+                  <div key={c.id} className="ui-badge-card flex min-h-[88px] items-center gap-3 p-3" style={{ '--c': '#7b8db5' } as CSSProperties}>
+                    <span className="ui-icon-badge relative h-14 w-14 shrink-0 p-1.5 grayscale" style={{ '--c': '#cbd5e1' } as CSSProperties}>
                       <span className="block h-full w-full opacity-40">
                         <Sprite name={CARD_ART[c.id] ?? 'star'} />
                       </span>
                       <span className="absolute inset-0 flex items-center justify-center">
-                        <Lock className="h-6 w-6 text-[#4a5a85]" strokeWidth={3} />
+                        <Lock className="h-7 w-7 text-[#1b2a55]" strokeWidth={3} />
                       </span>
                     </span>
-                    <span className="font-game text-[17px] text-[#4a5a85]">{t.cards.locked}</span>
+                    <span className="font-game ui-head-text text-[1.2rem] text-white">{t.cards.locked}</span>
                   </div>
                 ),
               )}

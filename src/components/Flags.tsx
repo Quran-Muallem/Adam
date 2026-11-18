@@ -1,9 +1,10 @@
 // Runde Flaggen als SVG (statt System-Emojis) + Vollbild-Sprachauswahl
 import { Check } from 'lucide-react';
-import { useId, useState } from 'react';
+import { useId, useState, type CSSProperties } from 'react';
 import { DICTS, LANGS, useI18n, type Lang } from '../i18n';
 import type { SoundApi } from '../hooks/useSoundEffects';
-import { GameButton, ScreenHeader, ScreenShell } from './ui';
+import { GameButton, Panel, ScreenHeader, ScreenShell } from './ui';
+import { Sprite } from './sprites';
 
 export function Flag({ lang, className = 'h-9 w-9' }: { lang: Lang; className?: string }) {
   const id = useId().replace(/:/g, '');
@@ -120,7 +121,7 @@ export function LanguageScreen({ sound, onClose }: { sound: SoundApi; onClose: (
           </GameButton>
         }
       >
-        <div className="ui-panel mx-auto mt-2 max-w-sm overflow-hidden px-2 py-1">
+        <Panel className="mx-auto mt-2 max-w-sm" bodyClass="px-2 py-2" title={t.ui2.language} color="#22b84f" icon={<Sprite name="compass" />}>
           {LANGS.map((l) => (
             <button
               key={l.id}
@@ -130,7 +131,8 @@ export function LanguageScreen({ sound, onClose }: { sound: SoundApi; onClose: (
                 sound.play('click');
                 setPick(l.id);
               }}
-              className={`ui-row flex w-full items-center gap-3 rounded-xl px-2 py-2.5 text-start transition ${pick === l.id ? 'bg-sky-100' : ''}`}
+              className={`ui-tile mb-2.5 flex w-full items-center gap-3 px-2 py-1.5 text-start ${pick === l.id ? 'ui-tile-selected' : ''}`}
+              style={pick === l.id ? undefined : ({ '--c': '#9ad4ff' } as CSSProperties)}
             >
               <Flag lang={l.id} className="h-10 w-10 shrink-0" />
               <span className="ui-ink flex-1 text-lg font-extrabold" dir="auto">
@@ -143,7 +145,7 @@ export function LanguageScreen({ sound, onClose }: { sound: SoundApi; onClose: (
               )}
             </button>
           ))}
-        </div>
+        </Panel>
       </ScreenShell>
     </div>
   );

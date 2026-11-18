@@ -2,6 +2,7 @@
 import type { CardDef } from '../data/cards';
 import type { Dict } from '../i18n';
 import { Rocket } from 'lucide-react';
+import type { CSSProperties } from 'react';
 import { Sprite, type SpriteName } from './sprites';
 
 /** Eigene Grafik je Konzept (statt Emoji) */
@@ -22,30 +23,24 @@ interface Props {
 export function ExplorerCard({ card, t, isNew, compact }: Props) {
   const c = t.cards.items[card.id];
   return (
-    <div
-      className="ui-panel relative p-[3px] text-start"
-    >
+    <div className="ui-panel relative text-start">
       {isNew && (
-        <span className="font-game absolute -top-3 end-3 z-10 animate-pop rounded-full bg-gradient-to-b from-[#ff7a7a] to-[#e02f2f] px-3 py-0.5 text-sm text-white shadow-[0_0_0_2px_#7a1010,0_3px_0_#7a1010]">
+        <span className="font-game absolute -top-4 end-3 z-10 animate-pop rounded-full border-[3px] border-slate-900/80 bg-gradient-to-b from-[#ff7a7a] to-[#e02f2f] px-3 py-0.5 text-sm text-white shadow-[0_4px_0_rgba(0,0,0,.4)]">
           {t.cards.newCard}
         </span>
       )}
-      <div className="rounded-[1.45rem] p-3">
-        <div className="flex items-center gap-3">
-          <div
-            className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl p-1.5"
-            style={{ background: `linear-gradient(180deg, #fff, ${card.colors[0]})`, boxShadow: `0 0 0 2.5px ${card.colors[1]}, 0 4px 0 ${card.colors[1]}` }}
-          >
-            <Sprite name={CARD_ART[card.id] ?? 'star'} />
-          </div>
-          <div className="min-w-0">
-            {!compact && <div className="text-[11px] font-bold uppercase tracking-wide text-slate-400">{t.cards.concept}</div>}
-            <div className="font-game text-lg leading-tight" style={{ color: card.colors[1] }}>
-              {c.name}
-            </div>
-            <div className="text-sm font-semibold leading-snug text-slate-600">{c.what}</div>
-          </div>
+      {/* Farbiger Kopf mit Grafik und Titel */}
+      <div className="ui-panel-head flex items-center gap-3 px-3 py-2" style={{ '--c': card.colors[1] } as CSSProperties}>
+        <div className="ui-icon-badge h-14 w-14 shrink-0 p-1.5" style={{ '--c': card.colors[0] } as CSSProperties}>
+          <Sprite name={CARD_ART[card.id] ?? 'star'} />
         </div>
+        <div className="min-w-0">
+          {!compact && <div className="text-[11px] font-extrabold uppercase tracking-wide text-white/85">{t.cards.concept}</div>}
+          <div className="font-game ui-head-text text-[1.25rem] leading-tight">{c.name}</div>
+        </div>
+      </div>
+      <div className="p-3">
+        <div className="text-[15px] font-bold leading-snug text-[#1b2a55]">{c.what}</div>
         {card.code && (
           <div dir="ltr" className="mt-2 overflow-hidden rounded-2xl" style={{ background: 'linear-gradient(180deg,#1e1b4b,#0f172a)' }}>
             <div className="flex items-center gap-1.5 border-b border-white/10 px-2.5 py-1">

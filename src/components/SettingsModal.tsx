@@ -8,7 +8,8 @@ import type { Speed } from '../hooks/useProgramRunner';
 import type { SoundApi } from '../hooks/useSoundEffects';
 import { DICTS, LANGS, useI18n, type Lang } from '../i18n';
 import { Flag } from './Flags';
-import { GameButton, ScreenHeader, ScreenShell, Toggle } from './ui';
+import { Sprite } from './sprites';
+import { GameButton, IconBadge, Panel, ScreenHeader, ScreenShell, Toggle } from './ui';
 
 interface Props {
   sound: SoundApi;
@@ -35,8 +36,8 @@ export function SettingsModal({ sound, speed, setSpeed, onClose }: Props) {
         }
       >
         <div className="mx-auto flex max-w-sm flex-col gap-6 pt-2">
-          <div className="ui-panel px-3 py-1">
-            <Row icon={<Music className="h-6 w-6" strokeWidth={2.6} />} color="#1e88e5" label={t.ui2.music}>
+          <Panel title={t.ui2.gameSound} color="#2f95f3" icon={<Sprite name="star" />}>
+            <Row icon={<Music className="h-5 w-5" strokeWidth={3} />} color="#ec4899" label={t.ui2.music}>
               <Toggle
                 label={t.ui2.music}
                 on={sound.musicOn}
@@ -46,7 +47,7 @@ export function SettingsModal({ sound, speed, setSpeed, onClose }: Props) {
                 }}
               />
             </Row>
-            <Row icon={<Volume2 className="h-6 w-6" strokeWidth={2.6} />} color="#1e88e5" label={t.ui2.sound}>
+            <Row icon={<Volume2 className="h-5 w-5" strokeWidth={3} />} color="#1e9bf0" label={t.ui2.sound}>
               <Toggle
                 label={t.ui2.sound}
                 on={sound.sfxOn}
@@ -56,7 +57,7 @@ export function SettingsModal({ sound, speed, setSpeed, onClose }: Props) {
                 }}
               />
             </Row>
-            <Row icon={<Smartphone className="h-6 w-6" strokeWidth={2.6} />} color="#1e88e5" label={t.ui2.vibration}>
+            <Row icon={<Smartphone className="h-5 w-5" strokeWidth={3} />} color="#8b5cf6" label={t.ui2.vibration}>
               <Toggle
                 label={t.ui2.vibration}
                 on={sound.vibeOn}
@@ -66,7 +67,7 @@ export function SettingsModal({ sound, speed, setSpeed, onClose }: Props) {
                 }}
               />
             </Row>
-            <Row icon={<Gauge className="h-6 w-6" strokeWidth={2.6} />} color="#1e88e5" label={t.ui2.speed}>
+            <Row icon={<Gauge className="h-5 w-5" strokeWidth={3} />} color="#f59e0b" label={t.ui2.speed}>
               <div className="flex rounded-full bg-[#dbe7f7] p-1 shadow-[inset_0_2px_3px_rgba(0,0,0,.15)]">
                 {(['normal', 'turbo'] as const).map((s) => (
                   <button
@@ -86,7 +87,7 @@ export function SettingsModal({ sound, speed, setSpeed, onClose }: Props) {
                 ))}
               </div>
             </Row>
-            <Row icon={<Flag lang={lang} className="h-8 w-8" />} label={t.ui2.language}>
+            <Row icon={<Flag lang={lang} className="h-10 w-10" />} label={t.ui2.language}>
               <select
                 aria-label={t.ui2.language}
                 value={lang}
@@ -103,11 +104,11 @@ export function SettingsModal({ sound, speed, setSpeed, onClose }: Props) {
                 ))}
               </select>
             </Row>
-          </div>
+          </Panel>
 
-          <div className="ui-panel px-3 py-1">
+          <Panel title={t.ui2.festsSeason} color="#8b3fe8" icon={<Sprite name="compass" />}>
             {/* Regions- & Kultur-Steuerung */}
-            <Row icon={<Globe2 className="h-6 w-6" strokeWidth={2.6} />} color="#7c3aed" label={t.season.regionTitle} stack>
+            <Row icon={<Globe2 className="h-5 w-5" strokeWidth={3} />} color="#10b981" label={t.season.regionTitle} stack>
               <select aria-label={t.season.regionTitle} value={season.region} onChange={(e) => season.setRegion(e.target.value as Region)} className="ui-select w-full">
                 {REGIONS.map((r) => (
                   <option key={r} value={r}>
@@ -117,7 +118,7 @@ export function SettingsModal({ sound, speed, setSpeed, onClose }: Props) {
               </select>
             </Row>
             {/* Saison-Vorschau: jedes Theme sofort testen */}
-            <Row icon={<CalendarHeart className="h-6 w-6" strokeWidth={2.6} />} color="#db2777" label={t.season.previewTitle} stack>
+            <Row icon={<CalendarHeart className="h-5 w-5" strokeWidth={3} />} color="#db2777" label={t.season.previewTitle} stack>
               <select
                 aria-label={t.season.previewTitle}
                 value={season.preview ?? ''}
@@ -133,7 +134,7 @@ export function SettingsModal({ sound, speed, setSpeed, onClose }: Props) {
                 ))}
               </select>
             </Row>
-          </div>
+          </Panel>
         </div>
       </ScreenShell>
     </div>
@@ -143,9 +144,11 @@ export function SettingsModal({ sound, speed, setSpeed, onClose }: Props) {
 function Row({ icon, color, label, children, stack }: { icon: ReactNode; color?: string; label: string; children: ReactNode; stack?: boolean }) {
   return (
     <div className={`ui-row flex gap-3 py-2.5 ${stack ? 'flex-wrap items-center' : 'items-center'}`}>
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center" style={{ color }}>
-        {icon}
-      </span>
+      {color ? (
+        <IconBadge color={color}>{icon}</IconBadge>
+      ) : (
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center">{icon}</span>
+      )}
       <span className="ui-ink min-w-0 flex-1 text-[17px] font-extrabold leading-tight">{label}</span>
       {stack ? <div className="w-full">{children}</div> : children}
     </div>

@@ -200,7 +200,7 @@ export const en: Dict = {
     'hero-18': { t: 'Portal Round the Corner', h: 'Combine a condition and a portal!' },
     'hero-19': { t: 'Portal Chain', h: 'Three identical sections, two portals. Macro or loop?' },
     'hero-20': { t: 'The Star Diploma', h: 'The finale! Jump, portal, turn – one clever program does it all.' },
-    "teen-1": { t: "while (!atGoal)", h: "New block: WHILE. Runs until the condition is false. Two blocks are enough here." },
+    "teen-1": { t: "All the way", h: "New block: WHILE. Runs until the condition is false. Two blocks are enough here." },
     "teen-2": { t: "Sensor on", h: "Loop + sensor = autopilot. Only turn when the path is blocked." },
     "teen-3": { t: "Laser switch", h: "The switch ⏻ flips ALL lasers. Power off first, then go through." },
     "teen-4": { t: "Counter crossing", h: "A counter knows when to stop: n = 6, then WHILE n > 0 { forward; n−1 }." },
