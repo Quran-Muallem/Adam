@@ -66,9 +66,9 @@ export function GameScreen(props: Props) {
   const card = cardForLevel(level.id);
   const [limitFlash, setLimitFlash] = useState(false);
   const [movieOpen, setMovieOpen] = useState(false);
+  const [bubbleOpen, setBubbleOpen] = useState(false);
   const [showCode, setShowCode] = useStoredState<boolean>('sparky:showCode', false);
   const [codeLang, setCodeLang] = useStoredState<CodeLang>('sparky:codeLang', 'js');
-  const [startLine, setStartLine] = useState(t.start[0]);
   const programRef = useRef(program);
   programRef.current = program;
   const statsRef = useRef({ bestStars, totalStars, allStars: props.allStars });
@@ -149,7 +149,6 @@ export function GameScreen(props: Props) {
     if (result) return;
     play('click');
     if (isRunning) return runner.stop();
-    setStartLine(pick(t.start));
     runner.start(program);
   };
 
@@ -168,7 +167,7 @@ export function GameScreen(props: Props) {
   else if (isRunning && frame?.motion === 'think') mood = 'think';
 
   const isKindDisabled = useMemo(() => (k: PaletteKind) => k === 'call' && target.root === 'macro', [target.root]);
-  const bubble = isRunning ? startLine : levelHint(level);
+  const bubble = levelHint(level);
 
   return (
     <div
@@ -213,21 +212,44 @@ export function GameScreen(props: Props) {
         </RoundBtn>
       </header>
 
-      <main className="relative z-10 flex min-h-0 flex-1 flex-col gap-2.5 overflow-hidden p-3 md:flex-row md:gap-5">
+      <main className="thin-scroll relative z-10 flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto p-3 md:flex-row md:gap-5 md:overflow-hidden">
         {/* ── Spielfeld ── */}
-        <div className={`flex shrink-0 flex-col gap-2 md:w-1/2 md:shrink md:justify-center ${isMini ? '[--board-h:34dvh]' : showCode ? '[--board-h:19dvh]' : '[--board-h:27dvh]'} md:[--board-h:62dvh]`}>
+        <div className={`flex shrink-0 flex-col gap-2 md:w-1/2 md:shrink md:justify-center ${isMini ? '[--board-h:34dvh]' : '[--board-h:24dvh]'} md:[--board-h:62dvh]`}>
           <div dir="ltr">
             <Board level={level} world={world} frame={frame} frameIndex={frameIndex} stepMs={stepMs} mood={mood} costume={costume} />
           </div>
-          {world.showText && bubble && !(showCode && !isMini) && (
-            <div className="flex items-end gap-1">
-              <div className="h-11 w-11 shrink-0">
-                <Sparky mood={isRunning ? 'think' : 'idle'} costume={costume} />
-              </div>
-              <div key={bubble} className="glass relative flex-1 animate-bounce-in rounded-2xl rounded-bl-md px-3 py-1.5 text-xs font-semibold text-slate-700 sm:text-sm">
-                {bubble}
-              </div>
-            </div>
+          {world.showText && bubble && (
+            // Tipp-Blase: offen, solange noch keine Blöcke liegen (oder Sparky läuft) – sonst als 💡 eingeklappt
+            bubbleOpen || blockCount === 0 ? (
+              <button
+                type="button"
+                onClick={() => setBubbleOpen(false)}
+                className="flex items-end gap-1 text-start"
+                disabled={blockCount === 0}
+              >
+                <div className="h-11 w-11 shrink-0">
+                  <Sparky mood={isRunning ? 'think' : 'idle'} costume={costume} />
+                </div>
+                <div key={bubble} className="glass relative flex-1 animate-bounce-in rounded-2xl rounded-bl-md px-3 py-1.5 text-xs font-semibold text-slate-700 sm:text-sm">
+                  {bubble}
+                </div>
+              </button>
+            ) : (
+              <button
+                type="button"
+                aria-label="💡"
+                onClick={() => {
+                  play('click');
+                  setBubbleOpen(true);
+                }}
+                className="glass -mt-1 flex h-9 items-center gap-1 self-start rounded-full px-3 text-sm font-bold text-slate-700"
+              >
+                <span className="h-6 w-6">
+                  <Sparky mood="idle" costume={costume} />
+                </span>
+                💡
+              </button>
+            )
           )}
         </div>
 
@@ -259,23 +281,33 @@ export function GameScreen(props: Props) {
             </>
           ) : (
             <>
-              {/* Code-Brücke: Echter-Code-Schalter */}
-              <button
-                type="button"
-                onClick={() => {
-                  play('click');
-                  setShowCode((v) => !v);
-                }}
-                className={`squish flex h-9 shrink-0 items-center justify-center gap-2 self-start rounded-full px-3 text-xs font-bold sm:h-11 sm:text-sm ${showCode ? 'ring-4 ring-yellow-300' : ''}`}
-                style={{ '--c': showCode ? '#0f172a' : '#334155' } as CSSProperties}
-                aria-pressed={showCode}
+              {/* Code-Brücke: Umschalter Blöcke ↔ Echter Code
+                  Handy: immer nur ein Bereich, dafür in voller Höhe · Tablet: beide sichtbar */}
+              <div className="flex shrink-0 rounded-full bg-black/25 p-1" role="tablist">
+                {[
+                  { on: false, label: `🧩 ${t.ui.myProgram}` },
+                  { on: true, label: t.code.toggle },
+                ].map((tab) => (
+                  <button
+                    key={String(tab.on)}
+                    type="button"
+                    role="tab"
+                    aria-selected={showCode === tab.on}
+                    onClick={() => {
+                      play('click');
+                      setShowCode(tab.on);
+                    }}
+                    className={`flex min-h-[40px] flex-1 items-center justify-center rounded-full px-2 text-center text-xs font-bold leading-tight transition sm:text-sm ${
+                      showCode === tab.on ? (tab.on ? 'bg-slate-900 text-yellow-300 shadow-lg' : 'bg-white text-slate-800 shadow-lg') : 'text-white/85'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+              <div
+                className={`thin-scroll min-h-[110px] flex-1 overflow-y-auto rounded-[1.8rem] bg-black/15 p-2 shadow-inner ${showCode ? 'hidden md:block' : ''}`}
               >
-                {t.code.toggle}
-                <span className={`relative h-5 w-9 rounded-full transition ${showCode ? 'bg-emerald-400' : 'bg-white/30'}`}>
-                  <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${showCode ? 'start-[18px]' : 'start-0.5'}`} />
-                </span>
-              </button>
-              <div className={`thin-scroll flex-1 overflow-y-auto rounded-[1.8rem] bg-black/15 p-2 shadow-inner ${showCode ? 'min-h-[80px]' : 'min-h-[110px]'}`}>
                 <Workspace
                   program={program}
                   group={level.group}
@@ -295,12 +327,12 @@ export function GameScreen(props: Props) {
                 />
               </div>
               {showCode && (
-                <div className="shrink-0 animate-bounce-in">
+                <div className="flex min-h-[110px] flex-1 animate-bounce-in flex-col md:flex-none">
                   <CodeView program={program} lang={codeLang} setLang={setCodeLang} frame={frame} t={t} />
                 </div>
               )}
 
-              <div className="rounded-[1.8rem] bg-white/25 p-2 shadow-lg backdrop-blur-md">
+              <div className="shrink-0 rounded-[1.8rem] bg-white/25 p-2 shadow-lg backdrop-blur-md">
                 <div className={`mb-2 flex items-center justify-between px-1 text-sm font-bold ${world.text}`}>
                   <span className={`rounded-full px-2 transition ${limitFlash ? 'animate-shake bg-red-500 text-white' : ''}`}>
                     🧱 {blockCount} / {level.maxBlocks}
@@ -318,7 +350,7 @@ export function GameScreen(props: Props) {
                 <Palette kinds={level.palette} world={world} onAdd={addBlock} disabled={locked} isKindDisabled={isKindDisabled} t={t} />
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex shrink-0 items-center gap-2">
                 <RoundBtn label={t.ui.clearAll} onClick={clearAll} disabled={locked || blockCount === 0} color="#ffffff" dark big>
                   <Trash2 className="h-6 w-6" strokeWidth={2.5} />
                 </RoundBtn>
@@ -403,7 +435,7 @@ function RunButton(p: {
       onClick={p.onClick}
       disabled={p.disabled && !p.running}
       style={{ '--c': p.running ? '#ef4444' : '#22c55e' } as CSSProperties}
-      className={`squish flex items-center justify-center gap-2 rounded-[1.8rem] text-2xl font-bold ${p.wide ? 'h-20 w-full' : 'h-24 w-[88px] shrink-0'} ${
+      className={`squish flex items-center justify-center gap-2 rounded-[1.8rem] text-2xl font-bold ${p.wide ? 'h-16 w-full' : 'h-24 w-[88px] shrink-0'} ${
         !p.running && !p.disabled ? 'animate-breathe' : ''
       }`}
     >

@@ -201,15 +201,15 @@ function BlockItem({ block, ctx }: { block: Block; ctx: Ctx }) {
           role="button"
           tabIndex={0}
           onClick={selectThis}
-          className="squish flex min-h-[52px] flex-wrap items-center gap-2 rounded-t-[1.3rem] px-2 py-1.5"
+          className="squish relative flex min-h-[52px] items-center gap-2 rounded-t-[1.3rem] px-2 py-1.5"
           style={cvar}
         >
           <Icon className="h-6 w-6 shrink-0" strokeWidth={3} />
-          <span className="text-lg font-bold">{ctx.t.blocks[kindOf(block)].label}</span>
+          <span className="min-w-0 truncate text-lg font-bold">{ctx.t.blocks[kindOf(block)].label}</span>
 
           {block.type === 'repeat' &&
             (ctx.group === 'hero' ? (
-              <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+              <div className="flex shrink-0 items-center gap-1" onClick={(e) => e.stopPropagation()}>
                 <RoundBtn
                   disabled={ctx.locked || block.count <= 2}
                   onClick={() => ctx.update(block.id, (b) => (b.type === 'repeat' ? { ...b, count: b.count - 1 } : b))}
@@ -237,7 +237,7 @@ function BlockItem({ block, ctx }: { block: Block; ctx: Ctx }) {
                   e.stopPropagation();
                   ctx.update(block.id, (b) => (b.type === 'repeat' ? { ...b, count: b.count >= maxCount ? 2 : b.count + 1 } : b));
                 }}
-                className="flex h-10 min-w-[54px] items-center justify-center rounded-xl bg-white px-2 text-xl font-bold text-orange-600 shadow active:scale-90 [text-shadow:none]"
+                className="flex h-10 min-w-[54px] shrink-0 items-center justify-center rounded-xl bg-white px-2 text-xl font-bold text-orange-600 shadow active:scale-90 [text-shadow:none]"
               >
                 {block.count}×
               </button>
@@ -253,15 +253,15 @@ function BlockItem({ block, ctx }: { block: Block; ctx: Ctx }) {
                   b.type === 'if' ? { ...b, cond: COND_ORDER[(COND_ORDER.indexOf(b.cond) + 1) % COND_ORDER.length] } : b,
                 );
               }}
-              className="rounded-xl bg-white px-2 py-1 text-sm font-bold text-cyan-700 shadow active:scale-95 [text-shadow:none]"
+              className="min-w-0 shrink truncate rounded-xl bg-white px-2 py-1 text-sm font-bold text-cyan-700 shadow active:scale-95 [text-shadow:none]"
             >
               {COND_EMOJI[block.cond]} {ctx.t.conds[block.cond]} ⇄
             </button>
           )}
 
-          <span className="ms-auto flex items-center gap-1">
+          <span className="ms-auto flex shrink-0 items-center gap-1">
             {loopNow !== undefined && block.type === 'repeat' && (
-              <span className="animate-pop rounded-full bg-yellow-300 px-2 text-xs font-bold text-yellow-900 [text-shadow:none]">
+              <span className="absolute -top-3 end-12 z-20 animate-pop whitespace-nowrap rounded-full bg-yellow-300 px-2 py-0.5 text-xs font-bold text-yellow-900 shadow [text-shadow:none]">
                 {ctx.t.ui.round(loopNow, block.count)}
               </span>
             )}

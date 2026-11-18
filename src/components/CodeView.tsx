@@ -35,7 +35,7 @@ export function CodeView({ program, lang, setLang, frame, t }: Props) {
   return (
     <div
       dir="ltr"
-      className="overflow-hidden rounded-3xl"
+      className="flex h-full min-h-0 flex-col overflow-hidden rounded-3xl md:h-auto"
       style={{ background: 'linear-gradient(180deg,#1e1b4b,#0f172a)', boxShadow: '0 10px 24px -10px rgba(0,0,0,.6), inset 0 2px 0 rgba(255,255,255,.15)' }}
     >
       {/* Fenster-Leiste mit Sprachumschalter */}
@@ -56,7 +56,7 @@ export function CodeView({ program, lang, setLang, frame, t }: Props) {
           ))}
         </div>
       </div>
-      <pre className="thin-scroll max-h-[16dvh] overflow-auto px-3 py-2 text-[12px] leading-[1.5] md:max-h-[40dvh] md:text-[13px]" style={{ fontFamily: 'ui-monospace, "SF Mono", Menlo, Consolas, monospace' }}>
+      <pre className="thin-scroll min-h-0 flex-1 overflow-auto px-3 py-2 text-[14px] leading-[1.6] md:max-h-[40dvh] md:flex-none md:text-[13px]" style={{ fontFamily: 'ui-monospace, "SF Mono", Menlo, Consolas, monospace' }}>
         {empty ? (
           <span style={{ color: COLORS.cm }}>{(lang === 'js' ? '// ' : '# ') + t.code.empty}</span>
         ) : (
