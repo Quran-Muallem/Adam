@@ -1,6 +1,7 @@
 import { bridgeAr } from './bridge/ar';
 import { moreAr } from './more/ar';
 import { proAr } from './pro/ar';
+import { seasonAr } from './season/ar';
 import type { Dict } from './types';
 
 // العربية – يُعرض بالاتجاه من اليمين إلى اليسار (RTL)، بينما تبقى لوحة اللعب كما هي
@@ -8,6 +9,7 @@ export const ar: Dict = {
   ...bridgeAr,
   ...moreAr,
   ...proAr,
+  ...seasonAr,
   langName: 'العربية',
   titleTop: 'مغامرة البرمجة',
   titleBottom: 'مع سباركي',

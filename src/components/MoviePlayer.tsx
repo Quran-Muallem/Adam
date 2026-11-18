@@ -2,6 +2,7 @@
 // Erklär-Kino: spielt ein 20-Sekunden-Drehbuch als Animation ab
 // (Sparky moderiert, ein leuchtender Zeigefinger tippt, Sounds laufen).
 // ─────────────────────────────────────────────────────────────
+import { Sprite, WORLD_SPRITES, type SpriteName } from './sprites';
 import { Play, RotateCcw, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import type { CostumeId } from '../data/costumes';
@@ -71,7 +72,7 @@ export function MoviePlayer({ group, sound, costume, onClose }: Props) {
         <button
           type="button"
           onClick={onClose}
-          className="squish flex h-11 items-center gap-1 rounded-full px-4 text-sm font-bold !text-slate-700 [text-shadow:none]"
+          className="squish flex h-11 items-center gap-1 rounded-full px-4 text-sm font-bold !text-slate-700 dark-text"
           style={{ '--c': '#ffffff' } as CSSProperties}
         >
           {t.movie.skip} <X className="h-4 w-4" strokeWidth={3} />
@@ -150,20 +151,16 @@ function Stage({ scene, group, costume, bubble }: { scene: Scene; group: AgeGrou
             {movie.grid.flatMap((row, y) =>
               [...row].map((ch, x) => {
                 const k = `${x},${y}`;
-                const emoji =
-                  ch === '#'
-                    ? world.wall
-                    : ch === 'o'
-                      ? world.low
-                      : ch === 'G'
-                        ? world.goal
-                        : ch === '*' && !scene.collected.includes(k)
-                          ? world.bonus
-                          : ch === 'X'
-                            ? scene.lasersOn ? '🔴' : '🟢'
-                            : ch === 'L'
-                              ? scene.lasersOn ? '🟥' : '⬛'
-                              : '';
+                const sp = WORLD_SPRITES[group];
+                const sprite: SpriteName | null =
+                  ch === '#' ? sp.wall : ch === 'o' ? sp.low : ch === 'G' ? sp.goal : ch === '*' && !scene.collected.includes(k) ? sp.bonus : null;
+                const emoji = sprite ? (
+                  <Sprite name={sprite} className="h-[82%] w-[82%]" />
+                ) : ch === 'X' ? (
+                  <span className={`h-[60%] w-[60%] rounded-full border-[3px] border-[#1d1530] ${scene.lasersOn ? 'bg-rose-500' : 'bg-emerald-400'}`} />
+                ) : ch === 'L' ? (
+                  scene.lasersOn ? <span className="h-[86%] w-[22%] rounded-full bg-red-500 shadow-[0_0_10px_4px_rgba(239,68,68,.8)]" /> : null
+                ) : null;
                 return (
                   <div
                     key={k}

@@ -18,6 +18,8 @@ import { useProgress } from './hooks/useProgress';
 import { useSoundEffects } from './hooks/useSoundEffects';
 import { WORLD_ORDER } from './data/worlds';
 import type { AgeGroupId } from './types';
+import { useSeasonalTheme } from './hooks/useSeasonalTheme';
+import type { MusicTheme } from './hooks/useSoundEffects';
 import { FxLayer } from './components/FxLayer';
 
 type Screen =
@@ -77,7 +79,10 @@ export default function App() {
 
   // Die Musik passt sich der Welt an
   const { setTheme, play } = sound;
-  const theme = screen.name === 'map' ? screen.group : screen.name === 'game' ? levelGroup(screen.levelId) : 'home';
+  // Feste haben eigene Melodien auf Start & Karte (Ramadan, Eid, Halloween, Weihnachten, Ostern)
+  const { theme: season } = useSeasonalTheme();
+  const theme: MusicTheme =
+    screen.name === 'game' ? levelGroup(screen.levelId) : (season.song ?? (screen.name === 'map' ? screen.group : 'home'));
   useEffect(() => setTheme(theme), [theme, setTheme]);
 
   const openSettings = useCallback(() => {

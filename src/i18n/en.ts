@@ -1,12 +1,14 @@
 import { bridgeEn } from './bridge/en';
 import { moreEn } from './more/en';
 import { proEn } from './pro/en';
+import { seasonEn } from './season/en';
 import type { Dict } from './types';
 
 export const en: Dict = {
   ...bridgeEn,
   ...moreEn,
   ...proEn,
+  ...seasonEn,
   langName: 'English',
   titleTop: "Sparky's",
   titleBottom: 'Code Adventure',

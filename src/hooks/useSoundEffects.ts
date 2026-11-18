@@ -100,7 +100,7 @@ function writeBool(key: string, v: boolean) {
 // ARCADE-MUSIK: kleine fröhliche Loops (4 Takte, Achtelnoten),
 // eine Melodie pro Welt. Zahlen = Stufen der Tonleiter, null = Pause.
 // ─────────────────────────────────────────────────────────────
-export type MusicTheme = 'home' | 'mini' | 'junior' | 'hero' | 'teen' | 'adult';
+export type MusicTheme = 'home' | 'mini' | 'junior' | 'hero' | 'teen' | 'adult' | 'ramadan' | 'eid' | 'halloween' | 'christmas' | 'easter';
 
 interface Song {
   bpm: number;
@@ -144,6 +144,37 @@ const SONGS: Record<MusicTheme, Song> = {
     bpm: 118, root: N.A4, scale: MINOR_PENTA, leadTimbre: 'chip', leadVol: 0.045,
     lead: [0, 2, 4, 5, 4, 2, 0, _, 1, 3, 5, 6, 5, 3, 1, _, 2, 4, 6, 7, 6, 4, 2, _, 3, 2, 1, 0, 1, _, 0, _],
     bass: [0, _, 0, _, 0, _, 0, _, 3, _, 3, _, 3, _, 3, _, 1, _, 1, _, 1, _, 1, _, 4, _, 4, _, 2, _, 2, _],
+  },
+  // ── Saison- & Festtags-Melodien (eigene Kompositionen) ──
+  // Ramadan: sanfte Oud-artige Zupf-Melodie im Hidschas-Maqam
+  ramadan: {
+    bpm: 84, root: N.D4, scale: [0, 1, 4, 5, 7, 8, 10], leadTimbre: 'harp', leadVol: 0.09,
+    lead: [4, _, 3, 2, 1, _, 2, _, 4, _, 5, 4, 3, _, _, _, 7, _, 6, 5, 4, _, 5, _, 3, 2, 1, _, 0, _, _, _],
+    bass: [0, _, _, _, 0, _, _, _, 3, _, _, _, 4, _, _, _, 0, _, _, _, 0, _, _, _, 3, _, _, _, 0, _, _, _],
+  },
+  // Zucker- & Opferfest: fröhlich, mit Marimba
+  eid: {
+    bpm: 122, root: N.G4, scale: [0, 2, 4, 5, 7, 9, 11], leadTimbre: 'marimba', leadVol: 0.1,
+    lead: [4, 4, 5, _, 4, 2, 0, _, 2, 4, 5, 7, 6, _, 4, _, 7, 7, 8, _, 7, 5, 4, _, 2, 4, 5, 4, 2, _, 0, _],
+    bass: [0, _, 4, _, 0, _, 4, _, 3, _, 5, _, 4, _, 1, _, 0, _, 4, _, 0, _, 4, _, 3, _, 4, _, 0, _, _, _],
+  },
+  // Halloween: verspielter Spuk in Moll
+  halloween: {
+    bpm: 104, root: N.A4 / 2, scale: [0, 2, 3, 5, 7, 8, 11], leadTimbre: 'chip', leadVol: 0.05,
+    lead: [7, _, 6, _, 7, _, 4, _, 5, _, 4, _, 3, _, _, _, 7, _, 6, _, 7, _, 9, _, 8, _, 6, _, 7, _, _, _],
+    bass: [0, _, 0, _, 0, _, 0, _, 5, _, 5, _, 4, _, 4, _, 0, _, 0, _, 0, _, 0, _, 5, _, 6, _, 4, _, _, _],
+  },
+  // Weihnachten: Glöckchen
+  christmas: {
+    bpm: 108, root: N.C5, scale: [0, 2, 4, 5, 7, 9, 11], leadTimbre: 'bell', leadVol: 0.07,
+    lead: [4, 4, 4, _, 2, 4, 5, _, 7, _, 5, 4, 2, _, _, _, 3, 3, 3, _, 1, 3, 4, _, 6, _, 4, 3, 0, _, _, _],
+    bass: [0, _, _, _, 4, _, _, _, 3, _, _, _, 4, _, _, _, 1, _, _, _, 4, _, _, _, 3, _, 4, _, 0, _, _, _],
+  },
+  // Ostern: hüpfende Frühlings-Melodie
+  easter: {
+    bpm: 118, root: N.F4, scale: [0, 2, 4, 7, 9], leadTimbre: 'marimba', leadVol: 0.1,
+    lead: [0, 2, 4, _, 5, 4, 2, _, 3, 4, 5, _, 7, _, _, _, 5, 4, 3, _, 4, 3, 2, _, 1, 2, 3, _, 0, _, _, _],
+    bass: [0, _, 2, _, 0, _, 2, _, 3, _, 1, _, 2, _, 0, _, 0, _, 2, _, 0, _, 2, _, 3, _, 1, _, 0, _, _, _],
   },
   // Neon-Metropole: treibender Synthwave (Moll, pulsierender Achtel-Bass)
   teen: {

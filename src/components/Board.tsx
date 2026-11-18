@@ -5,6 +5,9 @@ import type { WorldConfig } from '../data/worlds';
 import { DIR_ANGLE, DIR_VEC, initialState, parseMap, posKey } from '../engine/world';
 import type { Frame, LevelDef } from '../types';
 import { Sparky, type SparkyMood } from './Sparky';
+import { Sprite, WORLD_SPRITES } from './sprites';
+import type { ThemeConfig } from '../data/seasons';
+import { useSeasonalTheme } from '../hooks/useSeasonalTheme';
 
 interface Props {
   level: LevelDef;
@@ -25,6 +28,7 @@ const PORTAL_COLORS: Record<string, string> = {
 
 export function Board({ level, world, frame, frameIndex, stepMs, mood, costume }: Props) {
   const map = useMemo(() => parseMap(level), [level]);
+  const { theme: season } = useSeasonalTheme();
   const state = frame?.state ?? initialState(level, map);
   const { cols, rows } = map;
 
@@ -71,7 +75,7 @@ export function Board({ level, world, frame, frameIndex, stepMs, mood, costume }
             const bg = wall ? world.wallTile : (x + y) % 2 === 0 ? world.tileA : world.tileB;
             return (
               <div key={k} className="tile relative flex min-h-0 min-w-0 items-center justify-center overflow-hidden rounded-[22%] leading-none" style={{ background: bg, fontSize }}>
-                <TileContent tile={tile} world={world} state={state} k={k} />
+                <TileContent tile={tile} world={world} state={state} k={k} season={season} />
               </div>
             );
           }),
@@ -149,19 +153,15 @@ export function Board({ level, world, frame, frameIndex, stepMs, mood, costume }
   );
 }
 
-function TileContent({ tile, world, state, k }: { tile: string; world: WorldConfig; state: Frame['state']; k: string }) {
+function TileContent({ tile, world, state, k, season }: { tile: string; world: WorldConfig; state: Frame['state']; k: string; season: ThemeConfig }) {
+  const sp = WORLD_SPRITES[world.id];
   switch (tile) {
     case '#':
-      return <span className="drop-shadow-md">{world.wall}</span>;
+      return <Sprite name={sp.wall} className="h-[92%] w-[92%] drop-shadow-md" />;
     case 'o':
-      return <span className="drop-shadow-md">{world.low}</span>;
+      return <Sprite name={sp.low} className="h-[80%] w-[80%] drop-shadow-md" />;
     case 'B':
-      return (
-        <span className="relative drop-shadow-md">
-          🐻
-          <span className="absolute -right-[30%] -top-[40%] animate-float text-[45%]">💤</span>
-        </span>
-      );
+      return <Sprite name="bear" className="h-[86%] w-[86%] drop-shadow-md" />;
     case 'P':
       return (
         <span
@@ -174,25 +174,37 @@ function TileContent({ tile, world, state, k }: { tile: string; world: WorldConf
       );
     case '*':
       return state.collected.includes(k) ? null : (
-        <span className="animate-float drop-shadow-[0_0_8px_rgba(255,255,255,.9)]">{world.bonus}</span>
+        <span className="h-[74%] w-[74%] animate-float drop-shadow-[0_0_8px_rgba(255,255,255,.9)]">
+          <Sprite name={season.collectible ?? sp.bonus} />
+        </span>
       );
     case 'K':
-      return state.hasKey ? null : <span className="animate-wiggle drop-shadow-[0_0_8px_rgba(253,224,71,.9)]">{world.key}</span>;
+      return state.hasKey ? null : (
+        <span className="h-[76%] w-[76%] animate-wiggle drop-shadow-[0_0_8px_rgba(253,224,71,.9)]">
+          <Sprite name="key" />
+        </span>
+      );
     case 'D':
       return state.openGates.includes(k) ? (
         <span className="animate-pop opacity-80">✨</span>
       ) : (
-        <span className="relative">
-          {world.gate}
-          <span className="absolute -bottom-[10%] -right-[15%] text-[45%]">🔒</span>
+        <span className="relative h-[86%] w-[86%]">
+          <Sprite name="gate" />
+          <span className="absolute -bottom-[8%] -right-[12%] h-[45%] w-[45%]">
+            <Sprite name="lock" />
+          </span>
         </span>
       );
     case 'G':
-      return <span className="animate-float drop-shadow-[0_0_12px_rgba(255,255,255,.95)]">{world.goal}</span>;
+      return (
+        <span className="h-[84%] w-[84%] animate-float drop-shadow-[0_0_12px_rgba(255,255,255,.95)]">
+          <Sprite name={sp.goal} />
+        </span>
+      );
     case 'H':
       return (
-        <span className="relative animate-float drop-shadow-[0_0_12px_rgba(94,234,212,.95)]">
-          {world.goal2 ?? '🔷'}
+        <span className="relative h-[80%] w-[80%] animate-float drop-shadow-[0_0_12px_rgba(94,234,212,.95)]" style={{ filter: 'hue-rotate(150deg)' }}>
+          <Sprite name={sp.goal} />
           <span className="absolute -bottom-[15%] -right-[25%] rounded-full bg-teal-400 px-[0.3em] text-[38%] font-black text-slate-900">2</span>
         </span>
       );

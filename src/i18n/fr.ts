@@ -1,12 +1,14 @@
 import { bridgeFr } from './bridge/fr';
 import { moreFr } from './more/fr';
 import { proFr } from './pro/fr';
+import { seasonFr } from './season/fr';
 import type { Dict } from './types';
 
 export const fr: Dict = {
   ...bridgeFr,
   ...moreFr,
   ...proFr,
+  ...seasonFr,
   langName: 'Français',
   titleTop: "L'aventure code",
   titleBottom: 'de Sparky',

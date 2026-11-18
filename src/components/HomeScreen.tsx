@@ -1,9 +1,13 @@
 // Startbildschirm: illustrierte Abenteuerkarte mit den fünf Themenwelten + Menü + S-Bahn-Express
-import { BookOpen, Check, Gift, Globe, RotateCcw, Settings, Shirt, Star, Trophy } from 'lucide-react';
-import { useState, type CSSProperties, type ReactNode } from 'react';
+import { BookOpen, Check, Globe, RotateCcw, Settings, Shirt, Star } from 'lucide-react';
+import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import { bestTitle } from '../data/rewards';
 import { expressId } from '../data/levels';
-import { WORLD_ORDER, WORLDS } from '../data/worlds';
+import { WORLD_ORDER } from '../data/worlds';
+import { SeasonBanner, SeasonLayer } from './SeasonLayer';
+import { THEMES } from '../data/seasons';
+import { useSeasonalTheme } from '../hooks/useSeasonalTheme';
+import { Sprite, WORLD_SPRITES, type SpriteName } from './sprites';
 import { useStoredState } from '../hooks/useStoredState';
 import type { ProgressApi } from '../hooks/useProgress';
 import type { SoundApi } from '../hooks/useSoundEffects';
@@ -28,48 +32,14 @@ interface Props {
   onSettings: () => void;
 }
 
-/** Illustrationen der Inseln */
-const ISLAND: Record<AgeGroupId, { bg: string; scene: string[]; side: 'left' | 'right'; color: string }> = {
-  mini: {
-    bg: 'radial-gradient(circle at 35% 30%, #bef264 0%, #65a30d 55%, #365314 100%)',
-    scene: ['🌳', '🍄', '🌲', '🍓', '🌸', '✨'],
-    side: 'left',
-    color: '#ea580c',
-  },
-  junior: {
-    bg: 'radial-gradient(circle at 35% 30%, #a5f3fc 0%, #06b6d4 50%, #0e7490 100%)',
-    scene: ['🏝️', '🏴‍☠️', '💎', '🐚', '🦀', '⛵'],
-    side: 'right',
-    color: '#0284c7',
-  },
-  hero: {
-    bg: 'radial-gradient(circle at 35% 30%, #c4b5fd 0%, #7c3aed 50%, #312e81 100%)',
-    scene: ['🏰', '🪐', '🤖', '🚀', '⭐', '🛰️'],
-    side: 'left',
-    color: '#c026d3',
-  },
-  teen: {
-    bg: 'radial-gradient(circle at 35% 30%, #f0abfc 0%, #7e22ce 45%, #0c0a2a 100%)',
-    scene: ['🌆', '🛸', '📡', '⚡', '🕹️', '💾'],
-    side: 'right',
-    color: '#a21caf',
-  },
-  adult: {
-    bg: 'radial-gradient(circle at 35% 30%, #99f6e4 0%, #0f766e 45%, #020617 100%)',
-    scene: ['⚛️', '🧬', '🔬', '🧠', '♾️', '💠'],
-    side: 'left',
-    color: '#0f766e',
-  },
+/** Sammelkarten der fünf Welten: Farbverlauf, Emblem, Deko */
+const CARD: Record<AgeGroupId, { bg: string; ring: string; deco: SpriteName[] }> = {
+  mini: { bg: 'linear-gradient(135deg,#bef264 0%,#22c55e 45%,#15803d 100%)', ring: '#14532d', deco: ['tree', 'mushroom', 'berry'] },
+  junior: { bg: 'linear-gradient(135deg,#67e8f9 0%,#0ea5e9 45%,#1e40af 100%)', ring: '#0c4a6e', deco: ['palm', 'gem', 'treasure'] },
+  hero: { bg: 'linear-gradient(135deg,#c4b5fd 0%,#7c3aed 45%,#312e81 100%)', ring: '#2e1065', deco: ['planet', 'star', 'meteor'] },
+  teen: { bg: 'linear-gradient(135deg,#f0abfc 0%,#a21caf 40%,#0f172a 100%)', ring: '#3b0764', deco: ['tower', 'battery', 'disk'] },
+  adult: { bg: 'linear-gradient(135deg,#5eead4 0%,#0f766e 40%,#020617 100%)', ring: '#042f2e', deco: ['crystal', 'qcore', 'spark'] },
 };
-
-const SCENE_POS = [
-  { l: '50%', t: '42%', s: 2.6 },
-  { l: '22%', t: '30%', s: 1.3 },
-  { l: '78%', t: '28%', s: 1.3 },
-  { l: '28%', t: '70%', s: 1.2 },
-  { l: '72%', t: '70%', s: 1.2 },
-  { l: '50%', t: '12%', s: 1 },
-];
 
 export function HomeScreen({ sound, prog, onPick, onExpress, onWardrobe, onAlbum, onTrophies, onSettings }: Props) {
   const [confirmReset, setConfirmReset] = useState(false);
@@ -81,20 +51,32 @@ export function HomeScreen({ sound, prog, onPick, onExpress, onWardrobe, onAlbum
   const [expressGroup, setExpressGroup] = useStoredState<AgeGroupId>('sparky:expressGroup', 'hero');
   const todayId = expressId(WORLD_ORDER.includes(expressGroup) ? expressGroup : 'hero');
   const todayStars = prog.progress.express[todayId] ?? 0;
+  // Festtags-Abzeichen: einmal pro Fest und Jahr (nur echtes Kalender-Fest, keine Vorschau)
+  const season = useSeasonalTheme();
+  const { addFest } = prog;
+  useEffect(() => {
+    if (!season.preview && THEMES[season.live].fest) addFest(`${season.live}-${new Date().getFullYear()}`);
+  }, [season.preview, season.live, addFest]);
 
   return (
-    <div className="safe-area relative h-[100dvh] overflow-hidden bg-gradient-to-b from-sky-400 via-indigo-400 to-fuchsia-400">
-      <Particles kind="stars" count={30} />
-      {['8%', '58%', '30%'].map((top, i) => (
-        <div key={top} className="pointer-events-none absolute animate-float text-6xl opacity-80" style={{ top, left: i % 2 ? '70%' : '-4%', animationDelay: `${i * 0.8}s` }}>
-          ☁️
+    <div className="safe-area relative h-[100dvh] overflow-hidden bg-gradient-to-b from-sky-300 via-sky-400 to-blue-600">
+      <Particles kind="stars" count={18} />
+      {/* Wolken (eigene Grafik) */}
+      {[
+        { top: '6%', left: '-10%', w: '34%' },
+        { top: '9%', left: '76%', w: '30%' },
+        { top: '46%', left: '-14%', w: '28%' },
+      ].map((c, i) => (
+        <div key={i} className="pointer-events-none absolute animate-float opacity-90" style={{ top: c.top, left: c.left, width: c.w, animationDelay: `${i * 0.9}s` }}>
+          <Sprite name="cloud" className="h-auto w-full" />
         </div>
       ))}
+      <SeasonLayer />
 
       <div className="thin-scroll relative h-full overflow-y-auto">
         <div className="mx-auto flex max-w-xl flex-col items-center px-4 pb-10">
-          {/* Kopfzeile */}
-          <div className="flex w-full items-center justify-between py-3">
+          {/* Kopfzeile: Sprache · Sterne · Einstellungen */}
+          <div className="relative z-10 flex w-full items-center justify-between py-3">
             <RoundBtn
               label={t.home.language}
               onClick={() => {
@@ -106,78 +88,86 @@ export function HomeScreen({ sound, prog, onPick, onExpress, onWardrobe, onAlbum
             >
               <span className="text-2xl leading-none">{current.flag}</span>
             </RoundBtn>
-            <div className="glass flex items-center gap-1 rounded-full px-4 py-1.5 text-lg font-bold text-slate-700">
-              <Star className="h-5 w-5 fill-yellow-300 text-amber-500" /> {prog.totalStars}
+            <div className="relative flex h-16 w-16 items-center justify-center" aria-label={`${prog.totalStars} ⭐`}>
+              <Sprite name="star" className="absolute inset-0 h-full w-full animate-breathe" />
+              <span className="relative mt-1 text-lg font-black text-amber-900">{prog.totalStars}</span>
             </div>
             <RoundBtn label={t.settings.title} onClick={onSettings} color="#ffffff" dark>
               <Settings className="h-6 w-6" />
             </RoundBtn>
           </div>
 
-          {/* Titel mit Sparky */}
-          <div className="mt-6 h-28 w-28 sm:h-36 sm:w-36">
-            <Sparky mood="happy" />
+          {/* Sparky in eigenem Container – mit Abstand, damit Mütze/Hörner nie in die Kopfzeile ragen */}
+          <div className="relative z-10 mt-4 flex h-36 w-36 items-end justify-center sm:h-44 sm:w-44">
+            <div className="absolute bottom-1 h-6 w-28 rounded-[50%] bg-blue-900/25 blur-[2px]" />
+            <div className="h-full w-full animate-float">
+              <Sparky mood="happy" />
+            </div>
           </div>
-          <h1 className="mt-1 text-center text-4xl font-bold leading-none text-white sm:text-5xl" style={{ textShadow: '0 4px 0 #7c3aed, 0 8px 18px rgba(76,29,149,.55)' }}>
+          <h1 className="game-title relative z-10 mt-2 text-center text-[2.6rem] uppercase leading-[0.95] sm:text-6xl">
             {t.titleTop}
             <br />
-            {t.titleBottom}
+            <span className="text-[1.9rem] sm:text-5xl">{t.titleBottom}</span>
           </h1>
           {title && (
             <button
               type="button"
               onClick={onTrophies}
-              className="mt-2 animate-pop rounded-full border border-white/30 bg-slate-900/75 px-4 py-1 text-sm font-extrabold tracking-wide text-white shadow-lg backdrop-blur-sm"
+              className="card3d relative z-10 mt-3 animate-pop rounded-full bg-slate-900 px-4 py-1 text-sm font-extrabold tracking-wide text-white"
             >
               {title.emoji} {t.rewards.badges[title.id].name}
             </button>
           )}
 
-          {/* Menü */}
-          <div className="mt-4 grid w-full grid-cols-4 gap-2">
-            <MenuBtn color="#d946ef" label={t.home.costumes} onClick={() => { sound.play('click'); onWardrobe(); }}>
-              <Shirt className="h-7 w-7" />
+          <div className="mt-4 w-full">
+            <SeasonBanner />
+          </div>
+
+          {/* Menü: 3D-Kacheln mit kurzen Labels */}
+          <div className="relative z-10 mt-4 grid w-full grid-cols-4 gap-3">
+            <MenuBtn color="#c026d3" label={t.home2.costumes} onClick={() => { sound.play('click'); onWardrobe(); }}>
+              <Shirt className="h-9 w-9 drop-shadow-[0_2px_0_#1d1530]" strokeWidth={2.5} />
             </MenuBtn>
-            <MenuBtn color="#0ea5e9" label={t.cards.album} onClick={() => { sound.play('click'); onAlbum(); }}>
-              <BookOpen className="h-7 w-7" />
+            <MenuBtn color="#0ea5e9" label={t.home2.knowledge} onClick={() => { sound.play('click'); onAlbum(); }}>
+              <BookOpen className="h-9 w-9 drop-shadow-[0_2px_0_#1d1530]" strokeWidth={2.5} />
             </MenuBtn>
-            <MenuBtn color="#f59e0b" label={t.rewards.trophies} onClick={() => { sound.play('click'); onTrophies(); }}>
-              <Trophy className="h-7 w-7" />
-            </MenuBtn>
+            <MenuBtn color="#f59e0b" label={t.home2.trophies} sprite="trophy" onClick={() => { sound.play('click'); onTrophies(); }} />
             <MenuBtn
-              color="#f43f5e"
-              label={t.daily.button}
+              color="#ef4444"
+              label={t.home2.gift}
+              sprite="gift"
               pulse={prog.canSpin}
               badge={prog.canSpin ? '!' : prog.progress.streak > 1 ? `🔥${prog.progress.streak}` : undefined}
               onClick={() => {
                 sound.play('click');
                 setWheelOpen(true);
               }}
-            >
-              <Gift className="h-7 w-7" />
-            </MenuBtn>
+            />
           </div>
 
           {/* 🚆 S-Bahn-Express: ein Tages-Rätsel, in 3 Minuten lösbar */}
-          <div className="mt-4 w-full rounded-[1.8rem] bg-slate-900/80 p-2 shadow-xl ring-1 ring-white/20 backdrop-blur-md">
+          <div className="relative z-10 mt-6 w-full">
             <button
               type="button"
               onClick={() => {
                 sound.play('unlock');
                 onExpress(todayId);
               }}
-              className="squish flex min-h-[64px] w-full items-center gap-3 rounded-[1.4rem] px-4 text-start"
-              style={{ '--c': '#e11d48' } as CSSProperties}
+              className="squish flex min-h-[70px] w-full items-center gap-3 rounded-full py-2 pe-5 ps-3 text-start"
+              style={{ '--c': '#f97316' } as CSSProperties}
             >
+              <span className="h-14 w-14 shrink-0 -rotate-6">
+                <Sprite name="train" />
+              </span>
               <span className="min-w-0 flex-1">
-                <span className="block text-lg font-bold leading-tight">{t.pro.expressButton}</span>
-                <span className="block text-xs font-semibold leading-tight opacity-90">
+                <span className="block text-lg font-black uppercase leading-tight text-yellow-200">{t.pro.expressButton.replace(/^🚆\s*/, '')}</span>
+                <span className="block text-xs font-bold leading-tight">
                   {todayStars > 0 ? `${'⭐'.repeat(todayStars)} ${t.pro.expressDone}` : t.pro.expressSub}
                 </span>
               </span>
               {todayStars > 0 && <Check className="h-7 w-7 shrink-0" strokeWidth={3.5} />}
             </button>
-            <div className="mt-2 flex items-center gap-1.5" role="radiogroup" aria-label={t.pro.expressLevel}>
+            <div className="mt-3 flex items-center gap-2" role="radiogroup" aria-label={t.pro.expressLevel}>
               {WORLD_ORDER.map((g) => (
                 <button
                   key={g}
@@ -189,29 +179,26 @@ export function HomeScreen({ sound, prog, onPick, onExpress, onWardrobe, onAlbum
                     sound.play('click');
                     setExpressGroup(g);
                   }}
-                  className={`flex h-10 flex-1 items-center justify-center rounded-full text-xl transition ${
-                    expressGroup === g ? 'bg-white shadow-lg ring-2 ring-yellow-300' : 'bg-white/10'
+                  className={`card3d flex h-12 flex-1 items-center justify-center rounded-2xl p-1.5 transition active:translate-y-1 ${
+                    expressGroup === g ? 'bg-yellow-300' : 'bg-white/70'
                   }`}
                 >
-                  {WORLDS[g].emoji}
+                  <Sprite name={WORLD_SPRITES[g].emblem} />
                 </button>
               ))}
             </div>
-            <div className="mt-1 text-center text-[11px] font-bold text-white/70">
-              {t.worlds[expressGroup]?.name} · {t.worlds[expressGroup]?.ages}
+            <div className="outline-text mt-1.5 text-center text-xs font-bold">
+              {t.home2.level}: {t.worlds[expressGroup]?.name} · {t.worlds[expressGroup]?.ages}
             </div>
           </div>
 
-          <p className="mt-5 text-center text-lg font-bold text-white drop-shadow">{t.home.whereTo}</p>
+          <p className="outline-text relative z-10 mt-6 text-center text-2xl font-black">{t.home.whereTo}</p>
 
-          {/* Abenteuer-Pfad mit drei Inseln */}
-          <div className="relative mt-3 w-full">
-            <svg className="pointer-events-none absolute inset-0 h-full w-full" viewBox="0 0 100 500" preserveAspectRatio="none" aria-hidden>
-              <path d="M30 40 C 90 70, 90 100, 70 140 S 10 200, 30 250 S 90 300, 70 340 S 10 400, 30 450" fill="none" stroke="#fff" strokeWidth="5" strokeDasharray="2 10" strokeLinecap="round" vectorEffect="non-scaling-stroke" opacity="0.85" />
-            </svg>
+          {/* Welten als breite 3D-Sammelkarten */}
+          <div className="relative z-10 mt-3 flex w-full flex-col gap-5">
             {WORLD_ORDER.map((id, i) => {
               const wt = t.worlds[id];
-              const isl = ISLAND[id];
+              const card = CARD[id];
               return (
                 <button
                   key={id}
@@ -220,36 +207,36 @@ export function HomeScreen({ sound, prog, onPick, onExpress, onWardrobe, onAlbum
                     sound.play('unlock');
                     onPick(id);
                   }}
-                  className={`relative mb-4 flex w-full animate-bounce-in items-center gap-3 ${isl.side === 'right' ? 'flex-row-reverse text-right' : ''}`}
-                  style={{ animationDelay: `${i * 0.12}s` }}
+                  className="card3d relative flex min-h-[124px] w-full animate-bounce-in items-center gap-3 overflow-hidden rounded-[1.7rem] p-3 text-start transition active:translate-y-1"
+                  style={{ background: card.bg, animationDelay: `${i * 0.1}s` }}
                 >
-                  <div
-                    className="relative h-32 w-32 shrink-0 rounded-[46%_54%_50%_50%] transition active:scale-95 sm:h-44 sm:w-44"
-                    style={{ background: isl.bg, boxShadow: '0 10px 0 rgba(0,0,0,.18), 0 20px 30px -10px rgba(0,0,0,.45), inset 0 6px 0 rgba(255,255,255,.35)' }}
-                  >
-                    <span className="absolute left-[18%] top-[8%] h-[18%] w-[40%] rounded-full bg-white/40 blur-[2px]" />
-                    {isl.scene.map((e, k) => (
-                      <span
-                        key={k}
-                        className={`absolute -translate-x-1/2 -translate-y-1/2 ${k === 0 ? 'animate-float' : k === 5 ? 'animate-twinkle' : ''}`}
-                        style={{ left: SCENE_POS[k].l, top: SCENE_POS[k].t, fontSize: `${SCENE_POS[k].s}rem` }}
-                      >
-                        {e}
-                      </span>
-                    ))}
-                  </div>
-                  <div className="glass min-w-0 flex-1 rounded-[1.6rem] px-4 py-3">
-                    <div className="text-xs font-bold uppercase leading-tight tracking-wide" style={{ color: isl.color }}>
-                      {wt.world}
-                    </div>
-                    <div className="text-xl font-bold leading-tight text-slate-800 sm:text-2xl">{wt.name}</div>
-                    <div className="text-sm font-semibold leading-snug text-slate-500">
-                      {wt.ages} · {wt.tagline}
-                    </div>
-                    <div className={`mt-1 flex items-center gap-1 text-sm font-bold text-slate-700 ${isl.side === 'right' ? 'justify-end' : ''}`}>
-                      <Star className="h-4 w-4 fill-yellow-300 text-amber-500" /> {prog.starsIn(id)} · Lv {prog.frontier(id)}
-                    </div>
-                  </div>
+                  {/* Hintergrund-Illustration */}
+                  {card.deco.map((d, k) => (
+                    <span
+                      key={d}
+                      className="pointer-events-none absolute opacity-25"
+                      style={{ width: 70 - k * 14, right: `${18 + k * 17}%`, top: k % 2 ? '52%' : '-6%', transform: `rotate(${k * 14 - 10}deg)` }}
+                    >
+                      <Sprite name={d} className="h-auto w-full" />
+                    </span>
+                  ))}
+                  <span className="absolute inset-x-6 top-1.5 h-5 rounded-full bg-white/25" />
+                  {/* Emblem */}
+                  <span className="relative flex h-[76px] w-[76px] shrink-0 items-center justify-center rounded-[1.4rem] border-[3px] border-[#1d1530] bg-white/25 p-2 shadow-[inset_0_3px_0_rgba(255,255,255,.5)]">
+                    <Sprite name={WORLD_SPRITES[id].emblem} className="h-full w-full animate-float" />
+                  </span>
+                  {/* Titel */}
+                  <span className="relative min-w-0 flex-1">
+                    <span className="outline-text block text-[1.08rem] font-black uppercase leading-[1.08] hyphens-auto break-words">{wt.world}</span>
+                    <span className="outline-text mt-0.5 block text-[13px] font-bold leading-tight">{wt.ages}</span>
+                    <span className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-[#1d1530]/80 px-2 py-0.5 text-xs font-bold text-white">
+                      <Star className="h-3.5 w-3.5 fill-yellow-300 text-amber-400" /> {prog.starsIn(id)} · Lv {prog.frontier(id)}
+                    </span>
+                  </span>
+                  {/* SPIELEN */}
+                  <span className="squish relative flex h-11 shrink-0 items-center rounded-2xl px-2.5 text-sm font-black" style={{ '--c': '#22c55e' } as CSSProperties}>
+                    {t.home2.play}
+                  </span>
                 </button>
               );
             })}
@@ -267,7 +254,7 @@ export function HomeScreen({ sound, prog, onPick, onExpress, onWardrobe, onAlbum
                 setTimeout(() => setConfirmReset(false), 3000);
               }
             }}
-            className="mt-6 flex items-center gap-2 text-sm font-bold text-white/80"
+            className="relative z-10 mt-8 flex items-center gap-2 text-sm font-bold text-white/85"
           >
             <RotateCcw className="h-4 w-4" />
             {confirmReset ? t.home.resetConfirm : t.home.reset}
@@ -309,22 +296,21 @@ export function HomeScreen({ sound, prog, onPick, onExpress, onWardrobe, onAlbum
   );
 }
 
-function MenuBtn(p: { color: string; label: string; onClick: () => void; pulse?: boolean; badge?: string; children: ReactNode }) {
+function MenuBtn(p: { color: string; label: string; onClick: () => void; pulse?: boolean; badge?: string; sprite?: SpriteName; children?: ReactNode }) {
   return (
-    <button
-      type="button"
-      aria-label={p.label}
-      onClick={p.onClick}
-      className={`squish relative flex min-h-[78px] flex-col items-center justify-center gap-1 rounded-[1.4rem] px-1 py-2 ${p.pulse ? 'animate-breathe' : ''}`}
-      style={{ '--c': p.color } as CSSProperties}
-    >
-      {p.children}
-      <span className="text-center text-[11px] font-bold leading-tight">{p.label}</span>
-      {p.badge && (
-        <span className="absolute -right-1 -top-2 min-w-[24px] animate-pop rounded-full bg-yellow-300 px-1.5 py-0.5 text-xs font-extrabold text-rose-700 shadow [text-shadow:none]">
-          {p.badge}
-        </span>
-      )}
+    <button type="button" aria-label={p.label} onClick={p.onClick} className="flex flex-col items-center gap-1.5">
+      <span
+        className={`squish relative flex aspect-square w-full items-center justify-center rounded-[1.3rem] p-2.5 ${p.pulse ? 'animate-breathe' : ''}`}
+        style={{ '--c': p.color } as CSSProperties}
+      >
+        {p.sprite ? <Sprite name={p.sprite} className="h-full w-full" /> : p.children}
+        {p.badge && (
+          <span className="card3d absolute -right-2 -top-2 flex min-w-[26px] animate-pop items-center justify-center rounded-full bg-yellow-300 px-1.5 py-0.5 text-xs font-black text-rose-700 [text-shadow:none]">
+            {p.badge}
+          </span>
+        )}
+      </span>
+      <span className="outline-text text-center text-[13px] font-black leading-tight">{p.label}</span>
     </button>
   );
 }

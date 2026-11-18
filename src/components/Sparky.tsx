@@ -3,6 +3,8 @@
 // Mimik: idle (neugierig, blinzelt), walk, happy, boing, sad, think
 // Kostüme werden als SVG-Ebenen darübergelegt.
 // ─────────────────────────────────────────────────────────────
+import { useSeasonalTheme } from '../hooks/useSeasonalTheme';
+import type { ThemeConfig } from '../data/seasons';
 import { createContext, useContext, useId } from 'react';
 import { SKINS, type CostumeId, type SkinId } from '../data/costumes';
 import type { Dir } from '../types';
@@ -34,6 +36,7 @@ export function Sparky({ mood = 'idle', dir = 'right', costume: costumeProp, ski
   const uid = useId().replace(/:/g, '');
   const lookCtx = useContext(SparkyLook);
   const costume = costumeProp ?? lookCtx.costume;
+  const { theme: season } = useSeasonalTheme();
   const sk = SKINS.find((x) => x.id === (skinProp ?? lookCtx.skin)) ?? SKINS[0];
   const flip = dir === 'left';
   // Blickrichtung der Pupillen
@@ -118,6 +121,8 @@ export function Sparky({ mood = 'idle', dir = 'right', costume: costumeProp, ski
           <Face mood={mood} look={look} />
 
           {costume !== 'none' && costume !== 'cape' && <Hat costume={costume} uid={uid} />}
+          {/* Saison-Accessoire (nur ohne Kostüm, damit nichts kollidiert) */}
+          {costume === 'none' && season.accessory && <SeasonAccessory kind={season.accessory} />}
           {costume === 'cape' && <path d="M60 92 l3 -6 l3 6 l-6 -4 h6 z" fill="#fde047" stroke="#b45309" strokeWidth="1" />}
         </g>
       </svg>
@@ -318,6 +323,96 @@ function Hat({ costume, uid }: { costume: CostumeId; uid: string }) {
       );
     default:
       return null;
+  }
+}
+
+type Accessory = NonNullable<ThemeConfig['accessory']>;
+
+/** Saison- & Festtags-Accessoires für Sparky */
+function SeasonAccessory({ kind }: { kind: Accessory }) {
+  const O = '#1d1530';
+  switch (kind) {
+    case 'santa':
+      return (
+        <g>
+          <path d="M50 40 Q66 4 96 14 Q104 18 102 30 L98 40 Z" fill="#dc2626" stroke={O} strokeWidth="2.5" strokeLinejoin="round" />
+          <rect x="46" y="34" width="56" height="10" rx="5" fill="#fff" stroke={O} strokeWidth="2.5" />
+          <circle cx="102" cy="28" r="6" fill="#fff" stroke={O} strokeWidth="2.5" />
+        </g>
+      );
+    case 'partyhat':
+      return (
+        <g>
+          <path d="M62 38 L72 4 L84 36 Z" fill="#22d3ee" stroke={O} strokeWidth="2.5" strokeLinejoin="round" />
+          <path d="M65 28 L80 26 M68 18 L77 17" stroke="#f472b6" strokeWidth="3" strokeLinecap="round" />
+          <circle cx="72" cy="4" r="5" fill="#facc15" stroke={O} strokeWidth="2" />
+        </g>
+      );
+    case 'bunny':
+      return (
+        <g>
+          <path d="M58 36 Q48 2 58 0 Q68 2 66 34" fill="#fff" stroke={O} strokeWidth="2.5" />
+          <path d="M58 30 Q53 8 58 6 Q62 8 62 30" fill="#fbcfe8" />
+          <path d="M78 34 Q82 0 94 4 Q100 10 86 38" fill="#fff" stroke={O} strokeWidth="2.5" />
+          <path d="M82 30 Q86 10 92 9 Q94 14 85 32" fill="#fbcfe8" />
+        </g>
+      );
+    case 'vampire':
+      return (
+        <g>
+          <path d="M40 96 Q30 74 44 64 L52 84 Z M96 96 Q106 74 92 64 L84 84 Z" fill="#7f1d1d" stroke={O} strokeWidth="2.5" strokeLinejoin="round" />
+          <path d="M88 78 L90 84 L92 78 Z M94 76 L95.5 81 L97 76 Z" fill="#fff" stroke={O} strokeWidth="1" />
+          <path d="M58 36 Q72 30 86 36 L72 44 Z" fill="#111827" stroke={O} strokeWidth="2" strokeLinejoin="round" />
+        </g>
+      );
+    case 'goldscarf':
+      return (
+        <g>
+          <path d="M46 92 Q68 104 94 90 L96 98 Q68 112 44 100 Z" fill="#047857" stroke={O} strokeWidth="2.5" strokeLinejoin="round" />
+          <path d="M50 97 Q68 106 92 95" fill="none" stroke="#facc15" strokeWidth="2" strokeDasharray="3 3" />
+          <path d="M86 96 L92 116 L80 112 Z" fill="#047857" stroke={O} strokeWidth="2.5" strokeLinejoin="round" />
+          <circle cx="86" cy="106" r="2" fill="#facc15" />
+        </g>
+      );
+    case 'festcap':
+      return (
+        <g>
+          <path d="M54 40 Q54 22 72 20 Q90 22 90 40 Z" fill="#7c2d12" stroke={O} strokeWidth="2.5" strokeLinejoin="round" />
+          <path d="M56 34 L88 34" stroke="#facc15" strokeWidth="3" />
+          <path d="M62 28 L66 24 L70 28 L74 24 L78 28 L82 24" fill="none" stroke="#facc15" strokeWidth="2" />
+          <path d="M72 20 L72 14" stroke={O} strokeWidth="2" />
+          <circle cx="72" cy="12" r="3" fill="#facc15" stroke={O} strokeWidth="1.5" />
+        </g>
+      );
+    case 'flowercrown':
+      return (
+        <g>
+          <path d="M50 40 Q72 28 96 40" fill="none" stroke="#16a34a" strokeWidth="4" strokeLinecap="round" />
+          {[[54, 37, '#f9a8d4'], [64, 33, '#fde047'], [74, 32, '#f0abfc'], [84, 33, '#93c5fd'], [93, 37, '#f9a8d4']].map(([x, y, c], i) => (
+            <g key={i}>
+              <circle cx={Number(x)} cy={Number(y)} r="5" fill={String(c)} stroke={O} strokeWidth="1.8" />
+              <circle cx={Number(x)} cy={Number(y)} r="1.6" fill="#f59e0b" />
+            </g>
+          ))}
+        </g>
+      );
+    case 'sunglasses':
+      return (
+        <g>
+          <path d="M58 54 L100 54" stroke={O} strokeWidth="3" />
+          <rect x="60" y="50" width="16" height="11" rx="4" fill="#0f172a" stroke={O} strokeWidth="2" />
+          <rect x="82" y="50" width="16" height="11" rx="4" fill="#0f172a" stroke={O} strokeWidth="2" />
+          <path d="M63 53 L67 53 M85 53 L89 53" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
+        </g>
+      );
+    case 'beanie':
+      return (
+        <g>
+          <path d="M50 40 Q50 12 72 12 Q94 12 94 40 Z" fill="#2563eb" stroke={O} strokeWidth="2.5" strokeLinejoin="round" />
+          <rect x="47" y="34" width="50" height="9" rx="4" fill="#bfdbfe" stroke={O} strokeWidth="2.5" />
+          <circle cx="72" cy="10" r="6" fill="#fff" stroke={O} strokeWidth="2.5" />
+        </g>
+      );
   }
 }
 

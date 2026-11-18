@@ -1,0 +1,28 @@
+import type { ExtraTexts } from '../types';
+
+// Saison & Feste, Live-Code-Editor, kurze Labels (it)
+export const seasonIt: ExtraTexts = {
+  season: {
+    names: {"normal": "Normale", "spring": "Primavera", "summer": "Estate", "autumn": "Autunno", "winter": "Inverno", "halloween": "Halloween", "christmas": "Natale", "newyear": "Capodanno", "easter": "Pasqua", "ramadan": "Ramadan", "eidFitr": "Eid al-Fitr", "eidAdha": "Eid al-Adha"},
+    banner: {"ramadan": "Evento Ramadan · Raccogli i datteri!", "eidFitr": "Eid Mubarak! Buon Eid al-Fitr!", "eidAdha": "Eid Mubarak! Buon Eid al-Adha!", "halloween": "Settimana di Halloween · Raccogli le zucche!", "christmas": "Buon Natale · Raccogli i regali!", "newyear": "Buon anno!", "easter": "Buona Pasqua · Raccogli le uova!"},
+    regions: {"auto": "Automatico (la mia regione)", "islamic": "Feste islamiche", "european": "Feste europee", "world": "Cittadino del mondo (tutte)"},
+    regionTitle: "Feste e regione",
+    previewTitle: "Anteprima stagioni",
+    previewLive: (n) => `Calendario: ${n}`,
+    doubleWheel: "Giorno di festa: stelle doppie!",
+    festBadges: "Distintivi delle feste",
+  },
+  editor: {
+    tab: "Codice live",
+    hint: "Scrivi il codice da solo, o usa i blocchi.",
+    unknown: (l, w, s) => (s ? `Alla riga ${l} non conosco «${w}». Intendevi «${s}»?` : `Alla riga ${l} non conosco «${w}».`),
+    syntax: (l) => `Riga ${l}: non capisco bene. Controlla parentesi e due punti.`,
+    notAllowed: (l, w) => `Riga ${l}: «${w}» non esiste ancora in questo livello.`,
+    tooMany: (n, m) => `Sono ${n} blocchi, ne sono permessi ${m}.`,
+    indent: (l) => `Riga ${l}: il rientro non va.`,
+    number: (l) => `Riga ${l}: manca un numero, ad es. range(3).`,
+    applied: "Codice applicato ✓",
+    reload: "Ricarica dai blocchi",
+  },
+  home2: {"costumes": "Costumi", "knowledge": "Sapere", "trophies": "Trofei", "gift": "Regalo", "play": "GIOCA", "level": "Livello"},
+};

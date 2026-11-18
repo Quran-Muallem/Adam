@@ -1,0 +1,28 @@
+import type { ExtraTexts } from '../types';
+
+// Saison & Feste, Live-Code-Editor, kurze Labels (es)
+export const seasonEs: ExtraTexts = {
+  season: {
+    names: {"normal": "Normal", "spring": "Primavera", "summer": "Verano", "autumn": "Otoño", "winter": "Invierno", "halloween": "Halloween", "christmas": "Navidad", "newyear": "Año Nuevo", "easter": "Pascua", "ramadan": "Ramadán", "eidFitr": "Eid al-Fitr", "eidAdha": "Eid al-Adha"},
+    banner: {"ramadan": "Evento de Ramadán · ¡Recoge dátiles!", "eidFitr": "¡Eid Mubarak! ¡Feliz Eid al-Fitr!", "eidAdha": "¡Eid Mubarak! ¡Feliz Eid al-Adha!", "halloween": "Semana de Halloween · ¡Recoge calabazas!", "christmas": "Feliz Navidad · ¡Recoge regalos!", "newyear": "¡Feliz Año Nuevo!", "easter": "Felices Pascuas · ¡Recoge huevos!"},
+    regions: {"auto": "Automático (mi región)", "islamic": "Fiestas islámicas", "european": "Fiestas europeas", "world": "Ciudadano del mundo (todas)"},
+    regionTitle: "Fiestas y región",
+    previewTitle: "Vista previa de temporada",
+    previewLive: (n) => `Calendario: ${n}`,
+    doubleWheel: "Día de fiesta: ¡estrellas dobles!",
+    festBadges: "Insignias festivas",
+  },
+  editor: {
+    tab: "Código en vivo",
+    hint: "Escribe código tú mismo, o usa los bloques.",
+    unknown: (l, w, s) => (s ? `En la línea ${l} no conozco «${w}». ¿Querías decir «${s}»?` : `En la línea ${l} no conozco «${w}».`),
+    syntax: (l) => `Línea ${l}: no lo entiendo bien. Revisa paréntesis y dos puntos.`,
+    notAllowed: (l, w) => `Línea ${l}: «${w}» aún no existe en este nivel.`,
+    tooMany: (n, m) => `Son ${n} bloques; se permiten ${m}.`,
+    indent: (l) => `Línea ${l}: la sangría no encaja.`,
+    number: (l) => `Línea ${l}: falta un número, p. ej. range(3).`,
+    applied: "Código aplicado ✓",
+    reload: "Recargar desde los bloques",
+  },
+  home2: {"costumes": "Disfraces", "knowledge": "Saber", "trophies": "Trofeos", "gift": "Regalo", "play": "JUGAR", "level": "Nivel"},
+};

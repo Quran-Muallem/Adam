@@ -2,7 +2,7 @@
 // Endlose Abenteuer-Karte einer Welt: Level 1 unten, nach oben ∞.
 // Meilenstein-Inseln alle 10 Level, Schatztruhen-Balken oben.
 // ─────────────────────────────────────────────────────────────
-import { ChevronLeft, Lock, Settings, Star } from 'lucide-react';
+import { ChevronLeft, Settings } from 'lucide-react';
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import { handcrafted, levelAt } from '../data/levels';
 import { CHEST_EVERY, isMilestone } from '../data/rewards';
@@ -15,6 +15,9 @@ import type { AgeGroupId } from '../types';
 import { RoundBtn } from './GameScreen';
 import { MoviePlayer } from './MoviePlayer';
 import { Particles } from './Particles';
+import { SeasonBanner, SeasonLayer } from './SeasonLayer';
+import { Sprite, WORLD_SPRITES } from './sprites';
+import { useSeasonalTheme } from '../hooks/useSeasonalTheme';
 import { RewardPopup } from './RewardPopup';
 import { Sparky } from './Sparky';
 
@@ -37,6 +40,8 @@ const xAt = (n: number) => 0.5 + Math.sin(n * 0.95) * 0.28;
 
 export function LevelMap({ group, sound, prog, onBack, onOpen, onSettings }: Props) {
   const w = WORLDS[group];
+  const sp = WORLD_SPRITES[group];
+  const { theme: season } = useSeasonalTheme();
   const { t, levelTitle } = useI18n();
   const wt = t.worlds[group];
   const stars = prog.progress.stars;
@@ -100,6 +105,7 @@ export function LevelMap({ group, sound, prog, onBack, onOpen, onSettings }: Pro
   return (
     <div className={`world-${group} safe-area relative flex h-[100dvh] flex-col overflow-hidden bg-gradient-to-b ${w.bg}`}>
       <Particles kind={w.particles} />
+      <SeasonLayer dense />
 
       {/* ── Kopf: 2 Zeilen, Titel nie abgeschnitten ── */}
       <header className="relative z-10 px-3 pt-3">
@@ -115,16 +121,15 @@ export function LevelMap({ group, sound, prog, onBack, onOpen, onSettings }: Pro
           >
             <ChevronLeft className="h-8 w-8 rtl:rotate-180" strokeWidth={3} />
           </RoundBtn>
-          <h2 className={`min-w-0 flex-1 pt-1 text-base font-bold leading-tight sm:text-xl ${w.text} drop-shadow`}>
-            {w.emoji} {wt.world}
-          </h2>
+          <h2 className="game-title min-w-0 flex-1 pt-1 text-center text-[1.7rem] uppercase leading-[1.02] sm:text-4xl">{wt.world}</h2>
+          <span className="relative flex h-14 w-14 shrink-0 items-center justify-center">
+            <Sprite name="star" className="absolute inset-0 h-full w-full" />
+            <span className="relative mt-1 text-sm font-black text-amber-900">{total}</span>
+          </span>
         </div>
         <div className="mt-2 flex items-center gap-2">
           <span className="rounded-full border border-white/25 bg-slate-900/70 px-3 py-1 text-xs font-extrabold text-white backdrop-blur-sm sm:text-sm">
             {wt.name} · {wt.ages}
-          </span>
-          <span className="glass flex items-center gap-1 rounded-full px-3 py-1 text-sm font-bold text-slate-700">
-            <Star className="h-4 w-4 fill-yellow-300 text-amber-500" /> {total}
           </span>
           <span className="flex-1" />
           <RoundBtn label={t.settings.title} onClick={onSettings} color="#ffffff" dark>
@@ -132,6 +137,10 @@ export function LevelMap({ group, sound, prog, onBack, onOpen, onSettings }: Pro
           </RoundBtn>
         </div>
       </header>
+
+      <div className="relative z-10 mt-2">
+        <SeasonBanner />
+      </div>
 
       {/* Kumpel-Modus + Schatztruhen-Balken */}
       <div className="relative z-10 flex flex-col gap-2 px-3 pb-2 pt-2">
@@ -141,7 +150,7 @@ export function LevelMap({ group, sound, prog, onBack, onOpen, onSettings }: Pro
             sound.play('click');
             setMovieOpen(true);
           }}
-          className="squish flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full px-4 py-1 text-sm font-bold !text-amber-950 [text-shadow:none] sm:text-base"
+          className="squish flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full px-4 py-1 text-sm font-bold !text-amber-950 dark-text sm:text-base"
           style={{ '--c': '#facc15' } as CSSProperties}
         >
           {t.movie.button}
@@ -166,7 +175,8 @@ export function LevelMap({ group, sound, prog, onBack, onOpen, onSettings }: Pro
           {/* Pfad */}
           <svg className="absolute inset-0 h-full w-full" viewBox={`0 0 ${W} ${height}`} preserveAspectRatio="none" aria-hidden>
             <path d={d} fill="none" stroke="rgba(0,0,0,.18)" strokeWidth="22" strokeLinecap="round" vectorEffect="non-scaling-stroke" transform="translate(0 5)" />
-            <path d={d} fill="none" stroke={w.path} strokeWidth="18" strokeLinecap="round" vectorEffect="non-scaling-stroke" opacity="0.9" />
+            <path d={d} fill="none" stroke="#1d1530" strokeWidth="24" strokeLinecap="round" vectorEffect="non-scaling-stroke" opacity="0.55" />
+            <path d={d} fill="none" stroke={season.fest ? '#fbbf24' : w.path} strokeWidth="18" strokeLinecap="round" vectorEffect="non-scaling-stroke" opacity="0.95" />
             <path d={d} fill="none" stroke="rgba(255,255,255,.9)" strokeWidth="4" strokeDasharray="2 14" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
           </svg>
 
@@ -186,10 +196,10 @@ export function LevelMap({ group, sound, prog, onBack, onOpen, onSettings }: Pro
               <div key={id}>
                 {/* Deko neben dem Pfad */}
                 <span
-                  className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 text-3xl opacity-90 drop-shadow"
-                  style={{ left: `${x > 0.5 ? 12 + (n % 3) * 4 : 84 - (n % 3) * 4}%`, top: yOf(n) + 34 }}
+                  className="pointer-events-none absolute h-12 w-12 -translate-x-1/2 -translate-y-1/2 opacity-95 drop-shadow-lg"
+                  style={{ left: `${x > 0.5 ? 14 + (n % 3) * 4 : 84 - (n % 3) * 4}%`, top: yOf(n) + 34 }}
                 >
-                  {milestone ? '💎' : w.decor[n % w.decor.length]}
+                  <Sprite name={milestone ? 'chest' : n % 4 === 0 && season.decor.length ? season.decor[n % season.decor.length] : sp.deco[n % sp.deco.length]} />
                 </span>
                 <button
                   ref={isCurrent ? currentRef : undefined}
@@ -208,20 +218,25 @@ export function LevelMap({ group, sound, prog, onBack, onOpen, onSettings }: Pro
                       <Sparky mood="happy" />
                     </div>
                   )}
+                  {/* Level-Knopf als glänzende Edelstein-Kugel mit Goldrand */}
                   <span
-                    className={`squish relative flex items-center justify-center rounded-full font-bold ${isCurrent ? 'ring-4 ring-white' : ''} ${milestone && open ? 'animate-breathe' : ''}`}
-                    style={{ '--c': color, width: size, height: size, fontSize: milestone ? 34 : 30 } as CSSProperties}
+                    className={`orb relative flex items-center justify-center rounded-full font-black ${isCurrent ? 'orb-current' : ''} ${milestone && open ? 'animate-breathe' : ''} ${open ? '' : 'orb-locked'}`}
+                    style={{ '--c': color, width: size, height: size, fontSize: milestone ? 36 : 32 } as CSSProperties}
                   >
-                    {open ? n : <Lock className="h-8 w-8" strokeWidth={3} />}
-                    {milestone && <span className="absolute -right-2 -top-3 text-3xl drop-shadow">{s > 0 ? '🏆' : '🎁'}</span>}
+                    {open ? <span className="outline-text">{n}</span> : <Sprite name="lock" className="h-[55%] w-[55%]" />}
+                    {milestone && (
+                      <span className="absolute -right-3 -top-4 h-10 w-10 drop-shadow">
+                        <Sprite name={s > 0 ? 'trophy' : 'gift'} />
+                      </span>
+                    )}
                   </span>
-                  {open && (
-                    <span className="glass -mt-2 flex rounded-full px-1.5 py-0.5">
-                      {[1, 2, 3].map((k) => (
-                        <Star key={k} className={`h-4 w-4 ${k <= s ? 'fill-yellow-300 text-amber-500' : 'fill-slate-100 text-slate-300'}`} />
-                      ))}
-                    </span>
-                  )}
+                  <span className="-mt-3 flex">
+                    {[1, 2, 3].map((k) => (
+                      <span key={k} className={`h-6 w-6 ${k === 2 ? 'translate-y-1.5' : ''} ${open && k <= s ? '' : 'opacity-60 grayscale'}`}>
+                        <Sprite name="star" />
+                      </span>
+                    ))}
+                  </span>
                   {label && (
                     <span
                       className={`z-20 mt-2 max-w-[170px] rounded-full border border-white/25 px-3 py-1 text-center text-xs font-extrabold leading-tight tracking-wide text-white shadow-lg backdrop-blur-sm sm:text-sm ${
@@ -253,7 +268,9 @@ export function ChestBar(p: { fill: number; ready: boolean; label: string; ready
       onClick={p.onOpen}
       className={`glass flex w-full items-center gap-3 rounded-full px-3 py-1.5 text-start ${p.ready ? 'animate-breathe ring-4 ring-yellow-300' : ''}`}
     >
-      <span className={`text-3xl ${p.ready ? 'animate-wiggle' : ''}`}>{p.ready ? '🎁' : '🧰'}</span>
+      <span className={`h-10 w-10 shrink-0 ${p.ready ? 'animate-wiggle' : ''}`}>
+        <Sprite name={p.ready ? 'gift' : 'chest'} />
+      </span>
       <span className="min-w-0 flex-1">
         <span className="block text-xs font-bold text-slate-600">{p.ready ? p.readyLabel : p.label}</span>
         <span className="mt-0.5 block h-3 overflow-hidden rounded-full bg-slate-200">

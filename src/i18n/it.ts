@@ -1,12 +1,14 @@
 import { bridgeIt } from './bridge/it';
 import { moreIt } from './more/it';
 import { proIt } from './pro/it';
+import { seasonIt } from './season/it';
 import type { Dict } from './types';
 
 export const it: Dict = {
   ...bridgeIt,
   ...moreIt,
   ...proIt,
+  ...seasonIt,
   langName: 'Italiano',
   titleTop: "L'avventura di codice",
   titleBottom: 'di Sparky',

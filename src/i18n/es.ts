@@ -1,12 +1,14 @@
 import { bridgeEs } from './bridge/es';
 import { moreEs } from './more/es';
 import { proEs } from './pro/es';
+import { seasonEs } from './season/es';
 import type { Dict } from './types';
 
 export const es: Dict = {
   ...bridgeEs,
   ...moreEs,
   ...proEs,
+  ...seasonEs,
   langName: 'Español',
   titleTop: 'La aventura de código',
   titleBottom: 'de Sparky',

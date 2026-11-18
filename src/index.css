@@ -67,17 +67,28 @@ button:disabled {
     var(--c) 48%,
     color-mix(in srgb, var(--c) 78%, black) 100%
   );
+  /* AAA-Casual-Look: dicke dunkle Outline + harter 3D-Sockel */
   box-shadow:
-    0 6px 0 color-mix(in srgb, var(--c) 55%, black),
-    0 12px 22px -6px color-mix(in srgb, var(--c) 60%, black),
-    inset 0 -4px 8px color-mix(in srgb, var(--c) 70%, black),
-    inset 0 2px 0 rgba(255, 255, 255, 0.55);
-  text-shadow: 0 2px 0 color-mix(in srgb, var(--c) 55%, black);
+    0 0 0 2.5px #1d1530,
+    0 6px 0 #1d1530,
+    0 11px 18px -6px rgba(0, 0, 0, 0.45),
+    inset 0 -5px 0 color-mix(in srgb, var(--c) 68%, black),
+    inset 0 3px 0 rgba(255, 255, 255, 0.55);
+  text-shadow:
+    -1.5px -1.5px 0 #1d1530,
+    1.5px -1.5px 0 #1d1530,
+    -1.5px 1.5px 0 #1d1530,
+    1.5px 1.5px 0 #1d1530,
+    0 3px 0 #1d1530;
   transition:
     transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1),
     box-shadow 0.12s ease,
     filter 0.2s ease;
   isolation: isolate;
+}
+/* Buttons mit dunkler Schrift: keine Outline */
+.squish.dark-text {
+  text-shadow: none;
 }
 /* Glanzlicht oben */
 .squish::before {
@@ -93,12 +104,13 @@ button:disabled {
   z-index: -1;
 }
 .squish:active:not(:disabled) {
-  transform: translateY(5px) scale(1.04, 0.93);
+  transform: translateY(5px) scale(1.03, 0.95);
   box-shadow:
-    0 1px 0 color-mix(in srgb, var(--c) 55%, black),
-    0 4px 10px -4px color-mix(in srgb, var(--c) 60%, black),
-    inset 0 -2px 6px color-mix(in srgb, var(--c) 70%, black),
-    inset 0 2px 0 rgba(255, 255, 255, 0.55);
+    0 0 0 2.5px #1d1530,
+    0 1px 0 #1d1530,
+    0 4px 10px -4px rgba(0, 0, 0, 0.4),
+    inset 0 -3px 0 color-mix(in srgb, var(--c) 68%, black),
+    inset 0 3px 0 rgba(255, 255, 255, 0.55);
 }
 .squish:disabled {
   filter: grayscale(0.6) brightness(0.95);
@@ -184,3 +196,93 @@ html[lang='ar'] body {
 .world-teen .glass .text-slate-600, .world-adult .glass .text-slate-600 { color: #e2e8f0; }
 .world-teen .glass .text-slate-500, .world-adult .glass .text-slate-500,
 .world-teen .glass .text-slate-400, .world-adult .glass .text-slate-400 { color: #94a3b8; }
+
+/* ── Saison-Partikel ── */
+@keyframes season-fall {
+  0% { transform: translate3d(0, 0, 0) rotate(0deg); opacity: 0; }
+  10% { opacity: 1; }
+  100% { transform: translate3d(40px, 110vh, 0) rotate(320deg); opacity: 0.9; }
+}
+@keyframes season-rise {
+  0% { transform: translate3d(0, 0, 0); opacity: 0; }
+  10% { opacity: 1; }
+  100% { transform: translate3d(-20px, -120vh, 0); opacity: 0.7; }
+}
+@keyframes season-fly {
+  0% { transform: translate3d(-60vw, 0, 0) scale(0.8); }
+  50% { transform: translate3d(0, -30px, 0) scale(1); }
+  100% { transform: translate3d(60vw, 10px, 0) scale(0.8); }
+}
+@keyframes season-pop {
+  0%, 100% { transform: scale(0.2); opacity: 0; }
+  40% { transform: scale(1.1); opacity: 1; }
+  70% { transform: scale(1); opacity: 0.6; }
+}
+@keyframes season-twinkle {
+  0%, 100% { transform: scale(0.6); opacity: 0.25; }
+  50% { transform: scale(1); opacity: 1; }
+}
+@keyframes season-swing {
+  0%, 100% { transform: rotate(-5deg); }
+  50% { transform: rotate(5deg); }
+}
+.season-fall { animation: season-fall linear infinite; }
+.season-rise { animation: season-rise linear infinite; }
+.season-fly { animation: season-fly ease-in-out infinite; }
+.season-pop { animation: season-pop ease-out infinite; }
+.season-twinkle { animation: season-twinkle ease-in-out infinite; }
+.season-swing { animation: season-swing 4s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .season-fall, .season-rise, .season-fly, .season-pop, .season-twinkle, .season-swing { animation: none; }
+}
+
+/* ── Spiel-Titel: Gold mit dicker Outline ── */
+.game-title {
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  background: linear-gradient(180deg, #fff7b0 0%, #fde047 35%, #f59e0b 70%, #ea580c 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-stroke: 2.5px #1d1530;
+  paint-order: stroke fill;
+  filter: drop-shadow(0 4px 0 #1d1530) drop-shadow(0 10px 14px rgba(30, 20, 60, 0.45));
+}
+/* Weiße Schrift mit Comic-Outline */
+.outline-text {
+  color: #fff;
+  text-shadow:
+    -1.5px -1.5px 0 #1d1530,
+    1.5px -1.5px 0 #1d1530,
+    -1.5px 1.5px 0 #1d1530,
+    1.5px 1.5px 0 #1d1530,
+    0 3px 0 #1d1530;
+}
+/* Karten & Badges mit Outline und 3D-Sockel */
+.card3d {
+  border: 3px solid rgba(29, 21, 48, 0.9);
+  box-shadow: 0 6px 0 rgba(29, 21, 48, 0.9), 0 14px 22px -10px rgba(0, 0, 0, 0.5), inset 0 3px 0 rgba(255, 255, 255, 0.35);
+}
+
+/* ── Level-Knopf als Edelstein-Kugel mit Goldrand (Karte) ── */
+.orb {
+  --c: #8b5cf6;
+  color: #fff;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.85) 0 9%, rgba(255, 255, 255, 0) 24%),
+    radial-gradient(circle at 50% 60%, color-mix(in srgb, var(--c) 70%, white) 0%, var(--c) 45%, color-mix(in srgb, var(--c) 55%, black) 100%);
+  border: 6px solid #f59e0b;
+  box-shadow:
+    0 0 0 3px #1d1530,
+    0 7px 0 #1d1530,
+    0 14px 22px -8px rgba(0, 0, 0, 0.55),
+    inset 0 0 0 2px #fde68a,
+    inset 0 -8px 12px color-mix(in srgb, var(--c) 55%, black);
+  transition: transform 0.12s ease;
+}
+.orb:active { transform: translateY(4px); }
+.orb-current { box-shadow: 0 0 0 3px #1d1530, 0 7px 0 #1d1530, 0 0 28px 8px rgba(253, 224, 71, 0.75), inset 0 0 0 2px #fde68a; }
+.orb-locked {
+  background: radial-gradient(circle at 40% 30%, #e7e5e4 0%, #a8a29e 50%, #57534e 100%);
+  border-color: #78716c;
+}

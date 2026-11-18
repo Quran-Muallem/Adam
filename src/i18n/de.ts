@@ -2,6 +2,7 @@ import { LEVELS } from '../data/levels';
 import { bridgeDe } from './bridge/de';
 import { moreDe } from './more/de';
 import { proDe } from './pro/de';
+import { seasonDe } from './season/de';
 import type { Dict } from './types';
 
 // Deutsch ist die Ausgangssprache: Level-Titel & Tipps kommen direkt aus levels.ts
@@ -9,6 +10,7 @@ export const de: Dict = {
   ...bridgeDe,
   ...moreDe,
   ...proDe,
+  ...seasonDe,
   langName: 'Deutsch',
   titleTop: 'Sparkys',
   titleBottom: 'Code-Abenteuer',

@@ -14,6 +14,18 @@ Eine extrem bunte, verspielte Lern-App im Animationsfilm-Stil, die der **ganzen 
 | 🌆 **Neon-Metropole** – Cyber-Pioniere | 13–17 | Cyberpunk-Look + Synthwave. 10 Level: Solange-Schleifen (`while`), Variablen/Zähler (`n = 6`, `n − 1`), Logik-Gatter **NICHT / UND / ODER**, Laser-Schranken 🟥 & Schalter ⏻ (State Machine), verschachtelte Schleifen. |
 | ⚛️ **Quantum-Lab** – Code-Architekten | 18+ | Dark-Glassmorphism + Lo-Fi. 10 Level: **Rekursion** (F1 ruft sich selbst, Stack Overflow ohne Basisfall), **Zwei-Bot-Synchronisation** (ein Programm, zwei Bots), Speicher-Register, knappe Block-Limits. |
 
+## Saison-, Feiertags- & Kultur-System 🌙🎄 (offline, ohne Update)
+
+`useSeasonalTheme` erkennt am Gerätedatum: **Ramadan** (Laternen, Datteln, Oud-Melodie), **Zuckerfest** (Konfetti, Baklava, doppelte Sterne am Glücksrad), **Opferfest** (Schäfchen, goldene Sterne, Festtags-Abzeichen) über den Hijri-Kalender (`Intl … islamic-umalqura`, Fallback tabellarisch); **Halloween**, **Weihnachten**, **Silvester**, **Ostern** (Gaußsche Osterformel); sonst die **Jahreszeit** (Südhalbkugel gespiegelt). Region automatisch über Zeitzone/Sprache oder manuell (Islamisch · Europäisch · Weltbürger). In den Einstellungen lässt sich jedes Theme sofort live testen.
+
+## Live-Code-Editor ⌨️
+
+Der Bereich „Echter Code“ ist ein echter Editor mit Syntax-Highlighting und Zeilennummern: Blöcke antippen → Code erscheint; Code tippen → Blöcke entstehen (`engine/codeparser.ts`, tolerant gegenüber snake_case/camelCase, fehlenden Klammern, Python-Einrückung oder JS-Klammern). Tippfehler erklärt Sparky mit Zeilennummer und Vorschlag („In Zeile 2 kenne ich ‚move_forwrd()‘ nicht – meintest du ‚move_forward()‘?“). Schnelltasten-Leiste für `move_forward()`, `turn_left()`, `for i in range():` …
+
+## Grafik
+
+Alle Spielfiguren, Hindernisse, Ziele, Welten-Embleme und Saison-Deko sind eigene SVG-Sprites (`components/sprites.tsx`) mit Verläufen, Glanzlichtern und dicken Outlines; Buttons im Casual-Game-Stil mit Outline und 3D-Sockel.
+
 ## S-Bahn-Modus 🚆
 
 - **🚆 S-Bahn-Express (3-Min-Rätsel):** Startbildschirm → ein Tages-Rätsel pro Altersstufe (jeden Tag neu, auf allen Geräten gleich), zählt als Bonus-Sterne.

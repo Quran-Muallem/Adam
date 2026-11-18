@@ -1,5 +1,7 @@
 // Einstellungen: Musik, Sound-Effekte und Spielgeschwindigkeit (alles gespeichert)
-import { Music, Settings, Smartphone, Volume2, Zap } from 'lucide-react';
+import { CalendarHeart, Globe2, Music, Settings, Smartphone, Volume2, Zap } from 'lucide-react';
+import { REGION_EMOJI, REGIONS, THEME_ORDER, THEMES, type Region, type ThemeId } from '../data/seasons';
+import { useSeasonalTheme } from '../hooks/useSeasonalTheme';
 import type { CSSProperties, ReactNode } from 'react';
 import type { Speed } from '../hooks/useProgramRunner';
 import type { SoundApi } from '../hooks/useSoundEffects';
@@ -14,9 +16,10 @@ interface Props {
 
 export function SettingsModal({ sound, speed, setSpeed, onClose }: Props) {
   const { t } = useI18n();
+  const season = useSeasonalTheme();
   return (
     <div className="fixed inset-0 z-[80] flex items-end justify-center bg-indigo-950/60 p-4 backdrop-blur-sm sm:items-center" onClick={onClose}>
-      <div className="glass w-full max-w-sm animate-bounce-in rounded-[2rem] p-5" onClick={(e) => e.stopPropagation()}>
+      <div className="glass thin-scroll max-h-[92dvh] w-full max-w-sm animate-bounce-in overflow-y-auto rounded-[2rem] p-5" onClick={(e) => e.stopPropagation()}>
         <h2 className="mb-4 flex items-center justify-center gap-2 text-2xl font-bold text-slate-800">
           <Settings className="h-7 w-7 text-slate-500" /> {t.settings.title}
         </h2>
@@ -68,6 +71,35 @@ export function SettingsModal({ sound, speed, setSpeed, onClose }: Props) {
                 </button>
               ))}
             </div>
+          </Row>
+          {/* Regions- & Kultur-Steuerung */}
+          <Row icon={<Globe2 className="h-6 w-6" />} color="#059669" label={`${REGION_EMOJI[season.region]} ${t.season.regionTitle}`}>
+            <select
+              value={season.region}
+              onChange={(e) => season.setRegion(e.target.value as Region)}
+              className="h-11 w-full rounded-xl border-2 border-slate-900/70 bg-white px-2 text-base font-bold text-slate-700 shadow-[0_3px_0_rgba(0,0,0,0.3)]"
+            >
+              {REGIONS.map((r) => (
+                <option key={r} value={r}>
+                  {REGION_EMOJI[r]} {t.season.regions[r]}
+                </option>
+              ))}
+            </select>
+          </Row>
+          {/* Saison-Vorschau: jedes Theme sofort testen */}
+          <Row icon={<CalendarHeart className="h-6 w-6" />} color="#db2777" label={`🎨 ${t.season.previewTitle}`}>
+            <select
+              value={season.preview ?? ''}
+              onChange={(e) => season.setPreview((e.target.value || null) as ThemeId | null)}
+              className="h-11 w-full rounded-xl border-2 border-slate-900/70 bg-white px-2 text-base font-bold text-slate-700 shadow-[0_3px_0_rgba(0,0,0,0.3)]"
+            >
+              <option value="">📅 {t.season.previewLive(`${THEMES[season.live].emoji} ${t.season.names[season.live]}`)}</option>
+              {THEME_ORDER.map((id) => (
+                <option key={id} value={id}>
+                  {THEMES[id].emoji} {t.season.names[id]}
+                </option>
+              ))}
+            </select>
           </Row>
         </div>
 

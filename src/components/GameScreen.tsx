@@ -19,7 +19,8 @@ import type { ProgressApi, Reward } from '../hooks/useProgress';
 import type { SoundApi } from '../hooks/useSoundEffects';
 import type { Block, InsertTarget, LevelDef, PaletteKind, Program, RunResult } from '../types';
 import { Board } from './Board';
-import { CodeView } from './CodeView';
+import { CodeEditor } from './CodeEditor';
+import { parseCode, type ParseError } from '../engine/codeparser';
 import { Confetti } from './Confetti';
 import { MoviePlayer } from './MoviePlayer';
 import { MiniWorkspace } from './MiniWorkspace';
@@ -87,7 +88,17 @@ export function GameScreen(props: Props) {
   const [undoCount, setUndoCount] = useState(0);
   const curRef = useRef(program);
   curRef.current = program;
-  const setProgram = useCallback((fn: (p: Program) => Program) => {
+  // Live-Code-Editor: getippter Text (null = Text folgt den Blöcken)
+  const [codeText, setCodeTextState] = useState<string | null>(null);
+  const [editorError, setEditorError] = useState<ParseError | null>(null);
+  const [editorMsg, setEditorMsg] = useState<string | null>(null);
+  const [lineBlocks, setLineBlocks] = useState<(string | undefined)[]>([]);
+  const setProgram = useCallback((fn: (p: Program) => Program, fromEditor = false) => {
+    if (!fromEditor) {
+      setCodeTextState(null);
+      setEditorError(null);
+      setEditorMsg(null);
+    }
     const prev = curRef.current;
     const next = fn(prev);
     if (next === prev) return;
@@ -111,7 +122,7 @@ export function GameScreen(props: Props) {
   const [movieOpen, setMovieOpen] = useState(false);
   const [bubbleOpen, setBubbleOpen] = useState(false);
   const [showCode, setShowCode] = useStoredState<boolean>('sparky:showCode', false);
-  const [codeLang, setCodeLang] = useStoredState<CodeLang>('sparky:codeLang', 'js');
+  const [codeLang, setCodeLang] = useStoredState<CodeLang>('sparky:codeLang', 'py');
   const programRef = useRef(program);
   programRef.current = program;
   const statsRef = useRef({ bestStars, totalStars, allStars: prog.progress.stars });
@@ -196,6 +207,9 @@ export function GameScreen(props: Props) {
     historyRef.current = historyRef.current.slice(0, -1);
     setUndoCount(historyRef.current.length);
     setProgramState(prev);
+    setCodeTextState(null);
+    setEditorError(null);
+    setEditorMsg(null);
     setTarget(MAIN_TARGET);
     play('remove');
   };
@@ -208,10 +222,92 @@ export function GameScreen(props: Props) {
     play('remove');
   };
 
+  /** Getippten Code prüfen: Programm oder Fehlermeldung in Sparkys Sprechblase */
+  const parseEditor = useCallback(
+    (text: string, lang: CodeLang) => {
+      const r = parseCode(text, lang, level.palette);
+      if (r.error) {
+        const e = r.error;
+        const msg =
+          e.kind === 'unknown'
+            ? t.editor.unknown(e.line, e.word ?? '?', e.suggestion ?? null)
+            : e.kind === 'notAllowed'
+              ? t.editor.notAllowed(e.line, e.word ?? '?')
+              : e.kind === 'indent'
+                ? t.editor.indent(e.line)
+                : e.kind === 'number'
+                  ? t.editor.number(e.line)
+                  : t.editor.syntax(e.line);
+        return { error: e, msg } as const;
+      }
+      const n = countProgram(r.program!);
+      if (n > level.maxBlocks) return { error: { line: 0, kind: 'syntax' } as ParseError, msg: t.editor.tooMany(n, level.maxBlocks) } as const;
+      return { program: r.program!, lineBlocks: r.lineBlocks } as const;
+    },
+    [level, t],
+  );
+
+  // Live-Synchronisation: gültiger Code wird nach kurzer Tipp-Pause zu Blöcken
+  useEffect(() => {
+    if (codeText === null) return;
+    const id = setTimeout(() => {
+      const r = parseEditor(codeText, codeLang);
+      if ('program' in r && r.program) {
+        setEditorError(null);
+        setEditorMsg(null);
+        setLineBlocks(r.lineBlocks);
+        const parsed = r.program;
+        setProgram(() => parsed, true);
+      } else if (r.error) {
+        setEditorError(r.error.line ? r.error : null);
+      }
+    }, 450);
+    return () => clearTimeout(id);
+  }, [codeText, codeLang, parseEditor, setProgram]);
+
+  const setCodeText = (s: string | null) => {
+    if (frame) runner.reset();
+    setEditorMsg(null);
+    if (s === null) setEditorError(null);
+    setCodeTextState(s);
+  };
+
+  /** Sprache wechseln: getippten Code vorher übernehmen */
+  const switchLang = (l: CodeLang) => {
+    if (codeText !== null) {
+      const r = parseEditor(codeText, codeLang);
+      if ('program' in r && r.program) {
+        const parsed = r.program;
+        setProgram(() => parsed);
+      }
+    }
+    setCodeTextState(null);
+    setEditorError(null);
+    setCodeLang(l);
+  };
+
   const runOrStop = () => {
     if (result) return;
     play('click');
     if (isRunning) return runner.stop();
+    if (codeText !== null) {
+      const r = parseEditor(codeText, codeLang);
+      if (!('program' in r) || !r.program) {
+        // Freundliche Hilfe statt Absturz
+        setEditorError(r.error?.line ? r.error : null);
+        setEditorMsg(r.msg ?? null);
+        setBubbleOpen(true);
+        play('boing');
+        return;
+      }
+      setEditorError(null);
+      setEditorMsg(null);
+      setLineBlocks(r.lineBlocks);
+      const parsed = r.program;
+      setProgram(() => parsed, true);
+      runner.start(parsed);
+      return;
+    }
     runner.start(program);
   };
 
@@ -274,7 +370,7 @@ export function GameScreen(props: Props) {
                 : 'sequence';
     return t.pro.insight(blockCount, actions, t.pro.patterns[pattern]);
   }, [pro, blockCount, level, program, t]);
-  const bubble = levelHint(level);
+  const bubble = editorMsg ?? levelHint(level);
 
   return (
     <div
@@ -327,9 +423,9 @@ export function GameScreen(props: Props) {
           <div dir="ltr">
             <Board level={level} world={world} frame={frame} frameIndex={frameIndex} stepMs={stepMs} mood={mood} />
           </div>
-          {world.showText && bubble && (
+          {(world.showText || editorMsg) && bubble && (
             // Tipp-Blase: offen, solange noch keine Blöcke liegen (oder Sparky läuft) – sonst als 💡 eingeklappt
-            bubbleOpen || blockCount === 0 ? (
+            bubbleOpen || blockCount === 0 || editorMsg ? (
               <button
                 type="button"
                 onClick={() => setBubbleOpen(false)}
@@ -339,7 +435,12 @@ export function GameScreen(props: Props) {
                 <div className="h-11 w-11 shrink-0">
                   <Sparky mood={isRunning ? 'think' : 'idle'} />
                 </div>
-                <div key={bubble} className="glass relative flex-1 animate-bounce-in rounded-2xl rounded-bl-md px-3 py-1.5 text-xs font-semibold text-slate-700 sm:text-sm">
+                <div
+                  key={bubble}
+                  className={`relative flex-1 animate-bounce-in rounded-2xl rounded-bl-md px-3 py-1.5 text-xs font-semibold sm:text-sm ${
+                    editorMsg ? 'card3d bg-rose-50 text-rose-900' : 'glass text-slate-700'
+                  }`}
+                >
                   {bubble}
                 </div>
               </button>
@@ -438,7 +539,21 @@ export function GameScreen(props: Props) {
               </div>
               {showCode && (
                 <div className="flex min-h-[110px] flex-1 animate-bounce-in flex-col md:flex-none">
-                  <CodeView program={program} lang={codeLang} setLang={setCodeLang} frame={frame} t={t} pro={pro} insight={insight} />
+                  <CodeEditor
+                    program={program}
+                    text={codeText}
+                    setText={setCodeText}
+                    lang={codeLang}
+                    setLang={switchLang}
+                    frame={frame}
+                    t={t}
+                    pro={pro}
+                    insight={insight}
+                    palette={level.palette}
+                    editable={!locked}
+                    errorLine={editorError?.line ?? null}
+                    lineBlocks={lineBlocks}
+                  />
                 </div>
               )}
 
@@ -494,7 +609,7 @@ export function GameScreen(props: Props) {
                   <Undo2 className="h-6 w-6 rtl:-scale-x-100" strokeWidth={3} />
                 </RoundBtn>
                 <div className="flex-1">
-                  <RunButton running={isRunning} onClick={runOrStop} disabled={!!result || blockCount === 0} showText wide labels={t.ui} />
+                  <RunButton running={isRunning} onClick={runOrStop} disabled={!!result || (blockCount === 0 && !codeText?.trim())} showText wide labels={t.ui} />
                 </div>
               </div>
             </>
@@ -564,7 +679,7 @@ export function RoundBtn(p: {
       disabled={p.disabled}
       style={{ '--c': p.color } as CSSProperties}
       className={`squish flex items-center justify-center gap-1 rounded-[1.2rem] px-2 ${p.mini ? 'h-[68px] w-[68px] rounded-[1.4rem]' : p.big ? 'h-16 min-w-[64px]' : 'h-12 min-w-[48px]'} ${
-        p.dark ? '!text-slate-700 [text-shadow:none]' : ''
+        p.dark ? '!text-slate-700 dark-text' : ''
       }`}
     >
       {p.children}

@@ -1,3 +1,5 @@
+import { THEMES, type FestId } from '../data/seasons';
+import { Sprite } from './sprites';
 // Trophäen-Raum: Abzeichen & Titel + Sticker-Album
 import { ChevronLeft, Lock } from 'lucide-react';
 import { BADGES, bestTitle, STICKERS } from '../data/rewards';
@@ -69,6 +71,29 @@ export function Trophies({ sound, prog, onBack }: Props) {
               );
             })}
           </div>
+
+          {/* Festtags-Abzeichen (Ramadan, Zuckerfest, Opferfest, Weihnachten …) */}
+          {(prog.progress.fests ?? []).length > 0 && (
+            <>
+              <h3 className="mb-2 text-lg font-bold text-white drop-shadow">🎉 {t.season.festBadges}</h3>
+              <div className="mb-6 grid grid-cols-3 gap-3">
+                {(prog.progress.fests ?? []).map((f) => {
+                  const [id, year] = f.split('-') as [FestId, string];
+                  const th = THEMES[id];
+                  if (!th) return null;
+                  return (
+                    <div key={f} className="card3d flex flex-col items-center gap-1 rounded-[1.4rem] bg-gradient-to-b from-amber-200 to-amber-400 p-2 text-center">
+                      <span className="h-12 w-12 animate-float">
+                        <Sprite name={th.decor[0]} />
+                      </span>
+                      <span className="text-xs font-black leading-tight text-amber-950">{t.season.names[id]}</span>
+                      <span className="text-[11px] font-bold text-amber-900/80">{year}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
 
           <h3 className="mb-2 text-lg font-bold text-white drop-shadow">
             🌟 {t.rewards.stickersTitle} · {owned.length}/{STICKERS.length}

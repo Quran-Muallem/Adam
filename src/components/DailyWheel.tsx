@@ -1,3 +1,4 @@
+import { useSeasonalTheme } from '../hooks/useSeasonalTheme';
 // Glücksrad – tägliche Überraschung (Bonus-Sterne oder Zufalls-Sticker)
 import { X } from 'lucide-react';
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
@@ -17,6 +18,7 @@ const SEG = 360 / WHEEL.length;
 const SPIN_MS = 3600;
 
 export function DailyWheel({ sound, prog, onClose }: Props) {
+  const { theme: season } = useSeasonalTheme();
   const { t } = useI18n();
   const [angle, setAngle] = useState(0);
   const [spinning, setSpinning] = useState(false);
@@ -39,7 +41,7 @@ export function DailyWheel({ sound, prog, onClose }: Props) {
     }
     timers.current.push(
       setTimeout(() => {
-        const reward = prog.claimSpin(WHEEL[idx]);
+        const reward = prog.claimSpin(WHEEL[idx], season.doubleWheel ? 2 : 1);
         sound.play('win');
         setResult(reward);
         setSpinning(false);
@@ -57,6 +59,7 @@ export function DailyWheel({ sound, prog, onClose }: Props) {
         </button>
         <h2 className="px-10 text-xl font-bold leading-tight text-slate-800 sm:text-2xl">🎁 {t.daily.button}</h2>
         {streak > 0 && <p className="mt-1 text-sm font-bold text-orange-500">{t.daily.streak(streak)}</p>}
+        {season.doubleWheel && <p className="mt-1 text-sm font-bold text-emerald-600">{t.season.doubleWheel}</p>}
 
         <div className="relative mx-auto my-4 aspect-square w-full max-w-[290px]">
           {/* Zeiger */}

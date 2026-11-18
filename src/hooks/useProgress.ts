@@ -25,6 +25,8 @@ export interface Progress {
   milestones: string[];
   /** S-Bahn-Express: Sterne je Tages-Rätsel (zählen nicht für die Karte) */
   express: Record<string, number>;
+  /** Festtags-Abzeichen, z. B. „eidAdha-2026“ */
+  fests: string[];
 }
 
 const EMPTY: Progress = {
@@ -39,6 +41,7 @@ const EMPTY: Progress = {
   bestStreak: 0,
   milestones: [],
   express: {},
+  fests: [],
 };
 
 function load(): Progress {
@@ -158,15 +161,21 @@ export function useProgress() {
 
   // ── Tägliche Überraschung ──
   const canSpin = progress.lastSpin !== dayKey();
+  const addFest = useCallback(
+    (id: string) => update((p) => ((p.fests ?? []).includes(id) ? p : { ...p, fests: [...(p.fests ?? []), id] })),
+    [update],
+  );
+
   const claimSpin = useCallback(
-    (prize: WheelPrize): Reward => {
+    (prize: WheelPrize, multiplier = 1): Reward => {
       const reward: Reward = { stars: 0, sticker: null };
       update((p) => {
         if (p.lastSpin === dayKey()) return p;
         const streak = p.lastSpin === yesterdayKey() ? p.streak + 1 : 1;
         let { bonusStars, stickers } = p;
         if (prize.kind === 'stars') {
-          reward.stars = prize.amount;
+          // Zuckerfest: doppelte Sterne am Glücksrad
+          reward.stars = prize.amount * multiplier;
         } else {
           reward.sticker = randomNewSticker(stickers);
           if (!reward.sticker) reward.stars = 2;
@@ -206,6 +215,8 @@ export function useProgress() {
     openChest,
     canSpin,
     claimSpin,
+    /** Festtags-Abzeichen sammeln (einmal pro Fest und Jahr) */
+    addFest,
     badges,
     reset,
   };

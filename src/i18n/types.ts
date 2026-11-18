@@ -1,3 +1,4 @@
+import type { FestId, Region, ThemeId } from '../data/seasons';
 // Struktur eines Sprachpakets – jede Sprache muss ALLE Schlüssel liefern
 import type { CardId } from '../data/cards';
 import type { CostumeId, SkinId } from '../data/costumes';
@@ -107,7 +108,36 @@ export interface ProTexts {
   };
 }
 
-export interface Dict extends BridgeTexts, MoreTexts, ProTexts {
+/** Saison-, Feiertags- & Kultur-System */
+export interface ExtraTexts {
+  season: {
+    names: Record<ThemeId, string>;
+    banner: Record<FestId, string>;
+    regions: Record<Region, string>;
+    regionTitle: string;
+    previewTitle: string;
+    previewLive: (name: string) => string;
+    doubleWheel: string;
+    festBadges: string;
+  };
+  /** Live-Code-Editor: Fehlerhilfe & Bedienung */
+  editor: {
+    tab: string;
+    hint: string;
+    unknown: (line: number, word: string, suggestion: string | null) => string;
+    syntax: (line: number) => string;
+    notAllowed: (line: number, word: string) => string;
+    tooMany: (n: number, max: number) => string;
+    indent: (line: number) => string;
+    number: (line: number) => string;
+    applied: string;
+    reload: string;
+  };
+  /** Kurze, knackige Labels für den Startbildschirm */
+  home2: { costumes: string; knowledge: string; trophies: string; gift: string; play: string; level: string };
+}
+
+export interface Dict extends BridgeTexts, MoreTexts, ProTexts, ExtraTexts {
   /** Name der Sprache in der Sprache selbst */
   langName: string;
   titleTop: string;
