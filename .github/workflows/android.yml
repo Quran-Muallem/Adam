@@ -32,6 +32,8 @@ jobs:
       - name: Android-Projekt erzeugen
         run: |
           npx cap add android
+          # App-Symbol (inkl. Adaptive Icon) & Startbildschirm aus assets/ erzeugen
+          npx --yes @capacitor/assets@3 generate --android --splashBackgroundColor '#4c1d95' --splashBackgroundColorDark '#4c1d95'
           npx cap sync android
 
       # Immer derselbe Signatur-Schlüssel -> neue Versionen lassen sich über die alte installieren

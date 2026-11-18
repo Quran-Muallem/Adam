@@ -24,6 +24,10 @@ Eine extrem bunte, verspielte Lern-App im Animationsfilm-Stil, die Kindern von *
 - 📱 Mobile-First & Tablet-Layout, kein Zoomen/ungewolltes Scrollen
 - 🌍 6 Sprachen: العربية (von rechts nach links), English, Deutsch, Français, Español, Italiano – Auswahl über die Flagge auf der Startseite, beim ersten Start gilt die Gerätesprache
 
+## Logo & App-Symbol
+
+Das Logo zeigt Sparky mit Code-Schild `</>`. Quellen liegen als SVG in `assets/src/`, die fertigen PNGs in `assets/` (App-Symbol, Adaptive Icon, Startbildschirm) und `public/` (Favicon, Web-App-Symbole). Der Android-Build erzeugt daraus mit `@capacitor/assets` automatisch alle Größen.
+
 ## Starten
 
 ```bash
