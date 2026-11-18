@@ -190,7 +190,7 @@ function TileContent({ tile, world, state, k, season }: { tile: string; world: W
       );
     case 'D':
       return state.openGates.includes(k) ? (
-        <span className="animate-pop opacity-80">✨</span>
+        <span className="h-[60%] w-[60%] animate-pop opacity-80"><Sprite name="spark" /></span>
       ) : (
         <span className="relative h-[86%] w-[86%]">
           <Sprite name="gate" />

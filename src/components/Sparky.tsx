@@ -3,6 +3,7 @@
 // Mimik: idle (neugierig, blinzelt), walk, happy, boing, sad, think
 // Kostüme und Saison-Accessoires liegen als SVG-Ebenen auf dem Kopf.
 // ─────────────────────────────────────────────────────────────
+import { Sprite } from './sprites';
 import { useSeasonalTheme } from '../hooks/useSeasonalTheme';
 import type { ThemeConfig } from '../data/seasons';
 import { createContext, useContext, useId } from 'react';
@@ -101,7 +102,7 @@ export function Sparky({ mood = 'idle', dir = 'right', costume: costumeProp, ski
           ?
         </span>
       )}
-      {mood === 'boing' && <span className="absolute left-[18%] top-[-6%] animate-wiggle text-[0.8em]">💫</span>}
+      {mood === 'boing' && <span className="absolute left-[18%] top-[-6%] h-[22%] w-[22%] animate-wiggle"><Sprite name="star" /></span>}
     </div>
   );
 }

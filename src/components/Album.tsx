@@ -1,12 +1,12 @@
-// Sammelalbum für Code-Wissen: alle freigeschalteten Entdecker-Karten
-import { ChevronLeft } from 'lucide-react';
+// Code-Wissen: alle freigeschalteten Entdecker-Karten, nach Welten sortiert
+import { Lock } from 'lucide-react';
 import { CARDS, unlockedCards } from '../data/cards';
-import { WORLD_ORDER, WORLDS } from '../data/worlds';
+import { WORLD_ORDER } from '../data/worlds';
 import type { SoundApi } from '../hooks/useSoundEffects';
 import { useI18n } from '../i18n';
-import { ExplorerCard } from './ExplorerCard';
-import { RoundBtn } from './GameScreen';
-import { Particles } from './Particles';
+import { CARD_ART, ExplorerCard } from './ExplorerCard';
+import { Sprite, WORLD_SPRITES } from './sprites';
+import { ScreenHeader, ScreenShell, StatPill } from './ui';
 
 interface Props {
   sound: SoundApi;
@@ -19,54 +19,58 @@ export function Album({ sound, stars, onBack }: Props) {
   const unlocked = unlockedCards(stars);
 
   return (
-    <div className="safe-area relative flex h-[100dvh] flex-col overflow-hidden bg-gradient-to-br from-sky-500 via-indigo-500 to-violet-600">
-      <Particles kind="stars" count={24} />
-      <header className="relative z-10 flex items-center gap-3 p-3">
-        <RoundBtn
-          label={t.ui.back}
-          onClick={() => {
+    <ScreenShell
+      header={
+        <ScreenHeader
+          title={t.ui2.knowledge}
+          backLabel={t.ui.back}
+          onBack={() => {
             sound.play('click');
             onBack();
           }}
-          color="#ffffff"
-          dark
-        >
-          <ChevronLeft className="h-8 w-8 rtl:rotate-180" strokeWidth={3} />
-        </RoundBtn>
-        <h2 className="flex-1 text-xl font-bold leading-tight text-white drop-shadow">📚 {t.cards.albumTitle}</h2>
-        <div className="glass rounded-full px-3 py-1.5 text-lg font-bold text-slate-700">
-          {unlocked.size}/{CARDS.length}
+          right={<StatPill icon="gem" value={`${unlocked.size}/${CARDS.length}`} />}
+        />
+      }
+    >
+      <div className="mx-auto max-w-2xl">
+        <div className="ui-panel mb-5 flex items-center gap-2 px-3 py-2">
+          <span className="h-10 w-10 shrink-0">
+            <Sprite name="book" />
+          </span>
+          <p className="ui-ink text-sm font-extrabold leading-snug">{t.cards.albumIntro}</p>
         </div>
-      </header>
-
-      <div className="thin-scroll relative z-10 flex-1 overflow-y-auto px-4 pb-8">
-        <div className="mx-auto max-w-2xl">
-          <p className="mb-3 text-center font-bold text-white/90">{t.cards.albumIntro}</p>
-          {WORLD_ORDER.map((g) => (
-            <section key={g} className="mb-5">
-              <h3 className="mb-2 font-bold text-white drop-shadow">
-                {WORLDS[g].emoji} {t.worlds[g].world}
-              </h3>
-              <div className="grid gap-4 sm:grid-cols-2">
-                {CARDS.filter((c) => c.group === g).map((c) =>
-                  unlocked.has(c.id) ? (
-                    <ExplorerCard key={c.id} card={c} t={t} compact />
-                  ) : (
-                    <div
-                      key={c.id}
-                      className="flex min-h-[120px] flex-col items-center justify-center gap-1 rounded-[1.6rem] border-4 border-dashed border-white/50 bg-white/15 p-4 text-center"
-                    >
-                      <span className="text-4xl opacity-60 grayscale">{c.emoji}</span>
-                      <span className="text-3xl font-bold text-white/80">?</span>
-                      <span className="text-sm font-bold text-white/80">{t.cards.locked}</span>
-                    </div>
-                  ),
-                )}
-              </div>
-            </section>
-          ))}
-        </div>
+        {WORLD_ORDER.map((g) => (
+          <section key={g} className="mb-6">
+            <div className="mb-3 flex justify-center">
+            <h3 className="ui-title-pill font-game outline-text !min-h-[38px] gap-2 px-4 text-[17px]">
+              <span className="h-7 w-7">
+                <Sprite name={WORLD_SPRITES[g].emblem} />
+              </span>
+              {t.worlds[g].world}
+            </h3>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {CARDS.filter((c) => c.group === g).map((c) =>
+                unlocked.has(c.id) ? (
+                  <ExplorerCard key={c.id} card={c} t={t} compact />
+                ) : (
+                  <div key={c.id} className="ui-panel flex min-h-[96px] items-center gap-3 !bg-[#e9f1fb] p-3 opacity-90">
+                    <span className="relative h-14 w-14 shrink-0 rounded-2xl bg-white/70 p-1.5 grayscale">
+                      <span className="block h-full w-full opacity-40">
+                        <Sprite name={CARD_ART[c.id] ?? 'star'} />
+                      </span>
+                      <span className="absolute inset-0 flex items-center justify-center">
+                        <Lock className="h-6 w-6 text-[#4a5a85]" strokeWidth={3} />
+                      </span>
+                    </span>
+                    <span className="font-game text-[17px] text-[#4a5a85]">{t.cards.locked}</span>
+                  </div>
+                ),
+              )}
+            </div>
+          </section>
+        ))}
       </div>
-    </div>
+    </ScreenShell>
   );
 }

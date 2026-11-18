@@ -1,7 +1,8 @@
 // ─────────────────────────────────────────────────────────────
 // GameScreen: Spielfeld + Sparky-Sprechblase + Programm + Palette
 // ─────────────────────────────────────────────────────────────
-import { ChevronLeft, Clapperboard, CornerLeftUp, Crosshair, Play, RotateCcw, Settings, Square, Trash2, Undo2 } from 'lucide-react';
+import { noEmoji } from './ui';
+import { ChevronLeft, Clapperboard, CornerLeftUp, Crosshair, Play, RotateCcw, Settings, Square, Trash2, Undo2, Blocks, Lightbulb, Save } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { useStoredState } from '../hooks/useStoredState';
 import { cardForLevel, unlockedCards } from '../data/cards';
@@ -389,12 +390,12 @@ export function GameScreen(props: Props) {
         </RoundBtn>
         <div className="flex min-w-0 flex-1 flex-col items-center leading-tight">
           <span className="font-game outline-text line-clamp-2 text-center text-[1.35rem] uppercase leading-[1.05] sm:text-2xl">{express
-              ? `🚆 ${t.pro.expressTitle} · ${expressDate(level.id).toLocaleDateString(undefined, { day: 'numeric', month: 'short', timeZone: 'UTC' })}`
+              ? `${noEmoji(t.pro.expressTitle)} · ${expressDate(level.id).toLocaleDateString(undefined, { day: 'numeric', month: 'short', timeZone: 'UTC' })}`
               : world.showText
                 ? levelNo > handcrafted(level.group)
                   ? levelTitle(level)
                   : `${levelNo}. ${levelTitle(level)}`
-                : `${world.emoji} ${levelNo}`}</span>
+                : `${levelNo}`}</span>
           <span className="mt-0.5 flex gap-0.5">
             {[1, 2, 3].map((i) => (
               <span key={i} className={`h-6 w-6 ${i === 2 ? '-translate-y-0.5' : ''} ${i <= bestStars ? '' : 'opacity-50 grayscale'}`}>
@@ -444,7 +445,7 @@ export function GameScreen(props: Props) {
                     editorMsg ? 'card3d bg-rose-50 text-rose-900' : 'card3d bg-white text-slate-800'
                   }`}
                 >
-                  {bubble}
+                  {noEmoji(bubble)}
                 </div>
               </button>
             ) : null
@@ -488,14 +489,14 @@ export function GameScreen(props: Props) {
                 {world.showText && bubble && blockCount > 0 && !bubbleOpen && (
                   <button
                     type="button"
-                    aria-label="💡"
+                    aria-label={t.ui2.knowledge}
                     onClick={() => {
                       play('click');
                       setBubbleOpen(true);
                     }}
-                    className="mb-2 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border-[3px] border-[#1d1530] bg-yellow-300 text-lg shadow-[0_3px_0_#1d1530]"
+                    className="ui-icon-btn ui-icon-btn-yellow mb-2 flex h-10 w-10 shrink-0 items-center justify-center"
                   >
-                    💡
+                    <Lightbulb className="h-6 w-6 text-[#5a2d00]" strokeWidth={2.6} />
                   </button>
                 )}
                 {[
@@ -588,7 +589,7 @@ export function GameScreen(props: Props) {
               <div className="panel-game shrink-0 rounded-[1.6rem] p-2">
                 <div className="mb-2 flex items-center justify-between px-1 text-sm font-bold text-white">
                   <span className={`rounded-full px-2 transition ${limitFlash ? 'animate-shake bg-red-500 text-white' : ''}`}>
-                    🧱 {blockCount} / {level.maxBlocks}
+                    <Blocks className="me-1 inline h-4 w-4 align-[-2px]" strokeWidth={2.8} />{blockCount} / {level.maxBlocks}
                   </span>
                   {bonus ? (
                     <span>
@@ -661,7 +662,7 @@ function ResumeToast({ text }: { text: string }) {
   if (!show) return null;
   return (
     <div className="pointer-events-none fixed inset-x-0 top-16 z-30 flex justify-center">
-      <span className="animate-bounce-in rounded-full bg-emerald-500 px-4 py-1.5 text-sm font-bold text-white shadow-lg">💾 {text}</span>
+      <span className="animate-bounce-in rounded-full bg-emerald-500 px-4 py-1.5 text-sm font-bold text-white shadow-lg"><Save className="me-1 inline h-4 w-4 align-[-2px]" strokeWidth={2.8} />{text}</span>
     </div>
   );
 }
@@ -676,6 +677,15 @@ export function RoundBtn(p: {
   mini?: boolean;
   children: ReactNode;
 }) {
+  const size = p.mini ? 'h-[68px] w-[68px]' : p.big ? 'h-16 min-w-[60px]' : 'h-12 min-w-[48px]';
+  // Helle Werkzeug-Knöpfe (Zurück, Einstellungen, Löschen) im einheitlichen Glanz-Stil
+  if (p.dark && p.color.toLowerCase() === '#ffffff') {
+    return (
+      <button type="button" aria-label={p.label} onClick={p.onClick} disabled={p.disabled} className={`ui-icon-btn flex shrink-0 items-center justify-center px-2 text-[#1f4fa8] ${size}`}>
+        {p.children}
+      </button>
+    );
+  }
   return (
     <button
       type="button"
@@ -683,9 +693,7 @@ export function RoundBtn(p: {
       onClick={p.onClick}
       disabled={p.disabled}
       style={{ '--c': p.color } as CSSProperties}
-      className={`squish tile-btn flex items-center justify-center gap-1 px-2 ${p.mini ? 'h-[68px] w-[68px]' : p.big ? 'h-16 min-w-[60px]' : 'h-12 min-w-[48px]'} ${
-        p.dark ? '!text-slate-700 dark-text' : ''
-      }`}
+      className={`squish tile-btn flex items-center justify-center gap-1 px-2 ${size} ${p.dark ? '!text-[#5a2d00] dark-text' : ''}`}
     >
       {p.children}
     </button>

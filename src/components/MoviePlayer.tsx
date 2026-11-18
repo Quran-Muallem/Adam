@@ -3,7 +3,7 @@
 // (Sparky moderiert, ein leuchtender Zeigefinger tippt, Sounds laufen).
 // ─────────────────────────────────────────────────────────────
 import { Sprite, WORLD_SPRITES, type SpriteName } from './sprites';
-import { Play, RotateCcw, X } from 'lucide-react';
+import { Play, RotateCcw, X, Pointer } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import type { CostumeId } from '../data/costumes';
 import { MOVIE_SECONDS, MOVIES, sceneAt, type Chip, type Scene } from '../data/movies';
@@ -15,6 +15,7 @@ import type { AgeGroupId } from '../types';
 import { BLOCK_META, COND_EMOJI } from './blockMeta';
 import { Confetti } from './Confetti';
 import { Particles } from './Particles';
+import { GameButton } from './ui';
 import { Sparky } from './Sparky';
 
 interface Props {
@@ -66,16 +67,11 @@ export function MoviePlayer({ group, sound, costume, onClose }: Props) {
 
       {/* Kopf: Fortschritt + Überspringen */}
       <div className="relative z-10 flex items-center gap-3 px-3 pt-3">
-        <div className="h-3 flex-1 overflow-hidden rounded-full bg-white/30">
-          <div className="h-full rounded-full bg-yellow-300 transition-[width] duration-100" style={{ width: `${(time / MOVIE_SECONDS) * 100}%` }} />
+        <div className="h-4 flex-1 overflow-hidden rounded-full bg-[#cfdcef] shadow-[inset_0_2px_2px_rgba(0,0,0,.25),0_0_0_2.5px_#2a3f78]">
+          <div className="h-full rounded-full bg-gradient-to-b from-[#ffe680] via-[#f8c51c] to-[#e88a0c] transition-[width] duration-100" style={{ width: `${(time / MOVIE_SECONDS) * 100}%` }} />
         </div>
-        <button
-          type="button"
-          onClick={onClose}
-          className="squish flex h-11 items-center gap-1 rounded-full px-4 text-sm font-bold !text-slate-700 dark-text"
-          style={{ '--c': '#ffffff' } as CSSProperties}
-        >
-          {t.movie.skip} <X className="h-4 w-4" strokeWidth={3} />
+        <button type="button" onClick={onClose} className="ui-icon-btn font-game flex h-11 items-center gap-1 !rounded-full px-4 text-[15px] text-[#1b2a55]">
+          {t.movie.skip} <X className="h-4 w-4" strokeWidth={3.5} />
         </button>
       </div>
 
@@ -94,30 +90,24 @@ export function MoviePlayer({ group, sound, costume, onClose }: Props) {
 
       {/* Ende: Nochmal oder Los geht's */}
       {ended && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-indigo-950/50 p-6 backdrop-blur-sm">
-          <div className="glass flex w-full max-w-xs animate-bounce-in flex-col items-center gap-3 rounded-[2rem] p-5">
-            <div className="h-24 w-24">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-[#0b1a45]/55 p-6 backdrop-blur-sm">
+          <div className="ui-panel relative flex w-full max-w-xs animate-bounce-in flex-col items-center gap-4 px-5 pb-6 pt-16">
+            <div className="absolute -top-14 left-1/2 h-28 w-28 -translate-x-1/2">
               <Sparky mood="happy" costume={costume} />
             </div>
-            <button
-              type="button"
+            <GameButton
+              color="blue"
+              className="w-full"
               onClick={() => {
                 sound.play('click');
                 setRun((r) => r + 1);
               }}
-              className="squish flex h-14 w-full items-center justify-center gap-2 rounded-[1.4rem] text-lg font-bold"
-              style={{ '--c': '#0ea5e9' } as CSSProperties}
             >
               <RotateCcw className="h-6 w-6" strokeWidth={3} /> {t.movie.replay}
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="squish flex h-16 w-full items-center justify-center gap-2 rounded-[1.4rem] text-xl font-bold"
-              style={{ '--c': '#22c55e' } as CSSProperties}
-            >
+            </GameButton>
+            <GameButton big color="green" className="w-full" onClick={onClose}>
               <Play className="h-7 w-7 fill-white" /> {t.movie.play}
-            </button>
+            </GameButton>
           </div>
         </div>
       )}
@@ -218,7 +208,7 @@ function Stage({ scene, group, costume, bubble }: { scene: Scene; group: AgeGrou
         </div>
         {scene.macro && (
           <div className="flex animate-bounce-in items-center gap-1 rounded-xl bg-fuchsia-100 px-1.5 py-0.5">
-            <span className="text-xs font-bold text-fuchsia-700">🪄 F1 =</span>
+            <span className="flex items-center gap-0.5 text-xs font-bold text-fuchsia-700"><span className="h-4 w-4"><Sprite name="wand" /></span>F1 =</span>
             {scene.macro.map((c) => (
               <ChipView key={c.id} chip={c} active={scene.active} group={group} />
             ))}
@@ -287,7 +277,7 @@ function Stage({ scene, group, costume, bubble }: { scene: Scene; group: AgeGrou
           className="absolute -left-3 -top-1 block animate-pop text-[46px] leading-none"
           style={{ filter: 'drop-shadow(0 0 10px rgba(253,224,71,1)) drop-shadow(0 4px 2px rgba(0,0,0,.3))' }}
         >
-          👆
+          <Pointer className="h-12 w-12 fill-white text-[#1b2a55]" strokeWidth={2.2} />
         </span>
       </div>
 
@@ -295,8 +285,8 @@ function Stage({ scene, group, costume, bubble }: { scene: Scene; group: AgeGrou
       {scene.stars > 0 && (
         <div className="absolute left-0 right-0 top-[8%] z-10 flex justify-center gap-1 text-5xl">
           {[0, 1, 2].map((i) => (
-            <span key={i} className="animate-pop drop-shadow-lg" style={{ animationDelay: `${i * 0.15}s` }}>
-              ⭐
+            <span key={i} className="block h-14 w-14 animate-pop drop-shadow-lg" style={{ animationDelay: `${i * 0.15}s` }}>
+              <Sprite name="star" />
             </span>
           ))}
         </div>

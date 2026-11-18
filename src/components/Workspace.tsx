@@ -4,7 +4,8 @@
 // Einfüge-Zonen: [+ hier hinein] und [+ danach weitergehen].
 // Der gerade ausgeführte Block leuchtet golden (visuelles Debugging).
 // ─────────────────────────────────────────────────────────────
-import { Minus, Plus, X } from 'lucide-react';
+import { Sprite } from './sprites';
+import { Minus, Plus, X, Puzzle } from 'lucide-react';
 import { useEffect, useRef, type CSSProperties, type MouseEvent, type ReactNode } from 'react';
 import { isContainer } from '../engine/program';
 import type { Dict } from '../i18n';
@@ -69,11 +70,11 @@ export function Workspace(props: Props) {
 
   return (
     <div className="flex flex-col gap-3">
-      <RootSection title={props.t.ui.myProgram} emoji="🧩" blocks={program.main} ctx={{ ...base, root: 'main' }} hideTitle={!showMacro} />
+      <RootSection title={props.t.ui.myProgram} emoji="puzzle" blocks={program.main} ctx={{ ...base, root: 'main' }} hideTitle={!showMacro} />
       {showMacro && (
         <RootSection
           title={PRO(props.group) ? 'function f1()' : props.t.ui.macro}
-          emoji={PRO(props.group) ? 'ƒ' : '🪄'}
+          emoji={PRO(props.group) ? 'ƒ' : 'wand'}
           macro
           blocks={program.macro}
           ctx={{ ...base, root: 'macro' }}
@@ -98,7 +99,7 @@ function RootSection(p: { title: string; emoji: string; macro?: boolean; blocks:
           onClick={() => p.ctx.setTarget(own)}
           className="mb-2 flex w-full items-center gap-2 rounded-xl px-2 py-1 text-start text-base font-bold text-slate-700"
         >
-          <span className="text-lg">{p.emoji}</span>
+          {p.emoji === 'wand' ? <span className="h-6 w-6"><Sprite name="wand" /></span> : p.emoji === 'puzzle' ? <Puzzle className="h-5 w-5 text-emerald-300" strokeWidth={2.6} /> : <span className="text-lg">{p.emoji}</span>}
           <span>{p.title}</span>
         </button>
       )}
@@ -221,7 +222,7 @@ function BlockItem({ block, ctx, list, isLast }: { block: Block; ctx: Ctx; list:
       >
         {current && <GoldPulse ctx={ctx} />}
         <Icon className="h-7 w-7 shrink-0" strokeWidth={3} />
-        <span className="min-w-0 flex-1 truncate text-lg font-bold">{block.type === 'call' ? (PRO(ctx.group) ? 'f1()' : `🪄 ${label}`) : label}</span>
+        <span className="min-w-0 flex-1 truncate text-lg font-bold">{block.type === 'call' ? (PRO(ctx.group) ? 'f1()' : label) : label}</span>
         {removeBtn}
       </div>
     );

@@ -1,12 +1,14 @@
 import { useSeasonalTheme } from '../hooks/useSeasonalTheme';
 // Glücksrad – tägliche Überraschung (Bonus-Sterne oder Zufalls-Sticker)
 import { X } from 'lucide-react';
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { WHEEL, WHEEL_COLORS } from '../data/rewards';
 import type { ProgressApi, Reward } from '../hooks/useProgress';
 import type { SoundApi } from '../hooks/useSoundEffects';
 import { useI18n } from '../i18n';
 import { RewardPopup } from './RewardPopup';
+import { Sprite } from './sprites';
+import { GameButton, IconBtn, noEmoji, Ribbon, Rays, SkyScene } from './ui';
 
 interface Props {
   sound: SoundApi;
@@ -52,73 +54,111 @@ export function DailyWheel({ sound, prog, onClose }: Props) {
   const streak = prog.progress.streak;
 
   return (
-    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-indigo-950/60 p-4 backdrop-blur-sm">
-      <div className="glass relative w-full max-w-sm animate-bounce-in rounded-[2rem] p-5 text-center">
-        <button type="button" aria-label="×" onClick={onClose} className="absolute end-3 top-3 flex h-10 w-10 items-center justify-center rounded-full bg-slate-200 text-slate-600">
-          <X className="h-5 w-5" strokeWidth={3} />
-        </button>
-        <h2 className="px-10 text-xl font-bold leading-tight text-slate-800 sm:text-2xl">🎁 {t.daily.button}</h2>
-        {streak > 0 && <p className="mt-1 text-sm font-bold text-orange-500">{t.daily.streak(streak)}</p>}
-        {season.doubleWheel && <p className="mt-1 text-sm font-bold text-emerald-600">{t.season.doubleWheel}</p>}
+    <div className="fixed inset-0 z-[80] flex flex-col overflow-hidden">
+      <SkyScene />
+      <header className="absolute end-3 top-3 z-20 mt-[env(safe-area-inset-top)]">
+        <IconBtn label={t.ui.back} onClick={onClose}>
+          <X className="h-7 w-7 text-[#1f4fa8]" strokeWidth={3.4} />
+        </IconBtn>
+      </header>
+      <div className="thin-scroll relative z-10 flex min-h-0 flex-1 flex-col items-center overflow-y-auto px-5 pb-6 pt-20">
+        <Ribbon color="red">
+          {t.ui2.spinTitle}
+        </Ribbon>
+        <div className="mt-3 flex flex-wrap justify-center gap-2">
+          {streak > 0 && (
+            <span className="ui-stat-pill font-game flex items-center gap-1 px-3 text-[15px] text-[#c2410c]">
+              <span className="h-6 w-6">
+                <Sprite name="flame" />
+              </span>
+              {noEmoji(t.daily.streak(streak))}
+            </span>
+          )}
+          {season.doubleWheel && <span className="ui-stat-pill font-game flex items-center px-3 text-[15px] text-emerald-700">{noEmoji(t.season.doubleWheel)}</span>}
+        </div>
 
-        <div className="relative mx-auto my-4 aspect-square w-full max-w-[290px]">
+        <div className="relative mx-auto my-5 aspect-square w-full max-w-[300px]">
+          <div className="absolute left-1/2 top-1/2 h-[150%] w-[150%] -translate-x-1/2 -translate-y-1/2">
+            <Rays className="h-full w-full" />
+          </div>
           {/* Zeiger */}
-          <div className="absolute left-1/2 top-[-6px] z-10 -translate-x-1/2 text-4xl drop-shadow-lg">🔻</div>
+          <svg viewBox="0 0 40 46" className="absolute left-1/2 top-[-14px] z-10 h-12 w-11 -translate-x-1/2 drop-shadow-[0_4px_2px_rgba(0,0,0,.35)]">
+            <path d="M4 4 H36 L20 42 Z" fill="#ef3b3b" stroke="#7a1010" strokeWidth="3.5" strokeLinejoin="round" />
+            <path d="M10 8 H26 L18 26Z" fill="#fff" opacity="0.45" />
+          </svg>
           <svg
             viewBox="-100 -100 200 200"
-            className="h-full w-full drop-shadow-xl"
+            className="relative h-full w-full drop-shadow-[0_10px_10px_rgba(0,0,0,.35)]"
             style={{ transform: `rotate(${angle}deg)`, transition: spinning ? `transform ${SPIN_MS}ms cubic-bezier(.12,.75,.15,1)` : 'none' }}
           >
+            <defs>
+              <linearGradient id="wheel-rim" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stopColor="#ffe680" />
+                <stop offset="0.5" stopColor="#f6a91e" />
+                <stop offset="1" stopColor="#b86a07" />
+              </linearGradient>
+              <radialGradient id="wheel-shade" cx="0.5" cy="0.5" r="0.5">
+                <stop offset="0.6" stopColor="#000" stopOpacity="0" />
+                <stop offset="1" stopColor="#000" stopOpacity="0.22" />
+              </radialGradient>
+            </defs>
+            <circle r="99" fill="#7a4205" />
+            <circle r="96" fill="url(#wheel-rim)" />
             {WHEEL.map((prize, i) => {
               const a0 = ((i * SEG - 90) * Math.PI) / 180;
               const a1 = (((i + 1) * SEG - 90) * Math.PI) / 180;
               const mid = (((i + 0.5) * SEG - 90) * Math.PI) / 180;
+              const x = 58 * Math.cos(mid);
+              const y = 58 * Math.sin(mid);
               return (
                 <g key={i}>
                   <path
-                    d={`M0 0 L${95 * Math.cos(a0)} ${95 * Math.sin(a0)} A95 95 0 0 1 ${95 * Math.cos(a1)} ${95 * Math.sin(a1)} Z`}
+                    d={`M0 0 L${84 * Math.cos(a0)} ${84 * Math.sin(a0)} A84 84 0 0 1 ${84 * Math.cos(a1)} ${84 * Math.sin(a1)} Z`}
                     fill={WHEEL_COLORS[i]}
                     stroke="#fff"
-                    strokeWidth="3"
+                    strokeWidth="2.5"
                   />
-                  <text
-                    x={62 * Math.cos(mid)}
-                    y={62 * Math.sin(mid)}
-                    textAnchor="middle"
-                    dominantBaseline="central"
-                    fontSize="17"
-                    fontWeight="800"
-                    fill="#fff"
-                    transform={`rotate(${(i + 0.5) * SEG} ${62 * Math.cos(mid)} ${62 * Math.sin(mid)})`}
-                  >
-                    {prize.kind === 'stars' ? `${prize.amount}⭐` : '🎁'}
-                  </text>
+                  <g transform={`translate(${x} ${y}) rotate(${(i + 0.5) * SEG})`}>
+                    {prize.kind === 'stars' ? (
+                      <>
+                        <path d="M0 -15 L4.4 -5 L15 -4.6 L7 2.4 L9.6 13 L0 7.2 L-9.6 13 L-7 2.4 L-15 -4.6 L-4.4 -5Z" fill="#ffe14d" stroke="#1d1530" strokeWidth="2" strokeLinejoin="round" transform="translate(0 -6) scale(.8)" />
+                        <text y="16" textAnchor="middle" fontSize="16" fontWeight="900" fill="#fff" stroke="#1d1530" strokeWidth="3" paintOrder="stroke" fontFamily="Lilita One, Fredoka, sans-serif">
+                          {prize.amount}
+                        </text>
+                      </>
+                    ) : (
+                      <g transform="translate(-13 -14) scale(.42)">
+                        <rect x="8" y="26" width="48" height="32" rx="4" fill="#ef4444" stroke="#1d1530" strokeWidth="5" />
+                        <rect x="4" y="16" width="56" height="14" rx="4" fill="#f87171" stroke="#1d1530" strokeWidth="5" />
+                        <rect x="27" y="16" width="10" height="42" fill="#fde047" stroke="#1d1530" strokeWidth="4" />
+                      </g>
+                    )}
+                  </g>
                 </g>
               );
             })}
-            <circle r="95" fill="none" stroke="#fde047" strokeWidth="6" />
-            <circle r="18" fill="#fff" stroke="#f59e0b" strokeWidth="5" />
-            <text textAnchor="middle" dominantBaseline="central" fontSize="16">🐉</text>
+            <circle r="84" fill="url(#wheel-shade)" />
+            {Array.from({ length: 16 }, (_, i) => (
+              <circle key={i} cx={90 * Math.cos((i * Math.PI) / 8)} cy={90 * Math.sin((i * Math.PI) / 8)} r="3.4" fill="#fffbe6" stroke="#b86a07" strokeWidth="1" />
+            ))}
+            <circle r="24" fill="#fff" stroke="#b86a07" strokeWidth="5" />
           </svg>
+          <img src="./sparky-sm.webp" alt="" className="pointer-events-none absolute left-1/2 top-1/2 h-[19%] w-[19%] -translate-x-1/2 -translate-y-1/2 object-contain" draggable={false} />
         </div>
 
         {prog.canSpin ? (
-          <button
-            type="button"
-            disabled={spinning}
-            onClick={spin}
-            className={`squish flex h-16 w-full items-center justify-center rounded-[1.6rem] text-2xl font-bold ${spinning ? '' : 'animate-breathe'}`}
-            style={{ '--c': '#f43f5e' } as CSSProperties}
-          >
-            🎡 {t.daily.spin}
-          </button>
+          <GameButton big color="green" className={`w-full max-w-xs ${spinning ? '' : 'animate-breathe'}`} disabled={spinning} onClick={spin}>
+            {t.daily.spin}
+          </GameButton>
         ) : (
-          <p className="rounded-2xl bg-white/80 p-3 font-bold text-slate-600">⏰ {t.daily.comeBack}</p>
+          <div className="ui-cream font-game px-5 py-3 text-center text-[1.1rem] text-[#7a3d00]">{t.daily.comeBack}</div>
         )}
-        <p className="mt-2 text-xs font-semibold text-slate-500">🎁 = {t.daily.sticker} · 🔥 3+ = {t.daily.streakBonus}</p>
+        <p className="mt-3 text-center text-[13px] font-extrabold text-white [text-shadow:0_1px_2px_rgba(10,40,100,.8)]">
+          {noEmoji(t.daily.sticker)} · 3+ = {noEmoji(t.daily.streakBonus)}
+        </p>
       </div>
 
-      {result && <RewardPopup title={t.daily.button} icon="🎉" reward={result} onClose={() => setResult(null)} />}
+      {result && <RewardPopup title={t.ui2.spinTitle} reward={result} onClose={() => setResult(null)} />}
     </div>
   );
 }

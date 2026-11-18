@@ -69,18 +69,19 @@ button:disabled {
     color-mix(in srgb, var(--c) 82%, black) 100%
   );
   /* AAA-Casual-Look: dicke dunkle Outline + harter 3D-Sockel */
+  --o: color-mix(in srgb, var(--c) 38%, #0d0a24);
   box-shadow:
-    0 0 0 2.5px #1d1530,
-    0 6px 0 #1d1530,
+    0 0 0 2.5px var(--o),
+    0 6px 0 var(--o),
     0 11px 18px -6px rgba(0, 0, 0, 0.45),
     inset 0 -5px 0 color-mix(in srgb, var(--c) 68%, black),
     inset 0 3px 0 rgba(255, 255, 255, 0.55);
   text-shadow:
-    -1.5px -1.5px 0 #1d1530,
-    1.5px -1.5px 0 #1d1530,
-    -1.5px 1.5px 0 #1d1530,
-    1.5px 1.5px 0 #1d1530,
-    0 3px 0 #1d1530;
+    -1.5px -1.5px 0 var(--o),
+    1.5px -1.5px 0 var(--o),
+    -1.5px 1.5px 0 var(--o),
+    1.5px 1.5px 0 var(--o),
+    0 3px 0 var(--o);
   transition:
     transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1),
     box-shadow 0.12s ease,
@@ -107,15 +108,14 @@ button:disabled {
 .squish:active:not(:disabled) {
   transform: translateY(5px) scale(1.03, 0.95);
   box-shadow:
-    0 0 0 2.5px #1d1530,
-    0 1px 0 #1d1530,
+    0 0 0 2.5px var(--o),
+    0 1px 0 var(--o),
     0 4px 10px -4px rgba(0, 0, 0, 0.4),
     inset 0 -3px 0 color-mix(in srgb, var(--c) 68%, black),
     inset 0 3px 0 rgba(255, 255, 255, 0.55);
 }
 .squish:disabled {
-  filter: saturate(0.45) brightness(0.92);
-  opacity: 0.85;
+  filter: saturate(0.6) brightness(0.9);
 }
 
 /* Weiße Glas-Karte */
@@ -337,3 +337,180 @@ html[lang='ar'] body {
 /* Drück-Feedback ohne Verschiebung (Grafiken liegen exakt auf der Vorlage) */
 .press { transition: filter 0.1s ease, transform 0.1s ease; -webkit-tap-highlight-color: transparent; }
 .press:active { filter: brightness(1.12) saturate(1.1); transform: scale(0.97); }
+
+/* ═══════════ Globales Design-System (ui.tsx) ═══════════ */
+:root {
+  --ui-navy: #1b2a55;
+  --ui-blue-line: #2b62c4;
+}
+/* Glanz-Knopf (Zurück, Einstellungen, Werkzeuge) */
+.ui-icon-btn {
+  position: relative;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #ffffff 0%, #f1f5fc 48%, #d3def0 100%);
+  box-shadow:
+    0 0 0 2.5px #2a3f78,
+    0 5px 0 #2a3f78,
+    0 10px 16px -6px rgba(10, 25, 70, 0.5),
+    inset 0 -4px 0 #b9c8e2,
+    inset 0 2px 0 #fff;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+.ui-icon-btn-yellow {
+  background: linear-gradient(180deg, #fff3a0 0%, #ffd23a 50%, #f5a40b 100%);
+  box-shadow:
+    0 0 0 2.5px #8a4b05,
+    0 5px 0 #8a4b05,
+    0 10px 16px -6px rgba(10, 25, 70, 0.5),
+    inset 0 -4px 0 #d9850a,
+    inset 0 2px 0 #fffbe0;
+}
+.ui-icon-btn:active:not(:disabled) {
+  transform: translateY(4px);
+  box-shadow: 0 0 0 2.5px #2a3f78, 0 1px 0 #2a3f78, inset 0 -3px 0 #b9c8e2, inset 0 2px 0 #fff;
+}
+.ui-icon-btn:disabled { opacity: 0.55; }
+
+/* Blaue Titel-Pille */
+.ui-title-pill {
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: linear-gradient(180deg, #6cc6ff 0%, #2f95f3 50%, #1a69d8 100%);
+  box-shadow:
+    0 0 0 2.5px #10388a,
+    0 5px 0 #10388a,
+    0 10px 18px -8px rgba(10, 25, 70, 0.55),
+    inset 0 2px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -4px 0 #1556b8;
+  --o: #10388a;
+}
+.ui-title-pill.outline-text, .ui-ribbon.outline-text, .ui-outline-blue {
+  text-shadow: -2px -2px 0 var(--o, #10388a), 2px -2px 0 var(--o, #10388a), -2px 2px 0 var(--o, #10388a), 2px 2px 0 var(--o, #10388a), 0 3px 0 var(--o, #10388a);
+}
+
+/* Weißes Panel mit blauem Rand */
+.ui-panel {
+  border-radius: 1.6rem;
+  background: linear-gradient(180deg, #ffffff 0%, #f4f9ff 100%);
+  box-shadow:
+    0 0 0 3px #8cc4f5,
+    0 0 0 5.5px #2a62bf,
+    0 9px 0 #2a62bf,
+    0 18px 26px -12px rgba(10, 30, 80, 0.55),
+    inset 0 -3px 0 #dbe9fa;
+}
+.ui-row + .ui-row { border-top: 2px solid #e3edf9; }
+/* Creme-Panel für Belohnungen */
+.ui-cream {
+  border-radius: 1.6rem;
+  background: linear-gradient(180deg, #fffaf0 0%, #ffefc9 100%);
+  box-shadow:
+    0 0 0 3px #ffd88a,
+    0 0 0 5.5px #c97a14,
+    0 8px 0 #c97a14,
+    0 18px 26px -12px rgba(80, 40, 0, 0.5),
+    inset 0 3px 0 #fff;
+}
+/* Kachel (Kostüme, Sprachen, Erfolge) */
+.ui-tile {
+  border-radius: 1.1rem;
+  background: linear-gradient(180deg, #ffffff 0%, #eef4fc 60%, #d9e5f5 100%);
+  box-shadow:
+    0 0 0 2.5px #2a3f78,
+    0 5px 0 #2a3f78,
+    0 10px 14px -8px rgba(10, 25, 70, 0.45),
+    inset 0 -3px 0 #c3d3ea;
+  transition: transform 0.1s ease;
+}
+.ui-tile:active:not(:disabled) { transform: translateY(3px); }
+.ui-tile-selected {
+  background: linear-gradient(180deg, #fffbe0 0%, #ffe680 60%, #ffc933 100%);
+  box-shadow:
+    0 0 0 3px #b96a00,
+    0 5px 0 #b96a00,
+    0 0 18px 4px rgba(255, 214, 60, 0.75),
+    inset 0 -3px 0 #e8a514;
+}
+/* Kräftige Erfolgs-Kachel (lila/blau) */
+.ui-badge-card {
+  --c: #7c4dff;
+  border-radius: 1.2rem;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--c) 55%, white) 0%, var(--c) 55%, color-mix(in srgb, var(--c) 70%, black) 100%);
+  box-shadow:
+    0 0 0 2.5px color-mix(in srgb, var(--c) 35%, #0d0a24),
+    0 5px 0 color-mix(in srgb, var(--c) 35%, #0d0a24),
+    0 12px 16px -8px rgba(10, 25, 70, 0.5),
+    inset 0 2px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -4px 0 color-mix(in srgb, var(--c) 60%, black);
+}
+/* Banderole */
+.ui-ribbon {
+  border-radius: 10px;
+  background: linear-gradient(180deg, var(--r1) 0%, var(--r2) 55%, var(--r3) 100%);
+  box-shadow: 0 0 0 2.5px var(--r4), 0 5px 0 var(--r4), 0 12px 18px -8px rgba(0, 0, 0, 0.5), inset 0 2px 0 rgba(255, 255, 255, 0.55);
+  --o: var(--r4);
+}
+.ui-ribbon-end {
+  position: absolute;
+  top: 12px;
+  bottom: -8px;
+  width: 34px;
+  background: linear-gradient(180deg, var(--r2), var(--r3));
+  box-shadow: 0 0 0 2.5px var(--r4), 0 4px 0 var(--r4);
+}
+.ui-ribbon-end-l { left: -22px; clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 34% 50%); border-radius: 4px 0 0 4px; }
+.ui-ribbon-end-r { right: -22px; clip-path: polygon(0 0, 100% 0, 66% 50%, 100% 100%, 0 100%); border-radius: 0 4px 4px 0; }
+/* Schalter */
+.ui-toggle {
+  position: relative;
+  width: 60px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  background: linear-gradient(180deg, #c6cfdd, #e8edf5);
+  box-shadow: 0 0 0 2.5px #64748b, inset 0 3px 4px rgba(0, 0, 0, 0.25);
+  transition: background 0.2s ease;
+}
+.ui-toggle-on {
+  background: linear-gradient(180deg, #2fbf47, #63e276);
+  box-shadow: 0 0 0 2.5px #157a2a, inset 0 3px 4px rgba(0, 0, 0, 0.25);
+}
+.ui-toggle-knob {
+  position: absolute;
+  top: 3px;
+  inset-inline-start: 3px;
+  width: 28px;
+  height: 28px;
+  border-radius: 9999px;
+  background: linear-gradient(180deg, #fff, #e6ecf4);
+  box-shadow: 0 0 0 2px #475569, 0 3px 0 rgba(0, 0, 0, 0.25);
+  transition: inset-inline-start 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.ui-toggle-on .ui-toggle-knob { inset-inline-start: 29px; box-shadow: 0 0 0 2px #157a2a, 0 3px 0 rgba(0, 0, 0, 0.25); }
+/* Zähler-Pille */
+.ui-stat-pill {
+  height: 38px;
+  border-radius: 9999px;
+  background: linear-gradient(180deg, #ffffff, #e5eefb);
+  box-shadow: 0 0 0 2.5px #2a3f78, 0 4px 0 #2a3f78, inset 0 -3px 0 #c3d3ea;
+}
+/* Auswahlfeld im Spielstil */
+.ui-select {
+  height: 40px;
+  border-radius: 12px;
+  padding: 0 0.6rem;
+  font-weight: 800;
+  color: #1b2a55;
+  background: linear-gradient(180deg, #fff, #e8f0fb);
+  box-shadow: 0 0 0 2px #2a62bf, 0 3px 0 #2a62bf;
+  border: 0;
+  max-width: 100%;
+}
+.ui-rays-spin { animation: ui-rays 26s linear infinite; }
+@keyframes ui-rays { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .ui-rays-spin { animation: none; } }
+/* Dunkler Spiel-Hintergrund-Text auf hellen Flächen */
+.ui-ink { color: #1b2a55; }

@@ -3,6 +3,7 @@
 // Fledermäuse, Feuerwerk …) und große Deko-Sprites am Bildrand.
 // Plus das Event-Banner („Ramadan-Event · Sammle Datteln!“).
 // ─────────────────────────────────────────────────────────────
+import { Ribbon } from './ui';
 import { useMemo, type CSSProperties } from 'react';
 import type { FestId, SeasonParticle } from '../data/seasons';
 import { useSeasonalTheme } from '../hooks/useSeasonalTheme';
@@ -106,24 +107,18 @@ export function SeasonBanner() {
   if (!theme.fest) return null;
   const islamic = theme.culture === 'islamic';
   return (
-    <div className="relative z-10 mx-auto w-full max-w-md px-2">
-      <div
-        className="relative flex items-center justify-center gap-2 rounded-2xl border-[3px] px-4 py-2 text-center shadow-[0_5px_0_rgba(0,0,0,0.35)]"
-        style={{
-          borderColor: '#facc15',
-          background: islamic ? 'linear-gradient(180deg,#065f46,#064e3b)' : theme.id === 'halloween' ? 'linear-gradient(180deg,#7c2d12,#431407)' : 'linear-gradient(180deg,#b91c1c,#7f1d1d)',
-        }}
-      >
-        <span className="h-7 w-7 shrink-0">
-          <Sprite name={theme.decor[0]} />
+    <div className="relative z-10 mx-auto w-full max-w-md px-8 pb-2">
+      <Ribbon color={islamic ? 'green' : theme.id === 'halloween' ? 'purple' : 'red'} className="!w-full">
+        <span className="flex items-center justify-center gap-2 text-[15px] uppercase">
+          <span className="h-7 w-7 shrink-0">
+            <Sprite name={theme.decor[0]} />
+          </span>
+          <span className="leading-tight">{t.season.banner[theme.id as FestId]}</span>
+          <span className="h-7 w-7 shrink-0">
+            <Sprite name={theme.decor[1] ?? theme.decor[0]} />
+          </span>
         </span>
-        <span className="text-[15px] font-black uppercase leading-tight tracking-wide text-amber-200 [text-shadow:0_2px_0_rgba(0,0,0,.5)]">
-          {t.season.banner[theme.id as FestId]}
-        </span>
-        <span className="h-7 w-7 shrink-0">
-          <Sprite name={theme.decor[1] ?? theme.decor[0]} />
-        </span>
-      </div>
+      </Ribbon>
     </div>
   );
 }

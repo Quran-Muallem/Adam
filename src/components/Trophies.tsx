@@ -1,14 +1,14 @@
+// Erfolge: Titel, Abzeichen (eigene SVG-Grafiken), Festtags-Abzeichen, Sticker-Album
+import { Lock } from 'lucide-react';
+import type { CSSProperties } from 'react';
+import { BADGES, bestTitle, STICKERS, type BadgeId } from '../data/rewards';
 import { THEMES, type FestId } from '../data/seasons';
-import { Sprite } from './sprites';
-// Trophäen-Raum: Abzeichen & Titel + Sticker-Album
-import { ChevronLeft, Lock } from 'lucide-react';
-import { BADGES, bestTitle, STICKERS } from '../data/rewards';
 import type { ProgressApi } from '../hooks/useProgress';
 import type { SoundApi } from '../hooks/useSoundEffects';
 import { useI18n } from '../i18n';
-import { RoundBtn } from './GameScreen';
-import { Particles } from './Particles';
 import { Sparky } from './Sparky';
+import { Sprite, type SpriteName } from './sprites';
+import { Ribbon, ScreenHeader, ScreenShell, StatPill } from './ui';
 
 interface Props {
   sound: SoundApi;
@@ -16,97 +16,126 @@ interface Props {
   onBack: () => void;
 }
 
+export const BADGE_ART: Record<BadgeId, { sprite: SpriteName; color: string }> = {
+  firstSteps: { sprite: 'footprints', color: '#22a8f0' },
+  loopMaster: { sprite: 'loop', color: '#7c4dff' },
+  jumpPro: { sprite: 'rabbit', color: '#14b8a6' },
+  worldTraveler: { sprite: 'compass', color: '#2f7cf6' },
+  conditionPro: { sprite: 'split', color: '#7c4dff' },
+  macroMage: { sprite: 'wand', color: '#c026d3' },
+  starCollector: { sprite: 'star', color: '#2f7cf6' },
+  loyal: { sprite: 'flame', color: '#f0532f' },
+  perfectionist: { sprite: 'gem', color: '#7c4dff' },
+  champ25: { sprite: 'medalBronze', color: '#22a8f0' },
+  champ50: { sprite: 'medalSilver', color: '#2f7cf6' },
+  champ100: { sprite: 'medalGold', color: '#7c4dff' },
+};
+
 export function Trophies({ sound, prog, onBack }: Props) {
   const { t } = useI18n();
   const title = bestTitle(prog.badges);
   const owned = prog.progress.stickers;
 
   return (
-    <div className="safe-area relative flex h-[100dvh] flex-col overflow-hidden bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500">
-      <Particles kind="stars" count={24} />
-      <header className="relative z-10 flex items-center gap-3 p-3">
-        <RoundBtn
-          label={t.ui.back}
-          onClick={() => {
+    <ScreenShell
+      header={
+        <ScreenHeader
+          title={t.ui2.achievements}
+          backLabel={t.ui.back}
+          onBack={() => {
             sound.play('click');
             onBack();
           }}
-          color="#ffffff"
-          dark
-        >
-          <ChevronLeft className="h-8 w-8 rtl:rotate-180" strokeWidth={3} />
-        </RoundBtn>
-        <h2 className="flex-1 text-2xl font-bold text-white drop-shadow">🏆 {t.rewards.trophies}</h2>
-      </header>
+          right={<StatPill icon="trophy" value={`${prog.badges.size}/${BADGES.length}`} />}
+        />
+      }
+    >
+      <div className="mx-auto max-w-lg">
+        <Ribbon color="gold" className="mb-5 mt-1">
+          {t.ui2.yourAchievements}
+        </Ribbon>
 
-      <div className="thin-scroll relative z-10 flex-1 overflow-y-auto px-4 pb-8">
-        <div className="mx-auto max-w-2xl">
-          {/* Aktueller Titel */}
-          <div className="glass mb-5 flex items-center gap-3 rounded-[1.8rem] p-3">
-            <div className="h-20 w-20 shrink-0">
-              <Sparky mood="happy" />
-            </div>
-            <div>
-              <div className="text-3xl">{title?.emoji ?? '🌱'}</div>
-              <div className="text-xl font-bold leading-tight text-slate-800">{title ? t.rewards.badges[title.id].name : t.rewards.noTitle}</div>
-            </div>
-          </div>
-
-          <h3 className="mb-2 text-lg font-bold text-white drop-shadow">🏅 {t.rewards.badgesTitle}</h3>
-          <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {BADGES.map((b) => {
-              const has = prog.badges.has(b.id);
-              return (
-                <div
-                  key={b.id}
-                  className={`flex flex-col items-center gap-1 rounded-[1.4rem] p-3 text-center ${has ? 'glass' : 'border-2 border-dashed border-white/60 bg-white/15'}`}
-                >
-                  <span className={`text-4xl ${has ? 'animate-float' : 'opacity-50 grayscale'}`}>{b.emoji}</span>
-                  <span className={`text-sm font-bold leading-tight ${has ? 'text-slate-800' : 'text-white'}`}>{t.rewards.badges[b.id].name}</span>
-                  <span className={`text-xs font-semibold leading-tight ${has ? 'text-slate-500' : 'text-white/85'}`}>
-                    {!has && <Lock className="me-1 inline h-3 w-3" />}
-                    {t.rewards.badges[b.id].desc}
+        <div className="mb-6 grid grid-cols-3 gap-3">
+          {BADGES.map((b) => {
+            const has = prog.badges.has(b.id);
+            const art = BADGE_ART[b.id];
+            return (
+              <div
+                key={b.id}
+                className={`ui-badge-card relative flex flex-col items-center px-1 pb-2 pt-2 text-center ${has ? '' : 'grayscale-[.85] opacity-80'}`}
+                style={{ '--c': art.color } as CSSProperties}
+              >
+                <span className={`h-14 w-14 ${has ? 'animate-float' : ''}`}>
+                  <Sprite name={art.sprite} />
+                </span>
+                <span className="font-game outline-text mt-1 text-[13px] leading-tight">{t.rewards.badges[b.id].name}</span>
+                <span className="mt-0.5 text-[10.5px] font-bold leading-tight text-white/90">{t.rewards.badges[b.id].desc}</span>
+                {!has && (
+                  <span className="absolute end-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-slate-700 shadow-[0_0_0_2px_#fff]">
+                    <Lock className="h-3.5 w-3.5 text-white" strokeWidth={3} />
                   </span>
-                </div>
-              );
-            })}
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Festtags-Abzeichen (Ramadan, Zuckerfest, Opferfest, Weihnachten …) */}
+        {(prog.progress.fests ?? []).length > 0 && (
+          <>
+            <Ribbon color="green" className="mb-4">
+              {t.season.festBadges}
+            </Ribbon>
+            <div className="mb-6 grid grid-cols-3 gap-3">
+              {(prog.progress.fests ?? []).map((f) => {
+                const [id, year] = f.split('-') as [FestId, string];
+                const th = THEMES[id];
+                if (!th) return null;
+                return (
+                  <div key={f} className="ui-badge-card flex flex-col items-center gap-1 p-2 text-center" style={{ '--c': '#f59e0b' } as CSSProperties}>
+                    <span className="h-12 w-12 animate-float">
+                      <Sprite name={th.decor[0]} />
+                    </span>
+                    <span className="font-game outline-text text-[13px] leading-tight">{t.season.names[id]}</span>
+                    <span className="text-[11px] font-bold text-white/90">{year}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
+
+        <Ribbon color="purple" className="mb-4">
+          {t.ui2.stickers} · {owned.length}/{STICKERS.length}
+        </Ribbon>
+        <div className="ui-panel mb-6 grid grid-cols-5 gap-2 p-3">
+          {STICKERS.map((s) => (
+            <div
+              key={s}
+              className={`flex aspect-square items-center justify-center rounded-2xl text-[1.7rem] ${
+                owned.includes(s) ? 'bg-gradient-to-b from-[#fff8d6] to-[#ffe08a] shadow-[0_0_0_2px_#e0a31a,0_3px_0_#e0a31a]' : 'bg-[#e6eef9] shadow-[inset_0_2px_3px_rgba(0,0,0,.12)]'
+              }`}
+            >
+              {owned.includes(s) ? s : <Lock className="h-4 w-4 text-[#9fb3d1]" strokeWidth={3} />}
+            </div>
+          ))}
+        </div>
+
+        {/* Aktueller Titel – Lorbeer-Banner wie in der Vorlage */}
+        <div className="relative mx-auto flex max-w-sm items-center gap-2">
+          <div className="relative flex-1">
+            <span className="absolute -start-3 -top-2 h-[72px] w-[72px] opacity-90">
+              <Sprite name="laurel" />
+            </span>
+            <Ribbon color="red" className="!w-full">
+              <span className="block px-6 text-[1.15rem]">{title ? t.rewards.badges[title.id].name : t.rewards.noTitle}</span>
+            </Ribbon>
           </div>
-
-          {/* Festtags-Abzeichen (Ramadan, Zuckerfest, Opferfest, Weihnachten …) */}
-          {(prog.progress.fests ?? []).length > 0 && (
-            <>
-              <h3 className="mb-2 text-lg font-bold text-white drop-shadow">🎉 {t.season.festBadges}</h3>
-              <div className="mb-6 grid grid-cols-3 gap-3">
-                {(prog.progress.fests ?? []).map((f) => {
-                  const [id, year] = f.split('-') as [FestId, string];
-                  const th = THEMES[id];
-                  if (!th) return null;
-                  return (
-                    <div key={f} className="card3d flex flex-col items-center gap-1 rounded-[1.4rem] bg-gradient-to-b from-amber-200 to-amber-400 p-2 text-center">
-                      <span className="h-12 w-12 animate-float">
-                        <Sprite name={th.decor[0]} />
-                      </span>
-                      <span className="text-xs font-black leading-tight text-amber-950">{t.season.names[id]}</span>
-                      <span className="text-[11px] font-bold text-amber-900/80">{year}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </>
-          )}
-
-          <h3 className="mb-2 text-lg font-bold text-white drop-shadow">
-            🌟 {t.rewards.stickersTitle} · {owned.length}/{STICKERS.length}
-          </h3>
-          <div className="glass grid grid-cols-5 gap-2 rounded-[1.8rem] p-3 sm:grid-cols-6">
-            {STICKERS.map((s) => (
-              <div key={s} className={`flex aspect-square items-center justify-center rounded-2xl text-3xl ${owned.includes(s) ? 'bg-gradient-to-br from-yellow-100 to-pink-100 shadow' : 'bg-slate-200/70'}`}>
-                {owned.includes(s) ? s : <span className="text-xl text-slate-400">?</span>}
-              </div>
-            ))}
+          <div className="h-24 w-24 shrink-0">
+            <Sparky mood="happy" />
           </div>
         </div>
       </div>
-    </div>
+    </ScreenShell>
   );
 }

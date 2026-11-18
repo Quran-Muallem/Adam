@@ -5,7 +5,7 @@
 //  • Fehlerzeile wird rot markiert, die laufende Zeile leuchtet gelb
 //  • Schnelltasten-Leiste: move_forward(), turn_left(), for i in range(): …
 // ─────────────────────────────────────────────────────────────
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, TrendingUp } from 'lucide-react';
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { quickSnippets } from '../engine/codeparser';
 import { codeToText, generateCode, type CodeLang } from '../engine/codegen';
@@ -201,7 +201,7 @@ export function CodeEditor(p: Props) {
         </div>
       </div>
 
-      {p.insight && <div className="border-t border-white/10 px-3 py-1 font-mono text-[12px] leading-snug text-teal-200">📈 {p.insight}</div>}
+      {p.insight && <div className="border-t border-white/10 px-3 py-1 font-mono text-[12px] leading-snug text-teal-200"><TrendingUp className="me-1 inline h-3.5 w-3.5" strokeWidth={3} />{p.insight}</div>}
 
       {/* Schnelltasten-Leiste: keine Sonderzeichen-Suche auf dem Handy */}
       {p.editable && (

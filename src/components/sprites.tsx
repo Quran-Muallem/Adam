@@ -18,6 +18,7 @@ export type SpriteName =
   | 'moon' | 'lantern' | 'date' | 'baklava' | 'sheep' | 'pumpkin' | 'bat' | 'gift' | 'candycane'
   | 'xmastree' | 'snowflake' | 'firework' | 'egg' | 'blossom' | 'sunny' | 'leaf' | 'garland'
   // Deko & Embleme
+  | 'footprints' | 'loop' | 'rabbit' | 'compass' | 'split' | 'wand' | 'flame' | 'medalBronze' | 'medalSilver' | 'medalGold' | 'crown' | 'laurel' | 'book' | 'shirt'
   | 'island' | 'mushroom' | 'cloud' | 'planet' | 'rocket' | 'robot' | 'atom' | 'skyline' | 'ship' | 'chest' | 'train';
 
 const O = '#1d1530'; // Outline
@@ -49,6 +50,145 @@ const Shine = ({ x, y, rx, ry, rot = -20 }: { x: number; y: number; rx: number; 
 type Draw = (u: (s: string) => string) => ReactNode;
 
 const S: Record<SpriteName, Draw> = {
+  footprints: (u) => (
+    <>
+      <defs>
+        <Lg id={u('a')} c={['#fdba74', '#f97316', '#c2410c']} />
+      </defs>
+      <ellipse cx="22" cy="36" rx="9" ry="14" fill={`url(#${u('a')})`} stroke={O} strokeWidth={SW} transform="rotate(-12 22 36)" />
+      <ellipse cx="42" cy="24" rx="9" ry="14" fill={`url(#${u('a')})`} stroke={O} strokeWidth={SW} transform="rotate(12 42 24)" />
+      {[[15, 18], [21, 15], [27, 16]].map(([x, y], i) => <circle key={i} cx={x} cy={y} r="3.2" fill={`url(#${u('a')})`} stroke={O} strokeWidth="2" />)}
+      {[[37, 6], [43, 4], [49, 6]].map(([x, y], i) => <circle key={'b' + i} cx={x} cy={y + 2} r="3.2" fill={`url(#${u('a')})`} stroke={O} strokeWidth="2" />)}
+      <Shine x={19} y={32} rx={3} ry={5} />
+    </>
+  ),
+  loop: (u) => (
+    <>
+      <defs>
+        <Lg id={u('a')} c={['#fed7aa', '#fb923c', '#c2410c']} />
+      </defs>
+      <path d="M14 30 A18 18 0 0 1 48 22 L52 14 L56 34 L38 30 L45 26 A12 12 0 0 0 22 32 Z" fill={`url(#${u('a')})`} stroke={O} strokeWidth={SW} strokeLinejoin="round" />
+      <path d="M50 34 A18 18 0 0 1 16 42 L12 50 L8 30 L26 34 L19 38 A12 12 0 0 0 42 32 Z" fill={`url(#${u('a')})`} stroke={O} strokeWidth={SW} strokeLinejoin="round" />
+      <Shine x={24} y={18} rx={6} ry={2.5} />
+    </>
+  ),
+  rabbit: (u) => (
+    <>
+      <defs>
+        <Lg id={u('a')} c={['#ffffff', '#e2e8f0', '#94a3b8']} />
+      </defs>
+      <ellipse cx="24" cy="16" rx="5" ry="13" fill={`url(#${u('a')})`} stroke={O} strokeWidth={SW} transform="rotate(-10 24 16)" />
+      <ellipse cx="38" cy="15" rx="5" ry="13" fill={`url(#${u('a')})`} stroke={O} strokeWidth={SW} transform="rotate(12 38 15)" />
+      <ellipse cx="24" cy="16" rx="2" ry="8" fill="#f9a8d4" transform="rotate(-10 24 16)" />
+      <ellipse cx="38" cy="15" rx="2" ry="8" fill="#f9a8d4" transform="rotate(12 38 15)" />
+      <ellipse cx="32" cy="44" rx="20" ry="16" fill={`url(#${u('a')})`} stroke={O} strokeWidth={SW} />
+      <circle cx="25" cy="41" r="3" fill={O} />
+      <circle cx="39" cy="41" r="3" fill={O} />
+      <circle cx="26" cy="40" r="1" fill="#fff" />
+      <circle cx="40" cy="40" r="1" fill="#fff" />
+      <ellipse cx="32" cy="48" rx="3" ry="2" fill="#f472b6" />
+      <circle cx="20" cy="49" r="3" fill="#fbcfe8" opacity="0.8" />
+      <circle cx="44" cy="49" r="3" fill="#fbcfe8" opacity="0.8" />
+    </>
+  ),
+  compass: (u) => (
+    <>
+      <defs>
+        <Lg id={u('a')} c={['#fde68a', '#f59e0b', '#b45309']} />
+        <Rg id={u('b')} c={['#ffffff', '#cfe8ff']} />
+      </defs>
+      <circle cx="32" cy="32" r="27" fill={`url(#${u('a')})`} stroke={O} strokeWidth={SW} />
+      <circle cx="32" cy="32" r="20" fill={`url(#${u('b')})`} stroke={O} strokeWidth="2.5" />
+      <path d="M32 14 L38 32 L32 30 Z" fill="#ef4444" stroke={O} strokeWidth="2" strokeLinejoin="round" />
+      <path d="M32 50 L26 32 L32 34 Z" fill="#3b82f6" stroke={O} strokeWidth="2" strokeLinejoin="round" />
+      <path d="M32 14 L26 32 L32 30Z M32 50 L38 32 L32 34Z" fill="#fff" stroke={O} strokeWidth="2" strokeLinejoin="round" />
+      <circle cx="32" cy="32" r="3" fill={O} />
+      <Shine x={22} y={18} rx={6} ry={3} />
+    </>
+  ),
+  split: (u) => (
+    <>
+      <defs>
+        <Lg id={u('a')} c={['#a5f3fc', '#22d3ee', '#0e7490']} />
+      </defs>
+      <path d="M28 60 V38 L12 22 L8 26 L6 6 L26 8 L22 12 L36 26 L50 12 L46 8 L58 6 L58 26 L54 22 L38 38 V60 Z" fill={`url(#${u('a')})`} stroke={O} strokeWidth={SW} strokeLinejoin="round" />
+      <Shine x={16} y={12} rx={5} ry={2} rot={40} />
+    </>
+  ),
+  wand: (u) => (
+    <>
+      <defs>
+        <Lg id={u('a')} c={['#c4b5fd', '#7c3aed', '#4c1d95']} />
+        <Lg id={u('b')} c={['#fef08a', '#facc15', '#ea580c']} />
+      </defs>
+      <path d="M10 56 L40 26 L46 32 L16 62 Z" fill={`url(#${u('a')})`} stroke={O} strokeWidth={SW} strokeLinejoin="round" />
+      <path d="M44 4 L48 14 L58 16 L50 23 L52 33 L44 27 L36 32 L38 22 L30 16 L40 14 Z" fill={`url(#${u('b')})`} stroke={O} strokeWidth={SW} strokeLinejoin="round" />
+      <circle cx="18" cy="16" r="3" fill="#fde047" stroke={O} strokeWidth="1.5" />
+      <circle cx="56" cy="44" r="2.5" fill="#f0abfc" stroke={O} strokeWidth="1.5" />
+      <Shine x={41} y={14} rx={3} ry={2} />
+    </>
+  ),
+  flame: (u) => (
+    <>
+      <defs>
+        <Lg id={u('a')} c={['#fde047', '#f97316', '#dc2626']} />
+        <Lg id={u('b')} c={['#fffbeb', '#fde047']} />
+      </defs>
+      <path d="M32 60 C14 60 8 44 16 32 C18 40 24 40 24 40 C20 26 30 14 34 4 C38 16 56 26 50 46 C48 56 40 60 32 60Z" fill={`url(#${u('a')})`} stroke={O} strokeWidth={SW} strokeLinejoin="round" />
+      <path d="M32 56 C24 56 22 48 26 42 C28 46 32 46 32 46 C30 38 34 32 36 28 C40 36 46 42 42 50 C40 54 36 56 32 56Z" fill={`url(#${u('b')})`} />
+    </>
+  ),
+  medalBronze: (u) => <Medal u={u} c={['#fed7aa', '#d97706', '#7c2d12']} n="3" />,
+  medalSilver: (u) => <Medal u={u} c={['#ffffff', '#cbd5e1', '#475569']} n="2" />,
+  medalGold: (u) => <Medal u={u} c={['#fef9c3', '#facc15', '#a16207']} n="1" />,
+  crown: (u) => (
+    <>
+      <defs>
+        <Lg id={u('a')} c={['#fef9c3', '#facc15', '#c2410c']} />
+      </defs>
+      <path d="M8 22 L20 34 L32 12 L44 34 L56 22 L52 50 H12 Z" fill={`url(#${u('a')})`} stroke={O} strokeWidth={SW} strokeLinejoin="round" />
+      <rect x="11" y="48" width="42" height="9" rx="3" fill={`url(#${u('a')})`} stroke={O} strokeWidth={SW} />
+      <circle cx="32" cy="38" r="5" fill="#ef4444" stroke={O} strokeWidth="2" />
+      <circle cx="19" cy="42" r="3.5" fill="#3b82f6" stroke={O} strokeWidth="2" />
+      <circle cx="45" cy="42" r="3.5" fill="#22c55e" stroke={O} strokeWidth="2" />
+      {[[8, 20], [32, 10], [56, 20]].map(([x, y], i) => <circle key={i} cx={x} cy={y} r="3.5" fill="#fde047" stroke={O} strokeWidth="2" />)}
+      <Shine x={24} y={26} rx={4} ry={2} />
+    </>
+  ),
+  laurel: (u) => (
+    <>
+      <defs>
+        <Lg id={u('a')} c={['#fef08a', '#eab308', '#a16207']} />
+      </defs>
+      {[0, 1, 2, 3, 4].map((i) => (
+        <g key={i}>
+          <ellipse cx={14 + i * 1.5} cy={50 - i * 9} rx="4" ry="8" fill={`url(#${u('a')})`} stroke={O} strokeWidth="2" transform={`rotate(${-40 + i * 12} ${14 + i * 1.5} ${50 - i * 9})`} />
+          <ellipse cx={50 - i * 1.5} cy={50 - i * 9} rx="4" ry="8" fill={`url(#${u('a')})`} stroke={O} strokeWidth="2" transform={`rotate(${40 - i * 12} ${50 - i * 1.5} ${50 - i * 9})`} />
+        </g>
+      ))}
+    </>
+  ),
+  book: (u) => (
+    <>
+      <defs>
+        <Lg id={u('a')} c={['#7dd3fc', '#0ea5e9', '#075985']} />
+      </defs>
+      <path d="M6 14 Q20 8 32 16 Q44 8 58 14 V54 Q44 48 32 56 Q20 48 6 54 Z" fill={`url(#${u('a')})`} stroke={O} strokeWidth={SW} strokeLinejoin="round" />
+      <path d="M11 17 Q22 13 30 19 V50 Q22 45 11 49 Z M53 17 Q42 13 34 19 V50 Q42 45 53 49 Z" fill="#fff" />
+      <path d="M32 16 V56" stroke={O} strokeWidth="2.5" />
+      <path d="M15 26 H26 M15 32 H26 M38 26 H49 M38 32 H49" stroke="#93c5fd" strokeWidth="2.5" strokeLinecap="round" />
+    </>
+  ),
+  shirt: (u) => (
+    <>
+      <defs>
+        <Lg id={u('a')} c={['#f5d0fe', '#c026d3', '#701a75']} />
+      </defs>
+      <path d="M22 6 Q32 14 42 6 L58 16 L52 30 L46 27 V58 H18 V27 L12 30 L6 16 Z" fill={`url(#${u('a')})`} stroke={O} strokeWidth={SW} strokeLinejoin="round" />
+      <Shine x={22} y={20} rx={4} ry={6} rot={0} />
+    </>
+  ),
+
   // ═════ Zauberwald ═════
   tree: (u) => (
     <>
@@ -674,6 +814,22 @@ const S: Record<SpriteName, Draw> = {
     </>
   ),
 };
+
+function Medal({ u, c, n }: { u: (s: string) => string; c: [string, string, string]; n: string }) {
+  return (
+    <>
+      <defs>
+        <Lg id={u('m')} c={c} />
+      </defs>
+      <path d="M20 4 H30 L36 26 H26 Z" fill="#3b82f6" stroke={O} strokeWidth="2.5" strokeLinejoin="round" />
+      <path d="M44 4 H34 L28 26 H38 Z" fill="#ef4444" stroke={O} strokeWidth="2.5" strokeLinejoin="round" />
+      <circle cx="32" cy="40" r="19" fill={`url(#${u('m')})`} stroke={O} strokeWidth={SW} />
+      <circle cx="32" cy="40" r="13" fill="none" stroke={c[2]} strokeWidth="2" opacity="0.6" />
+      <text x="32" y="47" textAnchor="middle" fontSize="20" fontWeight="900" fill={c[2]} fontFamily="Fredoka, sans-serif">{n}</text>
+      <Shine x={25} y={31} rx={5} ry={3} />
+    </>
+  );
+}
 
 export function Sprite({ name, className, title }: { name: SpriteName; className?: string; title?: string }) {
   const id = useId().replace(/:/g, '');

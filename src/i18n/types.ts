@@ -135,6 +135,14 @@ export interface ExtraTexts {
   };
   /** Kurze, knackige Labels für den Startbildschirm */
   home2: { costumes: string; knowledge: string; trophies: string; gift: string; play: string; level: string };
+  /** Einheitliches Spiel-Design: Unterseiten, Dialoge, Belohnungen */
+  ui2: {
+    levelDone: string; almost: string; yourReward: string; menu: string; youGet: string; super: string;
+    apply: string; chooseLanguage: string; save: string; achievements: string; yourAchievements: string;
+    costumeEditor: string; settings: string; knowledge: string; stickers: string; locked: string;
+    sound: string; music: string; vibration: string; speed: string; language: string; worldDone: string;
+    eventPlay: string; daysLeft: (n: number) => string; spinTitle: string;
+  };
 }
 
 export interface Dict extends BridgeTexts, MoreTexts, ProTexts, ExtraTexts {

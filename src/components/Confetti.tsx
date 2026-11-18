@@ -2,7 +2,7 @@
 import { useMemo, type CSSProperties } from 'react';
 
 const COLORS = ['#f43f5e', '#f59e0b', '#22c55e', '#3b82f6', '#a855f7', '#facc15', '#06b6d4', '#ec4899'];
-const SHAPES = ['⭐', '✨', '💖', '🎉'];
+const STAR = 'polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)';
 
 export function Confetti({ count = 120 }: { count?: number }) {
   const pieces = useMemo(
@@ -20,7 +20,7 @@ export function Confetti({ count = 120 }: { count?: number }) {
           tx: Math.cos(angle) * dist,
           ty: Math.sin(angle) * dist + 180,
           rot: (Math.random() - 0.5) * 1440,
-          emoji: i % 9 === 0 ? SHAPES[i % SHAPES.length] : null,
+          star: i % 7 === 0,
           round: Math.random() > 0.6,
         };
       }),
@@ -34,10 +34,11 @@ export function Confetti({ count = 120 }: { count?: number }) {
           className="absolute left-1/2 top-[45%] flex animate-confetti-burst items-center justify-center text-xl"
           style={
             {
-              width: p.emoji ? 'auto' : p.w,
-              height: p.emoji ? 'auto' : p.round ? p.w : p.h,
-              background: p.emoji ? 'none' : p.color,
-              borderRadius: p.round ? '9999px' : '3px',
+              width: p.star ? 18 : p.w,
+              height: p.star ? 18 : p.round ? p.w : p.h,
+              background: p.star ? '#ffd83a' : p.color,
+              borderRadius: p.star ? 0 : p.round ? '9999px' : '3px',
+              clipPath: p.star ? STAR : undefined,
               '--delay': `${p.delay}s`,
               '--dur': `${p.dur}s`,
               '--tx': `${p.tx}px`,
@@ -47,7 +48,6 @@ export function Confetti({ count = 120 }: { count?: number }) {
             } as CSSProperties
           }
         >
-          {p.emoji}
         </span>
       ))}
     </div>

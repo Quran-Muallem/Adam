@@ -2,7 +2,7 @@
 // Endlose Abenteuer-Karte einer Welt: Level 1 unten, nach oben ∞.
 // Meilenstein-Inseln alle 10 Level, Schatztruhen-Balken oben.
 // ─────────────────────────────────────────────────────────────
-import { ChevronLeft, Settings } from 'lucide-react';
+import { Clapperboard } from 'lucide-react';
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import { handcrafted, levelAt } from '../data/levels';
 import { CHEST_EVERY, isMilestone } from '../data/rewards';
@@ -12,13 +12,13 @@ import type { SoundApi } from '../hooks/useSoundEffects';
 import { useI18n } from '../i18n';
 import { scrollWithin } from '../scrollWithin';
 import type { AgeGroupId } from '../types';
-import { RoundBtn } from './GameScreen';
 import { MoviePlayer } from './MoviePlayer';
 import { Particles } from './Particles';
 import { SeasonBanner, SeasonLayer } from './SeasonLayer';
 import { Sprite, WORLD_SPRITES } from './sprites';
 import { useSeasonalTheme } from '../hooks/useSeasonalTheme';
 import { RewardPopup } from './RewardPopup';
+import { IconBtn, ScreenHeader, StatPill } from './ui';
 import { Sparky } from './Sparky';
 
 interface Props {
@@ -107,54 +107,41 @@ export function LevelMap({ group, sound, prog, onBack, onOpen, onSettings }: Pro
       <Particles kind={w.particles} />
       <SeasonLayer dense />
 
-      {/* ── Kopf: 2 Zeilen, Titel nie abgeschnitten ── */}
-      <header className="relative z-10 px-3 pt-3">
-        <div className="flex items-start gap-3">
-          <RoundBtn
-            label={t.ui.back}
-            onClick={() => {
-              sound.play('click');
-              onBack();
-            }}
-            color="#ffffff"
-            dark
-          >
-            <ChevronLeft className="h-8 w-8 rtl:rotate-180" strokeWidth={3} />
-          </RoundBtn>
-          <h2 className="game-title min-w-0 flex-1 pt-1 text-center text-[1.7rem] uppercase leading-[1.02] sm:text-4xl">{wt.world}</h2>
-          <span className="relative flex h-14 w-14 shrink-0 items-center justify-center">
-            <Sprite name="star" className="absolute inset-0 h-full w-full" />
-            <span className="relative mt-1 text-sm font-black text-amber-900">{total}</span>
-          </span>
-        </div>
-        <div className="mt-2 flex items-center gap-2">
-          <span className="rounded-full border border-white/25 bg-slate-900/70 px-3 py-1 text-xs font-extrabold text-white backdrop-blur-sm sm:text-sm">
-            {wt.name} · {wt.ages}
-          </span>
-          <span className="flex-1" />
-          <RoundBtn label={t.settings.title} onClick={onSettings} color="#ffffff" dark>
-            <Settings className="h-6 w-6" />
-          </RoundBtn>
-        </div>
-      </header>
+      {/* ── Kopf: ← · Welt-Pille · ⚙ – darunter Sterne & Alter ── */}
+      <ScreenHeader
+        title={wt.world}
+        backLabel={t.ui.back}
+        onBack={() => {
+          sound.play('click');
+          onBack();
+        }}
+        onSettings={onSettings}
+        settingsLabel={t.settings.title}
+        sub={
+          <div className="flex items-center gap-2">
+            <StatPill value={total} />
+            <span className="ui-stat-pill font-game flex items-center px-3 text-[13px] text-[#1b2a55]">{wt.ages}</span>
+          </div>
+        }
+      />
 
       <div className="relative z-10 mt-2">
         <SeasonBanner />
       </div>
 
-      {/* Kumpel-Modus + Schatztruhen-Balken */}
-      <div className="relative z-10 flex flex-col gap-2 px-3 pb-2 pt-2">
-        <button
-          type="button"
+      {/* Erklär-Kino + Schatztruhen-Balken */}
+      <div className="relative z-10 flex items-center gap-2 px-3 pb-2 pt-2">
+        <IconBtn
+          tone="yellow"
+          size={52}
+          label={t.movie.button}
           onClick={() => {
             sound.play('click');
             setMovieOpen(true);
           }}
-          className="squish flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full px-4 py-1 text-sm font-bold !text-amber-950 dark-text sm:text-base"
-          style={{ '--c': '#facc15' } as CSSProperties}
         >
-          {t.movie.button}
-        </button>
+          <Clapperboard className="h-7 w-7 text-[#5a2d00]" strokeWidth={2.6} />
+        </IconBtn>
         <ChestBar
           fill={prog.chestFill}
           ready={prog.chestReady}
@@ -191,7 +178,7 @@ export function LevelMap({ group, sound, prog, onBack, onOpen, onSettings }: Pro
             const color = !open ? '#94a3b8' : milestone ? '#f59e0b' : s === 3 ? '#eab308' : w.accent;
             const size = milestone ? 96 : 76;
             // Namensschild: handgefertigte Level und Meilensteine
-            const label = !w.showText ? null : milestone ? `🎁 ${t.map.milestone(n)}` : n <= handcrafted(group) && open ? levelTitle(levelAt(group, n)) : null;
+            const label = !w.showText ? null : milestone ? t.map.milestone(n) : n <= handcrafted(group) && open ? levelTitle(levelAt(group, n)) : null;
             return (
               <div key={id}>
                 {/* Deko neben dem Pfad */}
@@ -266,22 +253,25 @@ export function ChestBar(p: { fill: number; ready: boolean; label: string; ready
       type="button"
       disabled={!p.ready}
       onClick={p.onOpen}
-      className={`panel-game flex w-full items-center gap-3 rounded-full px-3 py-1.5 text-start ${p.ready ? 'animate-breathe ring-4 ring-yellow-300' : ''}`}
+      className={`ui-tile flex min-h-[52px] min-w-0 flex-1 items-center gap-2 !rounded-full px-2 py-1 text-start ${p.ready ? 'ui-tile-selected animate-breathe' : ''}`}
     >
       <span className={`h-10 w-10 shrink-0 ${p.ready ? 'animate-wiggle' : ''}`}>
         <Sprite name={p.ready ? 'gift' : 'chest'} />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="font-game block text-sm text-white">{p.ready ? p.readyLabel : p.label}</span>
-        <span className="mt-0.5 block h-3.5 overflow-hidden rounded-full border-2 border-[#1d1530] bg-slate-700">
+        <span className="font-game block truncate text-[14px] text-[#1b2a55]">{p.ready ? p.readyLabel : p.label}</span>
+        <span className="mt-0.5 block h-3.5 overflow-hidden rounded-full bg-[#cfdcef] shadow-[inset_0_2px_2px_rgba(0,0,0,.2),0_0_0_2px_#2a3f78]">
           <span
-            className="block h-full rounded-full bg-gradient-to-r from-amber-300 via-yellow-400 to-orange-400 transition-[width] duration-700"
+            className="block h-full rounded-full bg-gradient-to-b from-[#ffe680] via-[#f8c51c] to-[#e88a0c] transition-[width] duration-700"
             style={{ width: `${(p.fill / CHEST_EVERY) * 100}%` }}
           />
         </span>
       </span>
-      <span className="font-game text-sm text-yellow-300">
-        {p.fill}/{CHEST_EVERY} ⭐
+      <span className="font-game flex shrink-0 items-center gap-0.5 pe-1 text-[14px] text-[#1b2a55]">
+        {p.fill}/{CHEST_EVERY}
+        <span className="h-5 w-5">
+          <Sprite name="star" />
+        </span>
       </span>
     </button>
   );

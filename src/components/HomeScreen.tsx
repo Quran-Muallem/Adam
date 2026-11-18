@@ -7,7 +7,8 @@
 // Deutsch nutzt die Original-Schriftzüge; andere Sprachen bekommen
 // textfreie Varianten der Grafiken + nachgebauten Schriftzug.
 // ─────────────────────────────────────────────────────────────
-import { Check, Globe, RotateCcw } from 'lucide-react';
+import { Flag, LanguageScreen } from './Flags';
+import { Check, RotateCcw } from 'lucide-react';
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import { expressId } from '../data/levels';
 import { THEMES } from '../data/seasons';
@@ -16,13 +17,11 @@ import { useSeasonalTheme } from '../hooks/useSeasonalTheme';
 import type { ProgressApi } from '../hooks/useProgress';
 import type { SoundApi } from '../hooks/useSoundEffects';
 import { useStoredState } from '../hooks/useStoredState';
-import { DICTS, LANGS, useI18n, type Lang } from '../i18n';
+import { useI18n } from '../i18n';
 import type { AgeGroupId } from '../types';
 import { DailyWheel } from './DailyWheel';
 import { SeasonBanner, SeasonLayer } from './SeasonLayer';
 import { Sprite, type SpriteName } from './sprites';
-
-const DICT_NAMES = Object.fromEntries(Object.entries(DICTS).map(([k, d]) => [k, d.langName])) as Record<Lang, string>;
 
 /** Maße der Vorlage */
 const DW = 1438;
@@ -101,7 +100,7 @@ export function HomeScreen({ sound, prog, onPick, onExpress, onWardrobe, onAlbum
   const [confirmReset, setConfirmReset] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
   const [wheelOpen, setWheelOpen] = useState(false);
-  const { t, lang, setLang } = useI18n();
+  const { t, lang } = useI18n();
   const de = lang === 'de';
   // Express-Rätsel in der zuletzt gewählten Welt
   const [expressGroup, setExpressGroup] = useStoredState<AgeGroupId>('sparky:expressGroup', 'hero');
@@ -136,10 +135,8 @@ export function HomeScreen({ sound, prog, onPick, onExpress, onWardrobe, onAlbum
             {de ? (
               <img src={IMG('flag')} alt="" className="h-full w-full" draggable={false} />
             ) : (
-              <span className="flex h-full w-full items-center justify-center p-[12%]">
-                <span className="flex aspect-square w-full items-center justify-center overflow-hidden rounded-full border-[3px] border-white bg-white/90 shadow-[0_6px_10px_rgba(0,0,0,.35)]" style={{ fontSize: u(120) }}>
-                  {LANGS.find((l) => l.id === lang)?.flag}
-                </span>
+              <span className="flex h-full w-full items-center justify-center p-[10%]">
+                <Flag lang={lang} className="h-full w-full drop-shadow-[0_6px_6px_rgba(0,0,0,.35)]" />
               </span>
             )}
           </button>
@@ -279,33 +276,7 @@ export function HomeScreen({ sound, prog, onPick, onExpress, onWardrobe, onAlbum
       </div>
 
       {/* Sprachauswahl */}
-      {langOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-indigo-950/55 p-4 backdrop-blur-sm sm:items-center" onClick={() => setLangOpen(false)}>
-          <div className="glass w-full max-w-sm animate-bounce-in rounded-[2rem] p-4" onClick={(e) => e.stopPropagation()}>
-            <div className="mb-3 flex items-center justify-center gap-2 text-xl font-bold text-slate-700">
-              <Globe className="h-6 w-6" /> {t.home.language}
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              {LANGS.map((l) => (
-                <button
-                  key={l.id}
-                  type="button"
-                  onClick={() => {
-                    sound.play('unlock');
-                    setLang(l.id);
-                    setLangOpen(false);
-                  }}
-                  className={`squish flex h-16 items-center justify-center gap-2 rounded-[1.4rem] px-3 text-lg font-bold ${l.id === lang ? 'ring-4 ring-yellow-300' : ''}`}
-                  style={{ '--c': l.id === lang ? '#f59e0b' : '#8b5cf6' } as CSSProperties}
-                >
-                  <span className="text-2xl">{l.flag}</span>
-                  <span>{DICT_NAMES[l.id]}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+      {langOpen && <LanguageScreen sound={sound} onClose={() => setLangOpen(false)} />}
 
       {wheelOpen && <DailyWheel sound={sound} prog={prog} onClose={() => setWheelOpen(false)} />}
     </div>
