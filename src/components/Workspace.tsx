@@ -9,6 +9,7 @@ import { isContainer } from '../engine/program';
 import type { AgeGroupId, Block, Frame, InsertTarget, Program } from '../types';
 import type { Dict } from '../i18n';
 import { BLOCK_META, COND_EMOJI, COND_ORDER, kindOf } from './blockMeta';
+import { scrollWithin } from '../scrollWithin';
 
 interface Ctx {
   activeIds: string[];
@@ -165,7 +166,7 @@ function BlockItem({ block, ctx }: { block: Block; ctx: Ctx }) {
   const cvar = { '--c': meta.color } as CSSProperties;
 
   useEffect(() => {
-    if (current) ref.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    if (current) scrollWithin(ref.current);
   }, [current, ctx.frameIndex]);
 
   const removeBtn = (

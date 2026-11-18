@@ -1,0 +1,51 @@
+import type { BridgeTexts } from '../types';
+
+export const bridgeDe: BridgeTexts = {
+  movie: {
+    button: '🎬 Wie geht’s? (Freund zeigen)',
+    skip: 'Überspringen',
+    replay: 'Nochmal ansehen',
+    play: 'Los geht’s!',
+    junior: [
+      'Ahoi! Ich zeige dir, wie’s geht! 🏴‍☠️',
+      'Ein langer Weg? Nicht immer wieder „Rechts“ tippen …',
+      '… nimm den Wiederholen-Block! Tipp auf die Zahl: 3×',
+      'Ein Fass im Weg? Mit „Springen“ hüpf ich drüber!',
+      'Jetzt auf „Los!“ drücken …',
+      'Geschafft! Weniger Blöcke = mehr Sterne ⭐',
+    ],
+    hero: [
+      'Willkommen in der Sternen-Akademie! 🚀',
+      '„Wenn Weg frei → Vorwärts“: So entscheide ich selbst!',
+      'Das Zauber-Makro F1 speichert Befehle: einmal bauen, oft benutzen.',
+      'Und jetzt der Röntgenblick: 👀 Echter Code!',
+      'So sehen deine Blöcke als echtes JavaScript aus.',
+      'Los! Jede Zeile leuchtet, wenn ich sie ausführe.',
+      'Genau so programmieren echte Profis! 🌟',
+    ],
+  },
+  code: { toggle: '👀 Echter Code (Python / JS)', comment: 'Sparkys Programm', empty: 'Lege Blöcke hin – hier erscheint dein Code!' },
+  cards: {
+    album: 'Code-Wissen',
+    albumTitle: 'Sammelalbum für Code-Wissen',
+    albumIntro: 'Jede geschaffte Welt schaltet Entdecker-Karten frei!',
+    newCard: 'Neue Entdecker-Karte!',
+    concept: 'Das hast du benutzt:',
+    realWorld: 'Das bauen echte Programmierer damit:',
+    locked: 'Noch geheim – spiel weiter!',
+    items: {
+      sequence: { name: 'Reihenfolge', what: 'Befehle der Reihe nach ausführen – Schritt für Schritt.', real: ['Ein Saugroboter fährt so seinen Weg durch dein Zimmer.', 'Ein Kuchenrezept ist auch eine Reihenfolge von Befehlen!'] },
+      collect: { name: 'Ziele & Sammeln', what: 'Einen Weg planen, der alles Wichtige einsammelt.', real: ['So sammeln Spielfiguren Münzen in Jump’n’Run-Spielen.', 'Lieferroboter planen so, wo sie Pakete abholen.'] },
+      avoid: { name: 'Hindernisse umgehen', what: 'Einen Weg finden, der an Hindernissen vorbeiführt.', real: ['Navi-Apps finden so den Weg um Staus herum.', 'Drohnen fliegen so sicher um Bäume herum.'] },
+      loop: { name: 'Schleifen', what: 'Etwas mehrmals wiederholen, ohne es oft hinzuschreiben.', real: ['In Minecraft baut ein Programm so in Sekunden eine riesige Mauer.', 'In Trickfilmen wiederholen sich so Bewegungen wie das Laufen.'] },
+      jump: { name: 'Bewegung & Springen', what: 'Figuren mit Befehlen bewegen und springen lassen.', real: ['Damit bringen Spiele-Entwickler Figuren zum Springen!', 'Roboter-Hunde lernen so, über Stufen zu klettern.'] },
+      keygate: { name: 'Variablen', what: 'Sich etwas merken (Schlüssel: ja oder nein?) und später benutzen.', real: ['So programmierst du in Minecraft oder Roblox, dass sich eine Geheimtür öffnet!', 'Apps merken sich so, ob du angemeldet bist.'] },
+      nested: { name: 'Verschachtelte Schleifen', what: 'Eine Schleife in einer Schleife – wie Puppen in Puppen.', real: ['Bildschirme malen so Pixel für Pixel, Reihe für Reihe.', '3D-Drucker bauen so Schicht für Schicht Figuren.'] },
+      efficiency: { name: 'Effizienz', what: 'Dasselbe mit möglichst wenigen Befehlen schaffen.', real: ['Mars-Rover sparen so Strom – jede Bewegung zählt!', 'Kurze Programme machen Spiele schneller.'] },
+      condition: { name: 'Bedingungen', what: 'Wenn etwas passiert, dann reagiert das Programm.', real: ['Selbstfahrende Autos bremsen so, wenn etwas im Weg ist.', 'Ampeln schalten so auf Grün, wenn ein Auto wartet.'] },
+      sensor: { name: 'Sensoren', what: 'Das Programm „schaut“ nach vorne und entscheidet.', real: ['Damit steuern Ingenieure echte Mars-Rover um Felsen herum!', 'Saugroboter merken so, wo eine Treppe ist.'] },
+      function: { name: 'Funktionen', what: 'Befehle einmal speichern und immer wieder aufrufen.', real: ['Der „Springen“-Knopf in jedem Spiel ruft eine Funktion auf.', 'Foto-Apps benutzen denselben Filter für tausende Bilder.'] },
+      teleport: { name: 'Sprünge & Netzwerke', what: 'Direkt an einen anderen Ort springen.', real: ['Ein Link im Internet bringt dich sofort auf eine andere Seite.', 'In Spielen bringen Portale Figuren in neue Welten.'] },
+    },
+  },
+};

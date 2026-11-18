@@ -78,6 +78,10 @@ export default {
           '0%': { transform: 'scale(0.1) rotate(-540deg)', opacity: '0' },
           '100%': { transform: 'scale(1) rotate(0deg)', opacity: '1' },
         },
+        'tap-ring': {
+          '0%': { transform: 'translate(-50%,-50%) scale(0.3)', opacity: '0.9' },
+          '100%': { transform: 'translate(-50%,-50%) scale(2.4)', opacity: '0' },
+        },
         'bounce-in': {
           '0%': { transform: 'translateY(30px) scale(0.8)', opacity: '0' },
           '60%': { transform: 'translateY(-6px) scale(1.04)', opacity: '1' },
@@ -103,6 +107,7 @@ export default {
         'portal-spin': 'portal-spin 3s linear infinite',
         'teleport-out': 'teleport-out var(--tp, 0.4s) ease-in forwards',
         'teleport-in': 'teleport-in var(--tp, 0.4s) ease-out',
+        'tap-ring': 'tap-ring 0.6s ease-out forwards',
         'bounce-in': 'bounce-in 0.5s cubic-bezier(.34,1.56,.64,1) both',
       },
     },

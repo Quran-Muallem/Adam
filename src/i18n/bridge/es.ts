@@ -1,0 +1,51 @@
+import type { BridgeTexts } from '../types';
+
+export const bridgeEs: BridgeTexts = {
+  movie: {
+    button: '🎬 ¿Cómo funciona? (Enseñar a un amigo)',
+    skip: 'Saltar',
+    replay: 'Ver otra vez',
+    play: '¡Vamos allá!',
+    junior: [
+      '¡Ahoy! ¡Te enseño cómo funciona! 🏴‍☠️',
+      '¿Un camino largo? No toques «Derecha» una y otra vez…',
+      '… ¡usa el bloque Repetir! Toca el número: 3×',
+      '¿Un barril en el camino? ¡Con «Saltar» paso por encima!',
+      'Ahora pulsa «¡Vamos!»…',
+      '¡Lo logramos! Menos bloques = más estrellas ⭐',
+    ],
+    hero: [
+      '¡Bienvenido a la Academia estelar! 🚀',
+      '«Si camino libre → Avanzar»: ¡así decido yo solo!',
+      'La macro mágica F1 guarda órdenes: se construye una vez y se usa muchas.',
+      'Y ahora la visión de rayos X: 👀 ¡Código real!',
+      'Así se ven tus bloques en JavaScript de verdad.',
+      '¡Vamos! Cada línea se ilumina cuando la ejecuto.',
+      '¡Así programan los profesionales de verdad! 🌟',
+    ],
+  },
+  code: { toggle: '👀 Código real (Python / JS)', comment: 'El programa de Sparky', empty: 'Pon bloques: ¡aquí aparece tu código!' },
+  cards: {
+    album: 'Saber de código',
+    albumTitle: 'Álbum del saber de código',
+    albumIntro: '¡Cada nivel superado desbloquea cartas de explorador!',
+    newCard: '¡Nueva carta de explorador!',
+    concept: 'Acabas de usar:',
+    realWorld: 'Lo que construyen con esto los programadores de verdad:',
+    locked: 'Aún es secreto: ¡sigue jugando!',
+    items: {
+      sequence: { name: 'Secuencia', what: 'Ejecutar órdenes en orden, paso a paso.', real: ['Así recorre un robot aspirador tu habitación.', '¡Una receta de pastel también es una secuencia de órdenes!'] },
+      collect: { name: 'Metas y recolección', what: 'Planear un camino que recoja todo lo importante.', real: ['Así recogen monedas los personajes de los juegos de plataformas.', 'Los robots de reparto planean así dónde recoger paquetes.'] },
+      avoid: { name: 'Esquivar obstáculos', what: 'Encontrar un camino que rodee los obstáculos.', real: ['Las apps de mapas encuentran así un camino para evitar atascos.', 'Los drones vuelan así sin chocar con los árboles.'] },
+      loop: { name: 'Bucles', what: 'Repetir algo muchas veces sin escribirlo una y otra vez.', real: ['En Minecraft, un programa construye así un muro gigante en segundos.', 'En los dibujos animados, movimientos como caminar se repiten así.'] },
+      jump: { name: 'Movimiento y salto', what: 'Hacer que los personajes se muevan y salten con órdenes.', real: ['¡Así hacen saltar a los personajes los creadores de videojuegos!', 'Los perros robot aprenden así a subir escalones.'] },
+      keygate: { name: 'Variables', what: 'Recordar algo (llave: ¿sí o no?) y usarlo después.', real: ['¡Así programas en Minecraft o Roblox que se abra una puerta secreta!', 'Las apps recuerdan así si has iniciado sesión.'] },
+      nested: { name: 'Bucles anidados', what: 'Un bucle dentro de otro, como muñecas dentro de muñecas.', real: ['Las pantallas pintan así píxel a píxel, fila a fila.', 'Las impresoras 3D construyen figuras capa a capa.'] },
+      efficiency: { name: 'Eficiencia', what: 'Hacer lo mismo con el menor número de órdenes posible.', real: ['Los rovers de Marte ahorran energía así: ¡cada movimiento cuenta!', 'Los programas cortos hacen que los juegos vayan más rápido.'] },
+      condition: { name: 'Condiciones', what: 'Si pasa algo, el programa reacciona.', real: ['Los coches autónomos frenan cuando hay algo en el camino.', 'Los semáforos se ponen en verde cuando espera un coche.'] },
+      sensor: { name: 'Sensores', what: 'El programa «mira» hacia delante y decide.', real: ['¡Así guían los ingenieros a los rovers de Marte alrededor de las rocas!', 'Los robots aspiradores detectan así dónde hay escaleras.'] },
+      function: { name: 'Funciones', what: 'Guardar órdenes una vez y llamarlas una y otra vez.', real: ['El botón «Saltar» de cualquier juego llama a una función.', 'Las apps de fotos usan el mismo filtro para miles de imágenes.'] },
+      teleport: { name: 'Saltos y redes', what: 'Saltar directamente a otro lugar.', real: ['Un enlace en internet te lleva al instante a otra página.', 'En los juegos, los portales llevan a los personajes a mundos nuevos.'] },
+    },
+  },
+};

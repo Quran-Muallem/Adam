@@ -1,0 +1,51 @@
+import type { BridgeTexts } from '../types';
+
+export const bridgeEn: BridgeTexts = {
+  movie: {
+    button: '🎬 How does it work? (Show a friend)',
+    skip: 'Skip',
+    replay: 'Watch again',
+    play: "Let's go!",
+    junior: [
+      "Ahoy! I'll show you how it works! 🏴‍☠️",
+      "A long path? Don't keep tapping “Right” …",
+      '… use the Repeat block! Tap the number: 3×',
+      'A barrel in the way? With “Jump” I hop over it!',
+      'Now press “Go!” …',
+      'Done! Fewer blocks = more stars ⭐',
+    ],
+    hero: [
+      'Welcome to the Star Academy! 🚀',
+      '“If path clear → Forward”: that’s how I decide by myself!',
+      'Magic macro F1 saves commands: build once, use often.',
+      'And now the X-ray vision: 👀 Real code!',
+      'This is what your blocks look like as real JavaScript.',
+      'Go! Every line lights up when I run it.',
+      'That’s exactly how real pros code! 🌟',
+    ],
+  },
+  code: { toggle: '👀 Real code (Python / JS)', comment: "Sparky's program", empty: 'Add blocks – your code appears here!' },
+  cards: {
+    album: 'Code Knowledge',
+    albumTitle: 'Code Knowledge Album',
+    albumIntro: 'Every level you finish unlocks explorer cards!',
+    newCard: 'New explorer card!',
+    concept: 'You just used:',
+    realWorld: 'Real programmers build this with it:',
+    locked: 'Still secret – keep playing!',
+    items: {
+      sequence: { name: 'Sequence', what: 'Run commands in order – step by step.', real: ['A robot vacuum follows its path through your room like this.', 'A cake recipe is also a sequence of commands!'] },
+      collect: { name: 'Goals & Collecting', what: 'Plan a path that picks up everything important.', real: ['This is how game characters collect coins in platform games.', 'Delivery robots plan where to pick up parcels this way.'] },
+      avoid: { name: 'Avoiding Obstacles', what: 'Find a path that goes around obstacles.', real: ['Map apps find a way around traffic jams like this.', 'Drones fly safely around trees this way.'] },
+      loop: { name: 'Loops', what: 'Repeat something many times without writing it again and again.', real: ['In Minecraft, a program can build a giant wall in seconds.', 'Cartoons repeat movements like walking this way.'] },
+      jump: { name: 'Movement & Jumping', what: 'Make characters move and jump with commands.', real: ['That’s how game developers make characters jump!', 'Robot dogs learn to climb steps this way.'] },
+      keygate: { name: 'Variables', what: 'Remember something (key: yes or no?) and use it later.', real: ['That’s how you make a secret door open in Minecraft or Roblox!', 'Apps remember whether you are logged in this way.'] },
+      nested: { name: 'Nested Loops', what: 'A loop inside a loop – like dolls inside dolls.', real: ['Screens paint pixel by pixel, row by row like this.', '3D printers build figures layer by layer.'] },
+      efficiency: { name: 'Efficiency', what: 'Do the same thing with as few commands as possible.', real: ['Mars rovers save power this way – every move counts!', 'Short programs make games faster.'] },
+      condition: { name: 'Conditions', what: 'If something happens, the program reacts.', real: ['Self-driving cars brake when something is in the way.', 'Traffic lights turn green when a car is waiting.'] },
+      sensor: { name: 'Sensors', what: 'The program “looks” ahead and decides.', real: ['That’s how engineers steer real Mars rovers around rocks!', 'Robot vacuums notice where the stairs are.'] },
+      function: { name: 'Functions', what: 'Save commands once and call them again and again.', real: ['The “Jump” button in every game calls a function.', 'Photo apps use the same filter for thousands of pictures.'] },
+      teleport: { name: 'Jumps & Networks', what: 'Jump straight to another place.', real: ['A link on the internet takes you to another page instantly.', 'In games, portals carry characters into new worlds.'] },
+    },
+  },
+};

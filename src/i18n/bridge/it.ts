@@ -1,0 +1,51 @@
+import type { BridgeTexts } from '../types';
+
+export const bridgeIt: BridgeTexts = {
+  movie: {
+    button: '🎬 Come funziona? (Mostralo a un amico)',
+    skip: 'Salta',
+    replay: 'Guarda di nuovo',
+    play: 'Si parte!',
+    junior: [
+      'Ahoy! Ti mostro come funziona! 🏴‍☠️',
+      'Una strada lunga? Non toccare «Destra» mille volte…',
+      '… usa il blocco Ripeti! Tocca il numero: 3×',
+      'Un barile sulla strada? Con «Salta» ci passo sopra!',
+      'Ora premi «Via!»…',
+      'Fatto! Meno blocchi = più stelle ⭐',
+    ],
+    hero: [
+      "Benvenuto all'Accademia stellare! 🚀",
+      '«Se strada libera → Avanti»: così decido da solo!',
+      'La macro magica F1 salva i comandi: la costruisci una volta, la usi tante volte.',
+      'E ora la vista a raggi X: 👀 Codice vero!',
+      'Ecco i tuoi blocchi in vero JavaScript.',
+      'Via! Ogni riga si illumina quando la eseguo.',
+      'È proprio così che programmano i veri professionisti! 🌟',
+    ],
+  },
+  code: { toggle: '👀 Codice vero (Python / JS)', comment: 'Il programma di Sparky', empty: 'Metti dei blocchi: qui appare il tuo codice!' },
+  cards: {
+    album: 'Sapere del codice',
+    albumTitle: 'Album del sapere del codice',
+    albumIntro: 'Ogni livello superato sblocca carte da esploratore!',
+    newCard: 'Nuova carta da esploratore!',
+    concept: 'Hai appena usato:',
+    realWorld: 'Cosa costruiscono così i veri programmatori:',
+    locked: 'Ancora segreta: continua a giocare!',
+    items: {
+      sequence: { name: 'Sequenza', what: 'Eseguire i comandi in ordine, passo dopo passo.', real: ['Così un robot aspirapolvere percorre la tua stanza.', 'Anche la ricetta di una torta è una sequenza di comandi!'] },
+      collect: { name: 'Obiettivi e raccolta', what: 'Pianificare un percorso che raccolga tutto ciò che serve.', real: ['Così i personaggi dei giochi di piattaforme raccolgono le monete.', 'Così i robot fattorini decidono dove ritirare i pacchi.'] },
+      avoid: { name: 'Evitare gli ostacoli', what: 'Trovare una strada che aggiri gli ostacoli.', real: ['Così le app di navigazione evitano il traffico.', 'Così i droni volano senza urtare gli alberi.'] },
+      loop: { name: 'Cicli', what: 'Ripetere qualcosa tante volte senza riscriverlo ogni volta.', real: ['In Minecraft un programma costruisce così un muro gigante in pochi secondi.', 'Nei cartoni animati i movimenti come camminare si ripetono così.'] },
+      jump: { name: 'Movimento e salto', what: 'Far muovere e saltare i personaggi con dei comandi.', real: ['Così i creatori di videogiochi fanno saltare i personaggi!', 'Così i cani robot imparano a salire i gradini.'] },
+      keygate: { name: 'Variabili', what: 'Ricordare qualcosa (chiave: sì o no?) e usarlo dopo.', real: ['Così programmi in Minecraft o Roblox una porta segreta che si apre!', "Così le app ricordano se hai fatto l'accesso."] },
+      nested: { name: 'Cicli annidati', what: 'Un ciclo dentro un ciclo, come le matrioske.', real: ['Così gli schermi disegnano pixel per pixel, riga per riga.', 'Così le stampanti 3D costruiscono strato dopo strato.'] },
+      efficiency: { name: 'Efficienza', what: 'Fare la stessa cosa con meno comandi possibile.', real: ['Così i rover su Marte risparmiano energia: ogni mossa conta!', 'I programmi corti rendono i giochi più veloci.'] },
+      condition: { name: 'Condizioni', what: 'Se succede qualcosa, il programma reagisce.', real: ["Le auto a guida autonoma frenano se c'è qualcosa sulla strada.", "I semafori diventano verdi quando un'auto aspetta."] },
+      sensor: { name: 'Sensori', what: 'Il programma «guarda» avanti e decide.', real: ['Così gli ingegneri guidano i veri rover su Marte intorno alle rocce!', 'Così i robot aspirapolvere capiscono dove sono le scale.'] },
+      function: { name: 'Funzioni', what: 'Salvare i comandi una volta e richiamarli ancora e ancora.', real: ['Il tasto «Salta» di ogni gioco richiama una funzione.', 'Le app per foto usano lo stesso filtro per migliaia di immagini.'] },
+      teleport: { name: 'Salti e reti', what: 'Saltare direttamente in un altro posto.', real: ["Un link su internet ti porta subito su un'altra pagina.", 'Nei giochi i portali portano i personaggi in nuovi mondi.'] },
+    },
+  },
+};

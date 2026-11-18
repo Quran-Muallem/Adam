@@ -12,6 +12,21 @@ Eine extrem bunte, verspielte Lern-App im Animationsfilm-Stil, die Kindern von *
 | 🏴‍☠️ **Kristall-Lagune der Piraten** – Junior-Coder | 6–8 | Sparky-Sprechblasen. 1–6 Wiederholen-Container (2×–6×), 7–13 Springen über Fässer & Kristalle 💎, 14–20 Schlüssel 🗝️ + magische Tore 🚪 + Kombinationen. |
 | 🚀 **Sternen-Akademie der Roboter** – Code-Helden | 9–12 | 1–6 verschachtelte Schleifen & Effizienz, 7–13 Bedingungen („Wenn Weg frei / versperrt / Hindernis voraus“), 14–20 Zauber-Makro F1 & Teleporter-Rätsel 🌀. |
 
+## Erklär-Kino & Kumpel-Modus 🎬
+
+Jede Welt hat einen eigenen **20-Sekunden-Erklärfilm** – komplett als React-/CSS-Animation mit Sounds, Sparky als Moderator und einem leuchtenden Zeigefinger (keine Videodatei):
+
+- **Mini-Entdecker:** rein visuell – Pfeile antippen, grünen Play-Knopf drücken, Sparky frisst die Erdbeere.
+- **Junior-Coder:** lange Wege mit „3× Wiederholen“ abkürzen und über Fässer springen.
+- **Code-Helden:** Bedingung „Wenn Weg frei“, Zauber-Makro F1 und der Echter-Code-Umschalter.
+
+Beim ersten Öffnen einer Welt startet der Film automatisch (mit „Überspringen“). Danach ist er jederzeit über **„🎬 Wie geht's? (Freund zeigen)“** erreichbar – auf der Welt-Karte und im Spiel. Drehbücher: `src/data/movies.ts`.
+
+## Code-Brücke 👀
+
+- **Echter-Code-Röntgenblick** (Junior & Helden): Schalter „👀 Echter Code (Python / JS)“ übersetzt die Blöcke live in echtes **JavaScript** oder **Python** – mit Syntax-Highlighting; die gerade ausgeführte Zeile leuchtet. Generator: `src/engine/codegen.ts`.
+- **Entdecker-Karten:** Nach jedem geschafften Level zeigt eine Karte das genutzte Konzept (Reihenfolge, Schleifen, Variablen, Bedingungen, Funktionen …) und was echte Programmierer damit bauen (Mars-Rover, Minecraft/Roblox-Geheimtüren, Spielfiguren …). 12 Karten, gesammelt im **Sammelalbum für Code-Wissen** 📚. Daten: `src/data/cards.ts`.
+
 ## Spielgefühl
 
 - 🗺️ Illustrierte Abenteuerkarte + scrollbare Welt-Karten mit geschwungenem Pfad und Level-Inseln

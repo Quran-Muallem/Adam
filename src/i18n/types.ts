@@ -1,4 +1,5 @@
 // Struktur eines Sprachpakets – jede Sprache muss ALLE Schlüssel liefern
+import type { CardId } from '../data/cards';
 import type { CostumeId } from '../data/costumes';
 import type { AgeGroupId, Condition, FailReason, PaletteKind } from '../types';
 
@@ -15,7 +16,32 @@ export interface WorldTexts {
   lowName: string;
 }
 
-export interface Dict {
+/** Texte für Erklär-Kino, Code-Brücke und Entdecker-Karten */
+export interface BridgeTexts {
+  movie: {
+    /** Button oben: „🎬 Wie geht's? (Freund zeigen)“ */
+    button: string;
+    skip: string;
+    replay: string;
+    play: string;
+    /** Untertitel der Filme (Mini-Entdecker kommt ohne Text aus) */
+    junior: string[];
+    hero: string[];
+  };
+  code: { toggle: string; comment: string; empty: string };
+  cards: {
+    album: string;
+    albumTitle: string;
+    albumIntro: string;
+    newCard: string;
+    concept: string;
+    realWorld: string;
+    locked: string;
+    items: Record<CardId, { name: string; what: string; real: [string, string] }>;
+  };
+}
+
+export interface Dict extends BridgeTexts {
   /** Name der Sprache in der Sprache selbst */
   langName: string;
   titleTop: string;

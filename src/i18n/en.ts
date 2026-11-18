@@ -1,6 +1,8 @@
+import { bridgeEn } from './bridge/en';
 import type { Dict } from './types';
 
 export const en: Dict = {
+  ...bridgeEn,
   langName: 'English',
   titleTop: "Sparky's",
   titleBottom: 'Code Adventure',

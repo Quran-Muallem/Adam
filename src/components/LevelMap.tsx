@@ -1,6 +1,6 @@
 // Scrollbare Abenteuer-Karte einer Welt: geschwungener Pfad mit 20 Level-Inseln
 import { ChevronLeft, Lock, Star } from 'lucide-react';
-import { useEffect, useRef, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { CostumeId } from '../data/costumes';
 import { levelsFor } from '../data/levels';
 import { WORLDS } from '../data/worlds';
@@ -8,8 +8,10 @@ import { useI18n } from '../i18n';
 import type { SoundApi } from '../hooks/useSoundEffects';
 import type { AgeGroupId } from '../types';
 import { RoundBtn } from './GameScreen';
+import { MoviePlayer } from './MoviePlayer';
 import { Particles } from './Particles';
 import { Sparky } from './Sparky';
+import { scrollWithin } from '../scrollWithin';
 
 interface Props {
   group: AgeGroupId;
@@ -41,10 +43,27 @@ export function LevelMap({ group, sound, stars, costume, isUnlocked, onBack, onO
   const currentIdx = levels.every((l) => stars[l.id] > 0) ? levels.length - 1 : current;
   const height = TOP * 2 + (levels.length - 1) * STEP + 40;
   const scrollRef = useRef<HTMLDivElement>(null);
+  // Erklär-Kino startet beim allerersten Besuch einer Welt automatisch
+  const seenKey = `sparky:movieSeen:${group}`;
+  const [movieOpen, setMovieOpen] = useState(() => {
+    try {
+      return localStorage.getItem(seenKey) !== '1';
+    } catch {
+      return false;
+    }
+  });
+  const closeMovie = () => {
+    try {
+      localStorage.setItem(seenKey, '1');
+    } catch {
+      /* ignorieren */
+    }
+    setMovieOpen(false);
+  };
   const currentRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    currentRef.current?.scrollIntoView({ block: 'center' });
+    scrollWithin(currentRef.current, 'center', false);
   }, []);
 
   // Pfad durch alle Inseln (kubische Kurven)
@@ -84,6 +103,21 @@ export function LevelMap({ group, sound, stars, costume, isUnlocked, onBack, onO
           <Star className="h-5 w-5 fill-yellow-300 text-amber-500" /> {total}/{levels.length * 3}
         </div>
       </header>
+
+      {/* Kumpel-Modus: Erklärfilm jederzeit wieder abspielen */}
+      <div className="relative z-10 px-3 pb-2">
+        <button
+          type="button"
+          onClick={() => {
+            sound.play('click');
+            setMovieOpen(true);
+          }}
+          className="squish flex h-12 w-full items-center justify-center gap-2 rounded-full px-4 text-base font-bold !text-amber-950 [text-shadow:none]"
+          style={{ '--c': '#facc15' } as CSSProperties}
+        >
+          {t.movie.button}
+        </button>
+      </div>
 
       <div ref={scrollRef} className="thin-scroll relative z-10 flex-1 overflow-y-auto">
         <div className="relative mx-auto w-full max-w-md" style={{ height }}>
@@ -151,6 +185,7 @@ export function LevelMap({ group, sound, stars, costume, isUnlocked, onBack, onO
           })}
         </div>
       </div>
+      {movieOpen && <MoviePlayer group={group} sound={sound} costume={costume} onClose={closeMovie} />}
     </div>
   );
 }

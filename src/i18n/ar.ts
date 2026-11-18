@@ -1,7 +1,9 @@
+import { bridgeAr } from './bridge/ar';
 import type { Dict } from './types';
 
 // العربية – يُعرض بالاتجاه من اليمين إلى اليسار (RTL)، بينما تبقى لوحة اللعب كما هي
 export const ar: Dict = {
+  ...bridgeAr,
   langName: 'العربية',
   titleTop: 'مغامرة البرمجة',
   titleBottom: 'مع سباركي',

@@ -1,0 +1,51 @@
+import type { BridgeTexts } from '../types';
+
+export const bridgeFr: BridgeTexts = {
+  movie: {
+    button: '🎬 Comment ça marche ? (Montrer à un ami)',
+    skip: 'Passer',
+    replay: 'Revoir',
+    play: 'C’est parti !',
+    junior: [
+      'Ohé ! Je te montre comment ça marche ! 🏴‍☠️',
+      'Un long chemin ? Pas besoin de taper « Droite » encore et encore…',
+      '… prends le bloc Répéter ! Touche le nombre : 3×',
+      'Un tonneau sur le chemin ? Avec « Sauter », je passe par-dessus !',
+      'Maintenant, appuie sur « Go ! »…',
+      'Réussi ! Moins de blocs = plus d’étoiles ⭐',
+    ],
+    hero: [
+      'Bienvenue à l’Académie des étoiles ! 🚀',
+      '« Si chemin libre → Avancer » : je décide tout seul !',
+      'La macro magique F1 enregistre des ordres : construire une fois, utiliser souvent.',
+      'Et maintenant, la vision rayons X : 👀 Vrai code !',
+      'Voilà tes blocs en vrai JavaScript.',
+      'Go ! Chaque ligne s’allume quand je l’exécute.',
+      'C’est exactement comme ça que codent les pros ! 🌟',
+    ],
+  },
+  code: { toggle: '👀 Vrai code (Python / JS)', comment: 'Le programme de Sparky', empty: 'Pose des blocs – ton code apparaît ici !' },
+  cards: {
+    album: 'Savoir code',
+    albumTitle: 'Album du savoir code',
+    albumIntro: 'Chaque niveau réussi débloque des cartes d’explorateur !',
+    newCard: 'Nouvelle carte d’explorateur !',
+    concept: 'Tu viens d’utiliser :',
+    realWorld: 'Ce que les vrais programmeurs construisent avec :',
+    locked: 'Encore secret – continue à jouer !',
+    items: {
+      sequence: { name: 'Séquence', what: 'Exécuter des ordres dans l’ordre – pas à pas.', real: ['Un robot aspirateur suit ainsi son chemin dans ta chambre.', 'Une recette de gâteau est aussi une suite d’ordres !'] },
+      collect: { name: 'Objectifs & récolte', what: 'Prévoir un chemin qui ramasse tout ce qui est important.', real: ['C’est ainsi que les héros de jeux de plateforme ramassent des pièces.', 'Les robots livreurs planifient ainsi où prendre les colis.'] },
+      avoid: { name: 'Éviter les obstacles', what: 'Trouver un chemin qui contourne les obstacles.', real: ['Les applis GPS trouvent ainsi un chemin autour des bouchons.', 'Les drones volent ainsi sans toucher les arbres.'] },
+      loop: { name: 'Boucles', what: 'Répéter quelque chose plusieurs fois sans tout réécrire.', real: ['Dans Minecraft, un programme construit ainsi un mur géant en quelques secondes.', 'Dans les dessins animés, des mouvements comme la marche se répètent ainsi.'] },
+      jump: { name: 'Mouvement & saut', what: 'Faire bouger et sauter des personnages avec des ordres.', real: ['C’est ainsi que les créateurs de jeux font sauter les personnages !', 'Les chiens-robots apprennent ainsi à monter des marches.'] },
+      keygate: { name: 'Variables', what: 'Se souvenir de quelque chose (clé : oui ou non ?) et l’utiliser plus tard.', real: ['C’est ainsi qu’on ouvre une porte secrète dans Minecraft ou Roblox !', 'Les applis se souviennent ainsi si tu es connecté.'] },
+      nested: { name: 'Boucles imbriquées', what: 'Une boucle dans une boucle – comme des poupées russes.', real: ['Les écrans dessinent ainsi pixel par pixel, ligne par ligne.', 'Les imprimantes 3D construisent ainsi couche par couche.'] },
+      efficiency: { name: 'Efficacité', what: 'Faire la même chose avec le moins d’ordres possible.', real: ['Les rovers martiens économisent ainsi l’énergie – chaque mouvement compte !', 'Des programmes courts rendent les jeux plus rapides.'] },
+      condition: { name: 'Conditions', what: 'Si quelque chose se passe, le programme réagit.', real: ['Les voitures autonomes freinent quand quelque chose bloque la route.', 'Les feux passent au vert quand une voiture attend.'] },
+      sensor: { name: 'Capteurs', what: 'Le programme « regarde » devant lui et décide.', real: ['C’est ainsi que les ingénieurs guident de vrais rovers sur Mars autour des rochers !', 'Les robots aspirateurs repèrent ainsi les escaliers.'] },
+      function: { name: 'Fonctions', what: 'Enregistrer des ordres une fois et les rappeler encore et encore.', real: ['Le bouton « Sauter » de chaque jeu appelle une fonction.', 'Les applis photo utilisent le même filtre pour des milliers d’images.'] },
+      teleport: { name: 'Sauts & réseaux', what: 'Sauter directement à un autre endroit.', real: ['Un lien sur Internet t’emmène tout de suite sur une autre page.', 'Dans les jeux, les portails emmènent les personnages dans de nouveaux mondes.'] },
+    },
+  },
+};

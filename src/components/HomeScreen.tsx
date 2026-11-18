@@ -1,5 +1,5 @@
 // Startbildschirm: illustrierte Abenteuerkarte mit den drei Themenwelten
-import { Globe, RotateCcw, Shirt, Star, Volume2, VolumeX } from 'lucide-react';
+import { BookOpen, Globe, RotateCcw, Shirt, Star, Volume2, VolumeX } from 'lucide-react';
 import { useState, type CSSProperties } from 'react';
 import type { CostumeId } from '../data/costumes';
 import { levelsFor } from '../data/levels';
@@ -19,6 +19,7 @@ interface Props {
   starsIn: (g: AgeGroupId) => number;
   onPick: (g: AgeGroupId) => void;
   onWardrobe: () => void;
+  onAlbum: () => void;
   onResetProgress: () => void;
 }
 
@@ -53,7 +54,7 @@ const SCENE_POS = [
   { l: '50%', t: '12%', s: 1 },
 ];
 
-export function HomeScreen({ sound, costume, totalStars, starsIn, onPick, onWardrobe, onResetProgress }: Props) {
+export function HomeScreen({ sound, costume, totalStars, starsIn, onPick, onWardrobe, onAlbum, onResetProgress }: Props) {
   const [confirmReset, setConfirmReset] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
   const { t, lang, setLang } = useI18n();
@@ -77,17 +78,32 @@ export function HomeScreen({ sound, costume, totalStars, starsIn, onPick, onWard
         <div className="mx-auto flex max-w-xl flex-col items-center px-4 pb-10">
           {/* Kopfzeile */}
           <div className="flex w-full items-center justify-between py-3">
-            <button
-              type="button"
-              onClick={() => {
-                sound.play('click');
-                onWardrobe();
-              }}
-              className="squish flex h-12 items-center gap-2 rounded-[1.2rem] px-3 font-bold"
-              style={{ '--c': '#d946ef' } as CSSProperties}
-            >
-              <Shirt className="h-6 w-6" /> {t.home.costumes}
-            </button>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  sound.play('click');
+                  onWardrobe();
+                }}
+                aria-label={t.home.costumes}
+                className="squish flex h-12 items-center gap-2 rounded-[1.2rem] px-3 font-bold"
+                style={{ '--c': '#d946ef' } as CSSProperties}
+              >
+                <Shirt className="h-6 w-6" /> <span className="hidden sm:inline">{t.home.costumes}</span>
+              </button>
+              <button
+                type="button"
+                aria-label={t.cards.album}
+                onClick={() => {
+                  sound.play('click');
+                  onAlbum();
+                }}
+                className="squish flex h-12 items-center gap-2 rounded-[1.2rem] px-3 font-bold"
+                style={{ '--c': '#0ea5e9' } as CSSProperties}
+              >
+                <BookOpen className="h-6 w-6" />
+              </button>
+            </div>
             <div className="glass flex items-center gap-1 rounded-full px-3 py-1.5 text-lg font-bold text-slate-700">
               <Star className="h-5 w-5 fill-yellow-300 text-amber-500" /> {totalStars}
             </div>
@@ -110,7 +126,7 @@ export function HomeScreen({ sound, costume, totalStars, starsIn, onPick, onWard
           </div>
 
           {/* Titel mit Sparky */}
-          <div className="mt-1 h-28 w-28 sm:h-36 sm:w-36">
+          <div className="mt-8 h-28 w-28 sm:h-36 sm:w-36">
             <Sparky mood="happy" costume={costume} />
           </div>
           <h1

@@ -3,6 +3,7 @@
 // Abenteuerkarte → Welt-Karte (20 Level) → Spiel   (+ Kostüm-Schrank)
 // ─────────────────────────────────────────────────────────────
 import { useCallback, useState } from 'react';
+import { Album } from './components/Album';
 import { GameScreen } from './components/GameScreen';
 import { HomeScreen } from './components/HomeScreen';
 import { LevelMap } from './components/LevelMap';
@@ -16,6 +17,7 @@ import type { AgeGroupId } from './types';
 type Screen =
   | { name: 'home' }
   | { name: 'wardrobe' }
+  | { name: 'album' }
   | { name: 'map'; group: AgeGroupId }
   | { name: 'game'; levelId: string };
 
@@ -57,6 +59,7 @@ export default function App() {
           starsIn={prog.starsIn}
           onPick={(group) => setScreen({ name: 'map', group })}
           onWardrobe={() => setScreen({ name: 'wardrobe' })}
+          onAlbum={() => setScreen({ name: 'album' })}
           onResetProgress={prog.reset}
         />
       );
@@ -70,6 +73,8 @@ export default function App() {
           onBack={() => setScreen({ name: 'home' })}
         />
       );
+    case 'album':
+      return <Album sound={sound} stars={prog.progress.stars} onBack={() => setScreen({ name: 'home' })} />;
     case 'map':
       return (
         <LevelMap
@@ -94,6 +99,7 @@ export default function App() {
           onToggleSpeed={toggleSpeed}
           bestStars={prog.progress.stars[level.id] ?? 0}
           totalStars={prog.totalStars}
+          allStars={prog.progress.stars}
           costume={prog.costume}
           onSaveStars={prog.saveStars}
           onWear={prog.setCostume}

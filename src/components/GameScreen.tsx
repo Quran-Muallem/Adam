@@ -1,8 +1,10 @@
 // ─────────────────────────────────────────────────────────────
 // GameScreen: Spielfeld + Sparky-Sprechblase + Programm + Palette
 // ─────────────────────────────────────────────────────────────
-import { ChevronLeft, Play, RotateCcw, Square, Star, Trash2, Turtle, Volume2, VolumeX, Zap } from 'lucide-react';
+import { Clapperboard, ChevronLeft, Play, RotateCcw, Square, Star, Trash2, Turtle, Volume2, VolumeX, Zap } from 'lucide-react';
 import { useCallback, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { useStoredState } from '../hooks/useStoredState';
+import { cardForLevel, unlockedCards } from '../data/cards';
 import { COSTUMES, type Costume, type CostumeId } from '../data/costumes';
 import { levelsFor } from '../data/levels';
 import { pick } from '../data/messages';
@@ -10,11 +12,14 @@ import { useI18n } from '../i18n';
 import { WORLDS } from '../data/worlds';
 import { countProgram, createBlock, emptyProgram, insertBlock, isContainer, removeBlock, targetExists, updateBlock } from '../engine/program';
 import { hasBonus, rate } from '../engine/rating';
+import type { CodeLang } from '../engine/codegen';
 import { STEP_MS, useProgramRunner, type Speed } from '../hooks/useProgramRunner';
 import type { SoundApi } from '../hooks/useSoundEffects';
 import type { Block, InsertTarget, LevelDef, PaletteKind, Program, RunResult } from '../types';
 import { Board } from './Board';
+import { CodeView } from './CodeView';
 import { Confetti } from './Confetti';
+import { MoviePlayer } from './MoviePlayer';
 import { MiniWorkspace } from './MiniWorkspace';
 import { Palette } from './Palette';
 import { Particles } from './Particles';
@@ -29,6 +34,7 @@ interface Props {
   onToggleSpeed: () => void;
   bestStars: number;
   totalStars: number;
+  allStars: Record<string, number>;
   costume: CostumeId;
   onSaveStars: (levelId: string, stars: number) => void;
   onWear: (id: CostumeId) => void;
@@ -50,13 +56,23 @@ export function GameScreen(props: Props) {
 
   const [program, setProgram] = useState<Program>(emptyProgram);
   const [target, setTarget] = useState<InsertTarget>(MAIN_TARGET);
-  const [result, setResult] = useState<{ kind: 'success' | 'fail'; stars: number; message: string; newCostume: Costume | null } | null>(null);
+  const [result, setResult] = useState<{
+    kind: 'success' | 'fail';
+    stars: number;
+    message: string;
+    newCostume: Costume | null;
+    cardIsNew: boolean;
+  } | null>(null);
+  const card = cardForLevel(level.id);
   const [limitFlash, setLimitFlash] = useState(false);
+  const [movieOpen, setMovieOpen] = useState(false);
+  const [showCode, setShowCode] = useStoredState<boolean>('sparky:showCode', false);
+  const [codeLang, setCodeLang] = useStoredState<CodeLang>('sparky:codeLang', 'js');
   const [startLine, setStartLine] = useState(t.start[0]);
   const programRef = useRef(program);
   programRef.current = program;
-  const statsRef = useRef({ bestStars, totalStars });
-  statsRef.current = { bestStars, totalStars };
+  const statsRef = useRef({ bestStars, totalStars, allStars: props.allStars });
+  statsRef.current = { bestStars, totalStars, allStars: props.allStars };
 
   const siblings = levelsFor(level.group);
   const index = siblings.findIndex((l) => l.id === level.id);
@@ -68,15 +84,16 @@ export function GameScreen(props: Props) {
     (res: RunResult) => {
       if (res.outcome === 'success') {
         const stars = rate(level, res, countProgram(programRef.current));
-        const { bestStars: prevBest, totalStars: prevTotal } = statsRef.current;
+        const { bestStars: prevBest, totalStars: prevTotal, allStars } = statsRef.current;
+        const cardIsNew = !unlockedCards(allStars).has(cardForLevel(level.id).id);
         const newTotal = prevTotal - prevBest + Math.max(prevBest, stars);
         const unlocked = COSTUMES.filter((c) => c.stars > prevTotal && c.stars <= newTotal);
         play('win');
         props.onSaveStars(level.id, stars);
-        setResult({ kind: 'success', stars, message: pick(tRef.current.t.win), newCostume: unlocked[unlocked.length - 1] ?? null });
+        setResult({ kind: 'success', stars, message: pick(tRef.current.t.win), newCostume: unlocked[unlocked.length - 1] ?? null, cardIsNew });
       } else {
         play('fail');
-        setResult({ kind: 'fail', stars: 0, message: pick(tRef.current.failLines(res.reason ?? 'notReached', level.group)), newCostume: null });
+        setResult({ kind: 'fail', stars: 0, message: pick(tRef.current.failLines(res.reason ?? 'notReached', level.group)), newCostume: null, cardIsNew: false });
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -154,7 +171,12 @@ export function GameScreen(props: Props) {
   const bubble = isRunning ? startLine : levelHint(level);
 
   return (
-    <div className={`safe-area relative flex h-[100dvh] flex-col overflow-hidden bg-gradient-to-br ${world.bg}`}>
+    <div
+      className={`safe-area relative flex h-[100dvh] flex-col overflow-hidden bg-gradient-to-br ${world.bg}`}
+      onScroll={(e) => {
+        if (e.currentTarget.scrollTop) e.currentTarget.scrollTop = 0;
+      }}
+    >
       <Particles kind={world.particles} />
 
       {/* ── Kopfzeile ── */}
@@ -170,6 +192,18 @@ export function GameScreen(props: Props) {
             ))}
           </span>
         </div>
+        <RoundBtn
+          label={t.movie.button}
+          onClick={() => {
+            play('click');
+            runner.stop();
+            setMovieOpen(true);
+          }}
+          color="#facc15"
+          dark
+        >
+          <Clapperboard className="h-6 w-6" strokeWidth={2.5} />
+        </RoundBtn>
         <RoundBtn label={speed === 'turbo' ? t.ui.turbo : t.ui.normal} onClick={props.onToggleSpeed} color={speed === 'turbo' ? '#facc15' : '#ffffff'} dark>
           {speed === 'turbo' ? <Zap className="h-6 w-6 fill-amber-500 text-amber-700" /> : <Turtle className="h-6 w-6" />}
           {world.showText && <span className="hidden text-sm font-bold sm:inline">{speed === 'turbo' ? t.ui.turbo : t.ui.normal}</span>}
@@ -179,13 +213,13 @@ export function GameScreen(props: Props) {
         </RoundBtn>
       </header>
 
-      <main className="relative z-10 flex min-h-0 flex-1 flex-col gap-3 p-3 md:flex-row md:gap-5">
+      <main className="relative z-10 flex min-h-0 flex-1 flex-col gap-2.5 overflow-hidden p-3 md:flex-row md:gap-5">
         {/* ── Spielfeld ── */}
-        <div className={`flex shrink-0 flex-col gap-2 md:w-1/2 md:shrink md:justify-center ${isMini ? '[--board-h:34dvh]' : '[--board-h:27dvh]'} md:[--board-h:62dvh]`}>
+        <div className={`flex shrink-0 flex-col gap-2 md:w-1/2 md:shrink md:justify-center ${isMini ? '[--board-h:34dvh]' : showCode ? '[--board-h:19dvh]' : '[--board-h:27dvh]'} md:[--board-h:62dvh]`}>
           <div dir="ltr">
             <Board level={level} world={world} frame={frame} frameIndex={frameIndex} stepMs={stepMs} mood={mood} costume={costume} />
           </div>
-          {world.showText && bubble && (
+          {world.showText && bubble && !(showCode && !isMini) && (
             <div className="flex items-end gap-1">
               <div className="h-11 w-11 shrink-0">
                 <Sparky mood={isRunning ? 'think' : 'idle'} costume={costume} />
@@ -198,7 +232,7 @@ export function GameScreen(props: Props) {
         </div>
 
         {/* ── Programmierbereich ── */}
-        <div className="flex min-h-0 flex-1 flex-col gap-3 md:w-1/2">
+        <div className="flex min-h-0 flex-1 flex-col gap-2.5 md:w-1/2">
           {isMini ? (
             <>
               <MiniWorkspace
@@ -225,7 +259,23 @@ export function GameScreen(props: Props) {
             </>
           ) : (
             <>
-              <div className="thin-scroll min-h-[110px] flex-1 overflow-y-auto rounded-[1.8rem] bg-black/15 p-2 shadow-inner">
+              {/* Code-Brücke: Echter-Code-Schalter */}
+              <button
+                type="button"
+                onClick={() => {
+                  play('click');
+                  setShowCode((v) => !v);
+                }}
+                className={`squish flex h-9 shrink-0 items-center justify-center gap-2 self-start rounded-full px-3 text-xs font-bold sm:h-11 sm:text-sm ${showCode ? 'ring-4 ring-yellow-300' : ''}`}
+                style={{ '--c': showCode ? '#0f172a' : '#334155' } as CSSProperties}
+                aria-pressed={showCode}
+              >
+                {t.code.toggle}
+                <span className={`relative h-5 w-9 rounded-full transition ${showCode ? 'bg-emerald-400' : 'bg-white/30'}`}>
+                  <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${showCode ? 'start-[18px]' : 'start-0.5'}`} />
+                </span>
+              </button>
+              <div className={`thin-scroll flex-1 overflow-y-auto rounded-[1.8rem] bg-black/15 p-2 shadow-inner ${showCode ? 'min-h-[80px]' : 'min-h-[110px]'}`}>
                 <Workspace
                   program={program}
                   group={level.group}
@@ -244,6 +294,11 @@ export function GameScreen(props: Props) {
                   t={t}
                 />
               </div>
+              {showCode && (
+                <div className="shrink-0 animate-bounce-in">
+                  <CodeView program={program} lang={codeLang} setLang={setCodeLang} frame={frame} t={t} />
+                </div>
+              )}
 
               <div className="rounded-[1.8rem] bg-white/25 p-2 shadow-lg backdrop-blur-md">
                 <div className={`mb-2 flex items-center justify-between px-1 text-sm font-bold ${world.text}`}>
@@ -279,6 +334,7 @@ export function GameScreen(props: Props) {
         </div>
       </main>
 
+      {movieOpen && <MoviePlayer group={level.group} sound={sound} costume={costume} onClose={() => setMovieOpen(false)} />}
       {result?.kind === 'success' && <Confetti />}
       {result && (
         <ResultOverlay
@@ -289,6 +345,8 @@ export function GameScreen(props: Props) {
           t={t}
           costume={costume}
           newCostume={result.newCostume}
+          card={card}
+          cardIsNew={result.cardIsNew}
           hasNext={!!nextLevel}
           onRetry={retry}
           onNext={() => nextLevel && props.onOpenLevel(nextLevel.id)}

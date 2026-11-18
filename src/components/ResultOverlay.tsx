@@ -1,7 +1,9 @@
 // Erfolg-/Fehler-Dialog mit hüpfendem Sparky, Sternen und Kostüm-Belohnung
 import { ArrowRight, Map as MapIcon, RotateCcw, Star } from 'lucide-react';
 import type { CSSProperties, ReactNode } from 'react';
+import type { CardDef } from '../data/cards';
 import type { Costume, CostumeId } from '../data/costumes';
+import { ExplorerCard } from './ExplorerCard';
 import type { WorldConfig } from '../data/worlds';
 import type { Dict } from '../i18n';
 import { Sparky } from './Sparky';
@@ -14,6 +16,8 @@ interface Props {
   t: Dict;
   costume: CostumeId;
   newCostume: Costume | null;
+  card: CardDef;
+  cardIsNew: boolean;
   hasNext: boolean;
   onRetry: () => void;
   onNext: () => void;
@@ -26,7 +30,7 @@ export function ResultOverlay(p: Props) {
   const showText = p.world.showText;
 
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center bg-indigo-950/55 p-4 backdrop-blur-sm">
+    <div className="thin-scroll fixed inset-0 z-40 flex items-start justify-center overflow-y-auto bg-indigo-950/55 px-4 pb-6 pt-20 backdrop-blur-sm sm:items-center">
       <div className="glass relative w-full max-w-sm animate-bounce-in rounded-[2.4rem] px-6 pb-6 pt-16 text-center">
         <div className="absolute -top-16 left-1/2 h-32 w-32 -translate-x-1/2">
           <Sparky mood={success ? 'happy' : 'sad'} costume={p.costume} />
@@ -51,6 +55,12 @@ export function ResultOverlay(p: Props) {
           <p className="mb-4 text-xl font-bold text-slate-700">{p.message}</p>
         ) : (
           <p className="mb-4 text-5xl">{success ? '😋' : '🙈'}</p>
+        )}
+
+        {success && (
+          <div className="mb-4">
+            <ExplorerCard card={p.card} t={p.t} isNew={p.cardIsNew} />
+          </div>
         )}
 
         {p.newCostume && (

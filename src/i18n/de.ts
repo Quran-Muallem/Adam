@@ -1,8 +1,10 @@
 import { LEVELS } from '../data/levels';
+import { bridgeDe } from './bridge/de';
 import type { Dict } from './types';
 
 // Deutsch ist die Ausgangssprache: Level-Titel & Tipps kommen direkt aus levels.ts
 export const de: Dict = {
+  ...bridgeDe,
   langName: 'Deutsch',
   titleTop: 'Sparkys',
   titleBottom: 'Code-Abenteuer',

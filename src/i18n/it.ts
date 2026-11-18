@@ -1,6 +1,8 @@
+import { bridgeIt } from './bridge/it';
 import type { Dict } from './types';
 
 export const it: Dict = {
+  ...bridgeIt,
   langName: 'Italiano',
   titleTop: "L'avventura di codice",
   titleBottom: 'di Sparky',
