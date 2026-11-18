@@ -70,7 +70,7 @@ export const WORLDS: Record<AgeGroupId, WorldConfig> = {
     decor: ['🌲', '🍄', '🌸', '🌳', '🦋', '🌼', '🐞', '🌿'],
     path: '#fef08a',
     text: 'text-white',
-    buttonSize: 72,
+    buttonSize: 68,
   },
   junior: {
     id: 'junior',

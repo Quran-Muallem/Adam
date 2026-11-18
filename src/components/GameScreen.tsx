@@ -203,20 +203,17 @@ export function GameScreen(props: Props) {
                 pulseMs={stepMs}
                 locked={locked}
                 remove={remove}
-              />
-              <div className="flex flex-1 items-center justify-center gap-4">
+              >
+                <RoundBtn label="Zurücksetzen" onClick={() => runner.reset()} disabled={locked || !frame} color="#ffffff" dark mini>
+                  <RotateCcw className="h-7 w-7" strokeWidth={3} />
+                </RoundBtn>
+                <RoundBtn label="Alles löschen" onClick={clearAll} disabled={locked || program.main.length === 0} color="#ffffff" dark mini>
+                  <Trash2 className="h-7 w-7" strokeWidth={2.5} />
+                </RoundBtn>
+              </MiniWorkspace>
+              <div className="flex flex-1 items-center justify-center gap-3">
                 <Palette kinds={level.palette} world={world} onAdd={addBlock} disabled={locked} />
-                <div className="flex flex-col items-center gap-3">
-                  <RunButton running={isRunning} onClick={runOrStop} disabled={!!result || program.main.length === 0} />
-                  <div className="flex gap-2">
-                    <RoundBtn label="Zurücksetzen" onClick={() => runner.reset()} disabled={locked || !frame} color="#ffffff" dark big>
-                      <RotateCcw className="h-7 w-7" strokeWidth={3} />
-                    </RoundBtn>
-                    <RoundBtn label="Alles löschen" onClick={clearAll} disabled={locked || program.main.length === 0} color="#ffffff" dark big>
-                      <Trash2 className="h-7 w-7" strokeWidth={2.5} />
-                    </RoundBtn>
-                  </div>
-                </div>
+                <RunButton running={isRunning} onClick={runOrStop} disabled={!!result || program.main.length === 0} />
               </div>
             </>
           ) : (
@@ -305,6 +302,7 @@ export function RoundBtn(p: {
   color: string;
   dark?: boolean;
   big?: boolean;
+  mini?: boolean;
   children: ReactNode;
 }) {
   return (
@@ -314,7 +312,7 @@ export function RoundBtn(p: {
       onClick={p.onClick}
       disabled={p.disabled}
       style={{ '--c': p.color } as CSSProperties}
-      className={`squish flex items-center justify-center gap-1 rounded-[1.2rem] px-2 ${p.big ? 'h-16 min-w-[64px]' : 'h-12 min-w-[48px]'} ${
+      className={`squish flex items-center justify-center gap-1 rounded-[1.2rem] px-2 ${p.mini ? 'h-[68px] w-[68px] rounded-[1.4rem]' : p.big ? 'h-16 min-w-[64px]' : 'h-12 min-w-[48px]'} ${
         p.dark ? '!text-slate-700 [text-shadow:none]' : ''
       }`}
     >
@@ -331,7 +329,7 @@ function RunButton(p: { running: boolean; onClick: () => void; disabled: boolean
       onClick={p.onClick}
       disabled={p.disabled && !p.running}
       style={{ '--c': p.running ? '#ef4444' : '#22c55e' } as CSSProperties}
-      className={`squish flex h-20 items-center justify-center gap-2 rounded-[1.8rem] text-2xl font-bold ${p.wide ? 'w-full' : 'w-24'} ${
+      className={`squish flex items-center justify-center gap-2 rounded-[1.8rem] text-2xl font-bold ${p.wide ? 'h-20 w-full' : 'h-24 w-[88px] shrink-0'} ${
         !p.running && !p.disabled ? 'animate-breathe' : ''
       }`}
     >

@@ -1,5 +1,5 @@
 // Spielfeld: 3D-Kacheln, Gegenstände, Portale und Sparky
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { CostumeId } from '../data/costumes';
 import type { WorldConfig } from '../data/worlds';
 import { DIR_ANGLE, DIR_VEC, initialState, parseMap, posKey } from '../engine/world';
@@ -31,11 +31,24 @@ export function Board({ level, world, frame, frameIndex, stepMs, mood, costume }
   const bump = frame?.motion === 'bump' && frame.bumpDir ? DIR_VEC[frame.bumpDir] : null;
   const teleportIn = frame?.motion === 'teleportIn';
   const showArrow = world.id !== 'mini';
-  const fontSize = `min(${62 / cols}cqw, ${62 / rows}cqh)`;
+  // Kachelgröße in Pixeln messen (statt cqw/cqh – funktioniert in jedem Android-WebView)
+  const boxRef = useRef<HTMLDivElement>(null);
+  const [cellPx, setCellPx] = useState(40);
+  useEffect(() => {
+    const el = boxRef.current;
+    if (!el) return;
+    const measure = () => setCellPx(Math.max(8, Math.min(el.clientWidth / cols, el.clientHeight / rows)));
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [cols, rows]);
+  const fontSize = `${Math.round(cellPx * 0.58)}px`;
 
   return (
     <div
-      className="relative mx-auto w-full"
+      ref={boxRef}
+      className="relative mx-auto w-full shrink-0"
       style={{ aspectRatio: `${cols} / ${rows}`, maxWidth: `min(100%, calc(var(--board-h) * ${cols} / ${rows}))` }}
     >
       {/* Sockel mit weichem 3D-Schatten */}
@@ -43,9 +56,9 @@ export function Board({ level, world, frame, frameIndex, stepMs, mood, costume }
       <div
         className="absolute inset-0 grid gap-[2px] overflow-hidden rounded-[1.6rem] p-[3px]"
         style={{
-          gridTemplateColumns: `repeat(${cols}, 1fr)`,
-          gridTemplateRows: `repeat(${rows}, 1fr)`,
-          containerType: 'size',
+          // minmax(0,1fr): alle Reihen/Spalten exakt gleich groß, egal wie groß der Inhalt ist
+          gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+          gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
           background: world.frame,
           boxShadow: `inset 0 3px 0 rgba(255,255,255,.7), 0 0 0 4px ${world.frame}`,
         }}
@@ -56,7 +69,7 @@ export function Board({ level, world, frame, frameIndex, stepMs, mood, costume }
             const wall = tile === '#';
             const bg = wall ? world.wallTile : (x + y) % 2 === 0 ? world.tileA : world.tileB;
             return (
-              <div key={k} className="tile relative flex items-center justify-center rounded-[22%]" style={{ background: bg, fontSize }}>
+              <div key={k} className="tile relative flex min-h-0 min-w-0 items-center justify-center overflow-hidden rounded-[22%] leading-none" style={{ background: bg, fontSize }}>
                 <TileContent tile={tile} world={world} state={state} k={k} />
               </div>
             );

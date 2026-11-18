@@ -1,5 +1,5 @@
 // Workspace für die Kleinsten: große Slots, nur Symbole, Antippen = entfernen
-import type { CSSProperties } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import type { Block, Frame } from '../types';
 import { BLOCK_META, kindOf } from './blockMeta';
 
@@ -11,9 +11,11 @@ interface Props {
   pulseMs: number;
   locked: boolean;
   remove: (id: string) => void;
+  /** Zusätzliche Knöpfe (Zurücksetzen, Löschen) */
+  children?: ReactNode;
 }
 
-export function MiniWorkspace({ blocks, slots, frame, frameIndex, pulseMs, locked, remove }: Props) {
+export function MiniWorkspace({ blocks, slots, frame, frameIndex, pulseMs, locked, remove, children }: Props) {
   const currentId = frame?.activeIds[frame.activeIds.length - 1];
   return (
     <div className="glass flex flex-wrap items-center justify-center gap-2 rounded-[2rem] p-3">
@@ -54,6 +56,7 @@ export function MiniWorkspace({ blocks, slots, frame, frameIndex, pulseMs, locke
           </button>
         );
       })}
+      {children && <div className="ml-1 flex gap-2 border-l-2 border-slate-200 pl-3">{children}</div>}
     </div>
   );
 }
